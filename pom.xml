@@ -19,6 +19,7 @@
     <modules>
         <module>im-service</module>
         <module>im-common</module>
+        <module>im-gateway</module>
     </modules>
 
     <properties>

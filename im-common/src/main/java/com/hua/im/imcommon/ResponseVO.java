@@ -7,10 +7,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
+/**
+ * @author Shukun.Li
+ * @param <T>
+ */
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
 public class ResponseVO<T> {
 
@@ -40,7 +42,7 @@ public class ResponseVO<T> {
         return new ResponseVO(enums.getCode(), enums.getError());
     }
 
-    public boolean isOk(){
+    public boolean isOk() {
         return this.code == 200;
     }
 
@@ -48,20 +50,25 @@ public class ResponseVO<T> {
     public ResponseVO(int code, String msg) {
         this.code = code;
         this.msg = msg;
-//		this.data = null;
     }
 
-    public ResponseVO success(){
+    public ResponseVO(int code, String msg, T data) {
+        this.code = code;
+        this.msg = msg;
+        this.data = data;
+    }
+
+    public ResponseVO success() {
         this.code = 200;
         this.msg = "success";
         return this;
     }
 
-    public ResponseVO success(T data){
+    public ResponseVO success(T data) {
         this.code = 200;
         this.msg = "success";
         this.data = data;
         return this;
     }
-    
+
 }
