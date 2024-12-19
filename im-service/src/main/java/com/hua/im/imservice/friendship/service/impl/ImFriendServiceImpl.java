@@ -69,12 +69,12 @@ public class ImFriendServiceImpl implements ImFriendService {
     @Override
     public ResponseVO addFriend(AddFriendReq req) {
         ResponseVO<ImUserDataEntity> fromInfo = imUserService.getSingleUserInfo(req.getFromId(), req.getAppId());
-        if (!fromInfo.isOk()) {
+        if (fromInfo.isOk()) {
             return fromInfo;
         }
 
         ResponseVO<ImUserDataEntity> toInfo = imUserService.getSingleUserInfo(req.getToItem().getToId(), req.getAppId());
-        if (!toInfo.isOk()) {
+        if (toInfo.isOk()) {
             return toInfo;
         }
 
@@ -90,7 +90,7 @@ public class ImFriendServiceImpl implements ImFriendService {
             ImFriendShipEntity fromItem = imFriendShipMapper.selectOne(query);
             if (fromItem == null || fromItem.getStatus() != FriendShipStatusEnum.FRIEND_STATUS_NORMAL.getCode()) {
                 //插入一条好友申请数据
-                ResponseVO responseVO = imF
+                //ResponseVO responseVO = imF
             }
         }
 
@@ -201,7 +201,7 @@ public class ImFriendServiceImpl implements ImFriendService {
 
     @Override
     public ResponseVO addBlack(AddFriendShipBlackReq req) {
-        if(StringUtils.isNotEmpty(req))
+       // if(StringUtils.isNotEmpty(req))
         return null;
     }
 

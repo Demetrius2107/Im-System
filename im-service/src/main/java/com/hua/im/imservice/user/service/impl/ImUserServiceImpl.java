@@ -16,12 +16,10 @@ import com.hua.im.imservice.user.model.resp.ImportUserResp;
 import com.hua.im.imservice.user.service.ImUserService;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,22 +34,18 @@ public class ImUserServiceImpl implements ImUserService {
     @Autowired
     ImUserDataMapper imUserDataMapper;
 
-    private Logger logger;
-
     /**
      * 导入用户资料
      *
-     * @param req
-     * @return
+     * @param req 导入用户请求体
+     * @return ResponseVO
      */
     @Override
-    public ResponseVO importUser(ImportUserReq req) {
-
+    public ResponseVO<ImportUserResp> importUser(ImportUserReq req) {
         // 导入用户数量大小判断
         if (req.getUserData().size() > 100) {
             return ResponseVO.errorResponse(UserErrorCode.IMPORT_SIZE_BEYOND);
         }
-
         ImportUserResp resp = new ImportUserResp();
         //导入成功id
         List<String> successId = new ArrayList<>();
@@ -66,7 +60,7 @@ public class ImUserServiceImpl implements ImUserService {
                     successId.add(data.getUserId());
                 }
             } catch (Exception e) {
-                logger.error("import user error in:{}", String.valueOf(e));
+                e.printStackTrace();
                 errorId.add(data.getUserId());
             }
         }
@@ -79,8 +73,8 @@ public class ImUserServiceImpl implements ImUserService {
     /**
      * 获取用户信息
      *
-     * @param req
-     * @return
+     * @param req 获取用户信息请求体
+     * @return ResponseVO
      */
     @Override
     public ResponseVO<GetUserInfoResp> getUserInfo(GetUserInfoReq req) {
@@ -113,13 +107,13 @@ public class ImUserServiceImpl implements ImUserService {
     /**
      * 获取单个用户信息
      *
-     * @param userId
-     * @param appId
-     * @return
+     * @param userId 用户id
+     * @param appId appId
+     * @return ResponseVO
      */
     @Override
     public ResponseVO<ImUserDataEntity> getSingleUserInfo(String userId, Integer appId) {
-        QueryWrapper objectQueryWrapper = new QueryWrapper<>();
+        QueryWrapper<ImUserDataEntity> objectQueryWrapper = new QueryWrapper<>();
         if(StringUtils.isNotEmpty(userId)){
             objectQueryWrapper.eq("app_id", appId);
         }
@@ -137,7 +131,7 @@ public class ImUserServiceImpl implements ImUserService {
     }
 
     @Override
-    public ResponseVO deleteUser(DeleteUserReq req) {
+    public ResponseVO<ImportUserResp> deleteUser(DeleteUserReq req) {
         ImUserDataEntity entity = new ImUserDataEntity();
         entity.setDelFlag(DelFlagEnum.DELETE.getCode());
 
@@ -145,11 +139,11 @@ public class ImUserServiceImpl implements ImUserService {
         List<String> successId = new ArrayList<>();
 
         for (String userId : req.getUserId()) {
-            QueryWrapper wrapper = new QueryWrapper();
+            QueryWrapper<ImUserDataEntity> wrapper = new QueryWrapper<>();
             wrapper.eq("app_id", req.getAppId());
             wrapper.eq("user_id", userId);
             wrapper.eq("del_flag", DelFlagEnum.NORMAL.getCode());
-            int update = 0;
+            int update;
 
             try {
                 update = imUserDataMapper.update(entity, wrapper);
@@ -162,13 +156,18 @@ public class ImUserServiceImpl implements ImUserService {
                 errorId.add(userId);
             }
         }
-        return null;
+
+
+        ImportUserResp resp = new ImportUserResp();
+        resp.setSuccessId(successId);
+        resp.setErrorId(errorId);
+        return ResponseVO.successResponse(resp);
     }
 
     @Override
     @Transactional
     public ResponseVO modifyUserInfo(ModifyUserInfoReq req) {
-        QueryWrapper queryWrapper = new QueryWrapper<>();
+        QueryWrapper<ImUserDataEntity> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("app_id", req.getAppId());
         queryWrapper.eq("user_id", req.getUserId());
         queryWrapper.eq("del_flag", DelFlagEnum.NORMAL.getCode());

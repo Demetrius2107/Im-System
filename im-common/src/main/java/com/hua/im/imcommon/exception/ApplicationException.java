@@ -1,9 +1,12 @@
 package com.hua.im.imcommon.exception;
 
+import lombok.Getter;
+
 /**
- * @author: Chackylee
+ * @author: ShuKun.Li
  * @description:
  **/
+@Getter
 public class ApplicationException extends RuntimeException {
 
     private int code;
@@ -21,14 +24,6 @@ public class ApplicationException extends RuntimeException {
         super(exceptionEnum.getError());
         this.code   = exceptionEnum.getCode();
         this.error  = exceptionEnum.getError();
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public String getError() {
-        return error;
     }
 
 

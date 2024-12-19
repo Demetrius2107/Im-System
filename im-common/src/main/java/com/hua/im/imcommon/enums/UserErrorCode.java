@@ -2,6 +2,10 @@ package com.hua.im.imcommon.enums;
 
 import com.hua.im.imcommon.exception.ApplicationExceptionEnum;
 
+/**
+ * @author Shukun.Li
+ */
+
 public enum UserErrorCode implements ApplicationExceptionEnum {
 
     IMPORT_SIZE_BEYOND(20000, "导入数量超出上限"),

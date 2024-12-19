@@ -36,7 +36,7 @@ public class ImFriendShipRequestServiceImpl implements ImFriendShipRequestServic
         if(request == null){
             request = new ImFriendShipRequestEntity();
             request.setAddSource(dto.getAddSource());
-            request.setAddWording
+           // request.setAddWording
         }
 
     }
@@ -46,7 +46,7 @@ public class ImFriendShipRequestServiceImpl implements ImFriendShipRequestServic
     public ResponseVO approveFriendRequest(ApproveFriendRequestReq req) {
 
         QueryWrapper<ImFriendShipRequestEntity> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("app_id",);
+        //queryWrapper.eq("app_id",);
         return null;
     }
 

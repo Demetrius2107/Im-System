@@ -2,14 +2,13 @@ package com.hua.im.imcommon;
 
 
 import com.hua.im.imcommon.exception.ApplicationExceptionEnum;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * @author Shukun.Li
  * @param <T>
+ * @author Shukun.Li
  */
 @Data
 @Builder
@@ -22,24 +21,24 @@ public class ResponseVO<T> {
 
     private T data;
 
-    public static ResponseVO successResponse(Object data) {
-        return new ResponseVO(200, "success", data);
+    public static <T> ResponseVO<T> successResponse(T data) {
+        return new ResponseVO<>(200, "success", data);
     }
 
-    public static ResponseVO successResponse() {
-        return new ResponseVO(200, "success");
+    public static <T> ResponseVO<T> successResponse() {
+        return new ResponseVO<>(200, "success");
     }
 
-    public static ResponseVO errorResponse() {
-        return new ResponseVO(500, "系统内部异常");
+    public static <T> ResponseVO<T> errorResponse() {
+        return new ResponseVO<>(500, "系统内部异常");
     }
 
-    public static ResponseVO errorResponse(int code, String msg) {
-        return new ResponseVO(code, msg);
+    public static <T> ResponseVO<T> errorResponse(int code, String msg) {
+        return new ResponseVO<>(code, msg);
     }
 
-    public static ResponseVO errorResponse(ApplicationExceptionEnum enums) {
-        return new ResponseVO(enums.getCode(), enums.getError());
+    public static <T> ResponseVO<T> errorResponse(ApplicationExceptionEnum enums) {
+        return new ResponseVO<>(enums.getCode(), enums.getError());
     }
 
     public boolean isOk() {
@@ -47,24 +46,24 @@ public class ResponseVO<T> {
     }
 
 
-    public ResponseVO(int code, String msg) {
+    private ResponseVO(int code, String msg) {
         this.code = code;
         this.msg = msg;
     }
 
-    public ResponseVO(int code, String msg, T data) {
+    private ResponseVO(int code, String msg, T data) {
         this.code = code;
         this.msg = msg;
         this.data = data;
     }
 
-    public ResponseVO success() {
+    public ResponseVO<T> success() {
         this.code = 200;
         this.msg = "success";
         return this;
     }
 
-    public ResponseVO success(T data) {
+    public ResponseVO<T> success(T data) {
         this.code = 200;
         this.msg = "success";
         this.data = data;

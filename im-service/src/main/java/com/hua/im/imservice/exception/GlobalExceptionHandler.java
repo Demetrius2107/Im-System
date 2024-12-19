@@ -17,6 +17,9 @@ import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.util.Set;
 
+/**
+ * @author Shukun.Li
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -28,8 +31,8 @@ public class GlobalExceptionHandler {
         ResponseVO resultBean =new ResponseVO();
         resultBean.setCode(BaseErrorCode.SYSTEM_ERROR.getCode());
         resultBean.setMsg(BaseErrorCode.SYSTEM_ERROR.getError());
-        /**
-         * 未知异常的话，这里写逻辑，发邮件，发短信都可以、、
+        /*
+          未知异常的话，这里写逻辑，发邮件，发短信都可以、、
          */
         return resultBean;
     }
@@ -38,8 +41,8 @@ public class GlobalExceptionHandler {
     /**
      * Validator 参数校验异常处理
      *
-     * @param ex
-     * @return
+     * @param ex ConstraintViolationException
+     * @return Object
      */
     @ExceptionHandler(value = ConstraintViolationException.class)
     @ResponseBody
@@ -64,7 +67,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ApplicationException.class)
     @ResponseBody
     public Object applicationExceptionHandler(ApplicationException e) {
-        // 使用公共的结果类封装返回结果, 这里我指定状态码为
         ResponseVO resultBean =new ResponseVO();
         resultBean.setCode(e.getCode());
         resultBean.setMsg(e.getError());

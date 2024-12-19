@@ -4,6 +4,9 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.hua.im.imservice.user.dao.ImUserDataEntity;
 import org.apache.ibatis.annotations.Mapper;
 
+/**
+ * @author Shukun.Li
+ */
 @Mapper
 public interface ImUserDataMapper extends BaseMapper<ImUserDataEntity> {
 }

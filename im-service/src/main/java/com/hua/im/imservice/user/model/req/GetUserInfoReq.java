@@ -5,8 +5,14 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * @author Shukun.Li
+ */
 @Data
 public class GetUserInfoReq extends RequestBase {
 
+    /**
+     * 用户ID集合
+     */
     private List<String> userIds;
 }

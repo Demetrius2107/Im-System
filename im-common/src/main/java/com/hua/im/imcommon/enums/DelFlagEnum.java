@@ -1,5 +1,9 @@
 package com.hua.im.imcommon.enums;
 
+/**
+ * @author Shukun.Li
+ */
+
 public enum DelFlagEnum {
 
     NORMAL(0),

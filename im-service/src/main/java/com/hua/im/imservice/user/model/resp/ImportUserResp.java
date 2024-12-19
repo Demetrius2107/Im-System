@@ -4,6 +4,9 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * @author Shukun.Li
+ */
 @Data
 public class ImportUserResp {
 

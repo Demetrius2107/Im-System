@@ -5,6 +5,9 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.github.jeffreyning.mybatisplus.anno.AutoMap;
 import lombok.Data;
 
+/**
+ * @author Shukun.Li
+ */
 @Data
 @TableName("im_friendship")
 @AutoMap

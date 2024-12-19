@@ -2,6 +2,10 @@ package com.hua.im.imcommon.enums;
 
 import com.hua.im.imcommon.exception.ApplicationExceptionEnum;
 
+/**
+ * @author Shukun.Li
+ */
+
 public enum FriendShipErrorCode implements ApplicationExceptionEnum {
 
     IMPORT_SIZE_BEYOND(30000, "导入數量超出上限"),
