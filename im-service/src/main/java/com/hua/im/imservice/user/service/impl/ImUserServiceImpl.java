@@ -1,5 +1,6 @@
 package com.hua.im.imservice.user.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hua.im.imcommon.ResponseVO;
 import com.hua.im.imcommon.enums.DelFlagEnum;
@@ -113,17 +114,11 @@ public class ImUserServiceImpl implements ImUserService {
      */
     @Override
     public ResponseVO<ImUserDataEntity> getSingleUserInfo(String userId, Integer appId) {
-        QueryWrapper<ImUserDataEntity> objectQueryWrapper = new QueryWrapper<>();
-        if(StringUtils.isNotEmpty(userId)){
-            objectQueryWrapper.eq("app_id", appId);
-        }
-        if(ObjectUtils.isNotEmpty(userId)){
-            objectQueryWrapper.eq("user_id",userId);
-        }
-        objectQueryWrapper.eq("user_id", userId);
-        objectQueryWrapper.eq("del_flag", DelFlagEnum.NORMAL.getCode());
-
-        ImUserDataEntity imUserDataEntity = imUserDataMapper.selectOne(objectQueryWrapper);
+        LambdaQueryWrapper<ImUserDataEntity> lambdaQueryWrapper = new LambdaQueryWrapper<ImUserDataEntity>()
+                .eq(ImUserDataEntity::getAppId,appId)
+                .eq(ImUserDataEntity::getUserId,userId)
+                .eq(ImUserDataEntity::getDelFlag,DelFlagEnum.NORMAL.getCode());
+        ImUserDataEntity imUserDataEntity = imUserDataMapper.selectOne(lambdaQueryWrapper);
         if (imUserDataEntity == null) {
             return ResponseVO.errorResponse(UserErrorCode.USER_IS_NOT_EXIST);
         }

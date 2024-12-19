@@ -3,6 +3,9 @@ package com.hua.im.imcommon.model;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * @author Shukun.Li
+ */
 @Data
 @NoArgsConstructor
 public class ClientInfo {

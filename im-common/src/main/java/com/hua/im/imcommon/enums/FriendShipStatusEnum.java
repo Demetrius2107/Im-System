@@ -17,7 +17,7 @@ public enum FriendShipStatusEnum {
      *
      */
     BLACK_STATUS_NORMAL(1),
-    BLACK_STATUS_BALCKED(2),
+    BLACK_STATUS_BLACKED(2),
     ;
 
     private int code;

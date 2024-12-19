@@ -1,5 +1,8 @@
 package com.hua.im.imcommon.model;
 
+/**
+ * @author Shukun.Li
+ */
 public class UserSession {
 
     /**
@@ -12,9 +15,14 @@ public class UserSession {
      */
     private Integer clientType;
 
+    /**
+     * 版本号
+     */
     private Integer version;
 
-    //连接状态 1=在线 2=离线
+    /**
+     * 连接状态 1=在线 2=离线
+     */
     private Integer connectState;
 
     private Integer brokerId;

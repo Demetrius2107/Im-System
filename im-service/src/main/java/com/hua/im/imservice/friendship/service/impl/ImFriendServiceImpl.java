@@ -1,6 +1,6 @@
 package com.hua.im.imservice.friendship.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.hua.im.imcommon.ResponseVO;
 import com.hua.im.imcommon.enums.AllowFriendTypeEnum;
 import com.hua.im.imcommon.enums.FriendShipErrorCode;
@@ -17,10 +17,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author Shukun.Li
+ */
 @Service
 public class ImFriendServiceImpl implements ImFriendService {
 
@@ -68,38 +72,73 @@ public class ImFriendServiceImpl implements ImFriendService {
 
     @Override
     public ResponseVO addFriend(AddFriendReq req) {
-        ResponseVO<ImUserDataEntity> fromInfo = imUserService.getSingleUserInfo(req.getFromId(), req.getAppId());
-        if (fromInfo.isOk()) {
-            return fromInfo;
+        // 查询A 添加好友发送方 用户对象
+        ResponseVO<ImUserDataEntity> fromImUserInfo = imUserService.getSingleUserInfo(req.getFromId(), req.getAppId());
+        if (fromImUserInfo.isOk()) {
+            return fromImUserInfo;
         }
 
-        ResponseVO<ImUserDataEntity> toInfo = imUserService.getSingleUserInfo(req.getToItem().getToId(), req.getAppId());
-        if (toInfo.isOk()) {
-            return toInfo;
+        // 查询B 添加好友接收方 用户对象
+        ResponseVO<ImUserDataEntity> toImUserInfo = imUserService.getSingleUserInfo(req.getToItem().getToId(), req.getAppId());
+        if (toImUserInfo.isOk()) {
+            return toImUserInfo;
         }
 
-        ImUserDataEntity data = toInfo.getData();
+        ImUserDataEntity data = toImUserInfo.getData();
 
+        // 如果添加好友接收方B 好友添加类型不为空且验证类型为不需要验证 则直接执行添加好友逻辑
         if (data.getFriendAllowType() != null && data.getFriendAllowType() == AllowFriendTypeEnum.NOT_NEED.getCode()) {
             return this.doAddFriend(req, req.getFromId(), req.getToItem(), req.getAppId());
         } else {
-            QueryWrapper<ImFriendShipEntity> query = new QueryWrapper<>();
-            query.eq("app_id", req.getAppId());
-            query.eq("from_id", req.getFromId());
-            query.eq("to_id", req.getToItem().getToId());
-            ImFriendShipEntity fromItem = imFriendShipMapper.selectOne(query);
+
+            // 添加好友接收方需要验证
+            LambdaQueryWrapper<ImFriendShipEntity> lambdaQueryWrapper = new LambdaQueryWrapper<ImFriendShipEntity>()
+                    .eq(ImFriendShipEntity::getAppId, req.getAppId())
+                    .eq(ImFriendShipEntity::getFromId, req.getFromId())
+                    .eq(ImFriendShipEntity::getToId, req.getToItem().getToId());
+
+            ImFriendShipEntity fromItem = imFriendShipMapper.selectOne(lambdaQueryWrapper);
             if (fromItem == null || fromItem.getStatus() != FriendShipStatusEnum.FRIEND_STATUS_NORMAL.getCode()) {
-                //插入一条好友申请数据
-                //ResponseVO responseVO = imF
+                //插入一条好友申请的数据
+              /*  ResponseVO responseVO = imFriendShipRequestService.addFriendshipRequest(req.getFromId(), req.getToItem(), req.getAppId());
+                if(!responseVO.isOk()){
+                    return responseVO;
+                }*/
             }
         }
 
-        return null;
+        return ResponseVO.successResponse();
     }
 
     @Override
     public ResponseVO updateFriend(UpdateFriendReq req) {
-        return null;
+        // 更新好友
+        ResponseVO<ImUserDataEntity> fromInfo = imUserService.getSingleUserInfo(req.getFromId(), req.getAppId());
+        if (!fromInfo.isOk()) {
+            return fromInfo;
+        }
+
+        ResponseVO<ImUserDataEntity> toInfo = imUserService.getSingleUserInfo(req.getToItem().getToId(), req.getAppId());
+        if (!toInfo.isOk()) {
+            return toInfo;
+        }
+
+        return this.doUpdate(req.getFromId(), req.getToItem(), req.getAppId());
+    }
+
+    @Transactional
+    public ResponseVO doUpdate(String fromId, FriendDto dto, Integer appId) {
+        LambdaQueryWrapper<ImFriendShipEntity> updateLambdaQueryWrapper = new LambdaQueryWrapper<ImFriendShipEntity>()
+                .eq(ImFriendShipEntity::getExtra, dto.getExtra())
+                .eq(ImFriendShipEntity::getExtra, dto.getRemark())
+                .eq(ImFriendShipEntity::getAppId, appId)
+                .eq(ImFriendShipEntity::getToId, dto.getToId())
+                .eq(ImFriendShipEntity::getFromId, fromId);
+        int update = imFriendShipMapper.update(null, updateLambdaQueryWrapper);
+        if (update == 1) {
+            return ResponseVO.successResponse();
+        }
+        return ResponseVO.errorResponse();
     }
 
     @Override
@@ -124,49 +163,59 @@ public class ImFriendServiceImpl implements ImFriendService {
 
     @Override
     public ResponseVO doAddFriend(RequestBase requestBase, String fromId, FriendDto dto, Integer appId) {
-        //A-B
-        //Friend 表插入A和B两条记录
-        //查询是否有记录存在，如果存在则判断状态，如果是已添加，则提示已添加，如果是未添加，则修改状态
+        // A-B
+        // Friend 表插入A和B两条记录(好友双方相互记录 to from)
+        // 查询是否有记录存在，如果存在则判断状态，如果是已添加，则提示已添加，如果是未添加，则修改状态
 
-        QueryWrapper<ImFriendShipEntity> query = new QueryWrapper<>();
-        query.eq("app_id", appId);
-        query.eq("from_id", fromId);
-        query.eq("to_id", dto.getToId());
-        ImFriendShipEntity fromItem = imFriendShipMapper.selectOne(query);
+        // A记录逻辑
+        // 查询好友关系链表中是否存在满足条件的数据
+        LambdaQueryWrapper<ImFriendShipEntity> lambdaQueryWrapper = new LambdaQueryWrapper<ImFriendShipEntity>()
+                .eq(ImFriendShipEntity::getAppId, appId)
+                .eq(ImFriendShipEntity::getFromId, fromId)
+                .eq(ImFriendShipEntity::getToId, dto.getToId());
+        ImFriendShipEntity fromItem = imFriendShipMapper.selectOne(lambdaQueryWrapper);
+
+        // 如果不存在则执行添加逻辑
         if (fromItem == null) {
-            //添加逻辑
+            // 添加逻辑,重新构建关系链实体
             fromItem = new ImFriendShipEntity();
+            // 设置appId
             fromItem.setAppId(appId);
+            // 添加好友申请方-->发送方ID
             fromItem.setFromId(fromId);
 
             BeanUtils.copyProperties(dto, fromItem);
             fromItem.setStatus(FriendShipStatusEnum.FRIEND_STATUS_NORMAL.getCode());
             fromItem.setCreateTime(System.currentTimeMillis());
-            int insert = imFriendShipMapper.insert(fromItem);
-            if (insert != 1) {
+            // 关系链表新增
+            int insertImFriendShip = imFriendShipMapper.insert(fromItem);
+            if (insertImFriendShip != 1) {
+                // 关系链表新增失败-->添加好友失败
                 return ResponseVO.errorResponse(FriendShipErrorCode.ADD_FRIEND_ERROR);
             }
         } else {
-            //如果存在则判断状态，如果是已添加，则提示已添加，如果是未添加，则修改状态
+            // 如果存在则判断状态，如果是已添加，则提示已添加，流程数据
+            // 如果是未添加，则修改状态
             if (fromItem.getStatus() == FriendShipStatusEnum.FRIEND_STATUS_NORMAL.getCode()) {
                 return ResponseVO.errorResponse(FriendShipErrorCode.TO_IS_YOUR_FRIEND);
             } else {
-                ImFriendShipEntity update = new ImFriendShipEntity();
+                // 构建新的好友关系链实体进行更新好友关系链状态
+                ImFriendShipEntity updateImFriendShipEntity = new ImFriendShipEntity();
 
                 if (StringUtils.isNotBlank(dto.getAddSource())) {
-                    update.setAddSource(dto.getAddSource());
+                    updateImFriendShipEntity.setAddSource(dto.getAddSource());
                 }
 
                 if (StringUtils.isNotBlank(dto.getRemark())) {
-                    update.setRemark(dto.getRemark());
+                    updateImFriendShipEntity.setRemark(dto.getRemark());
                 }
 
                 if (StringUtils.isNotBlank(dto.getExtra())) {
-                    update.setExtra(dto.getExtra());
+                    updateImFriendShipEntity.setExtra(dto.getExtra());
                 }
-                update.setStatus(FriendShipStatusEnum.FRIEND_STATUS_NORMAL.getCode());
+                updateImFriendShipEntity.setStatus(FriendShipStatusEnum.FRIEND_STATUS_NORMAL.getCode());
 
-                int result = imFriendShipMapper.update(update, query);
+                int result = imFriendShipMapper.update(updateImFriendShipEntity, lambdaQueryWrapper);
                 if (result != 1) {
                     return ResponseVO.errorResponse(FriendShipErrorCode.ADD_FRIEND_ERROR);
                 }
@@ -174,23 +223,25 @@ public class ImFriendServiceImpl implements ImFriendService {
 
         }
 
-        QueryWrapper<ImFriendShipEntity> toQuery = new QueryWrapper<>();
-        toQuery.eq("app_id", appId);
-        toQuery.eq("from_id", dto.getToId());
-        toQuery.eq("to_id", fromId);
-        ImFriendShipEntity toItem = imFriendShipMapper.selectOne(toQuery);
-        if (toItem == null) {
-            toItem = new ImFriendShipEntity();
-            toItem.setAppId(appId);
-            toItem.setFromId(dto.getToId());
-            BeanUtils.copyProperties(dto, toItem);
-            toItem.setToId(fromId);
-            toItem.setStatus(FriendShipStatusEnum.FRIEND_STATUS_NORMAL.getCode());
-            toItem.setCreateTime(System.currentTimeMillis());
+        // B记录逻辑
+        LambdaQueryWrapper<ImFriendShipEntity> toQuery = new LambdaQueryWrapper<ImFriendShipEntity>()
+                .eq(ImFriendShipEntity::getAppId, appId)
+                // 因为此条是B记录 所以接收方和发送方是相反的
+                .eq(ImFriendShipEntity::getFromId, dto.getToId())
+                .eq(ImFriendShipEntity::getToId, fromId);
+        ImFriendShipEntity toItemFriendShipEntity = imFriendShipMapper.selectOne(toQuery);
+        if (toItemFriendShipEntity == null) {
+            toItemFriendShipEntity = new ImFriendShipEntity();
+            toItemFriendShipEntity.setAppId(appId);
+            toItemFriendShipEntity.setFromId(dto.getToId());
+            BeanUtils.copyProperties(dto, toItemFriendShipEntity);
+            toItemFriendShipEntity.setToId(fromId);
+            toItemFriendShipEntity.setStatus(FriendShipStatusEnum.FRIEND_STATUS_NORMAL.getCode());
+            toItemFriendShipEntity.setCreateTime(System.currentTimeMillis());
 
-            int insert = imFriendShipMapper.insert(toItem);
+            int insert = imFriendShipMapper.insert(toItemFriendShipEntity);
         } else {
-            if (FriendShipStatusEnum.FRIEND_STATUS_NORMAL.getCode() != toItem.getStatus()) {
+            if (FriendShipStatusEnum.FRIEND_STATUS_NORMAL.getCode() != toItemFriendShipEntity.getStatus()) {
                 ImFriendShipEntity update = new ImFriendShipEntity();
                 update.setStatus(FriendShipStatusEnum.FRIEND_STATUS_NORMAL.getCode());
                 imFriendShipMapper.update(update, toQuery);
@@ -201,7 +252,7 @@ public class ImFriendServiceImpl implements ImFriendService {
 
     @Override
     public ResponseVO addBlack(AddFriendShipBlackReq req) {
-       // if(StringUtils.isNotEmpty(req))
+        // if(StringUtils.isNotEmpty(req))
         return null;
     }
 

@@ -10,12 +10,39 @@ import com.hua.im.imservice.friendship.model.req.ReadFriendShipRequestReq;
  */
 public interface ImFriendShipRequestService {
 
-    public ResponseVO addFriendShipRequest(String fromId, FriendDto dto,Integer appId);
+    /**
+     * 新增好友关系请求
+     *
+     * @param fromId
+     * @param dto
+     * @param appId
+     * @return responseVO
+     */
+    public ResponseVO addFriendShipRequest(String fromId, FriendDto dto, Integer appId);
 
+    /**
+     * 验证好友关系请求
+     *
+     * @param req
+     * @return responseVO
+     */
     public ResponseVO approveFriendRequest(ApproveFriendRequestReq req);
 
+    /**
+     * 查询/浏览好友关系请求
+     *
+     * @param req
+     * @return responseVO
+     */
     public ResponseVO readFriendShipRequestReq(ReadFriendShipRequestReq req);
 
-    public ResponseVO getFriendRequest(String fromId,Integer appId);
+    /**
+     * 获取好友请求
+     *
+     * @param fromId
+     * @param appId
+     * @return responseVO
+     */
+    public ResponseVO getFriendRequest(String fromId, Integer appId);
 
 }

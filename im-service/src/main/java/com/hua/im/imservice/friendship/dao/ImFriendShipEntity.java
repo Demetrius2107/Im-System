@@ -16,9 +16,15 @@ public class ImFriendShipEntity {
     @TableField(value = "app_id")
     private Integer appId;
 
+    /**
+     * 发送方id
+     */
     @TableField(value = "from_id")
     private String fromId;
 
+    /**
+     * 接受方id
+     */
     @TableField(value = "to_id")
     private String toId;
 
@@ -37,6 +43,9 @@ public class ImFriendShipEntity {
      */
     private Integer black;
 
+    /**
+     * 创建时间
+     */
     private Long createTime;
 
     /**
@@ -54,5 +63,8 @@ public class ImFriendShipEntity {
      */
     private String addSource;
 
+    /**
+     * 拓展
+     */
     private String extra;
 }
