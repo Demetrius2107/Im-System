@@ -5,6 +5,7 @@ import com.hua.im.imcommon.ResponseVO;
 import com.hua.im.imcommon.enums.AllowFriendTypeEnum;
 import com.hua.im.imcommon.enums.FriendShipErrorCode;
 import com.hua.im.imcommon.enums.FriendShipStatusEnum;
+import com.hua.im.imcommon.exception.ApplicationException;
 import com.hua.im.imcommon.model.RequestBase;
 import com.hua.im.imservice.friendship.dao.ImFriendShipEntity;
 import com.hua.im.imservice.friendship.dao.mapper.ImFriendShipMapper;
@@ -143,7 +144,23 @@ public class ImFriendServiceImpl implements ImFriendService {
 
     @Override
     public ResponseVO deleteFriend(DeleteFriendReq req) {
-        return null;
+        LambdaQueryWrapper<ImFriendShipEntity> lambdaQueryWrapper = new LambdaQueryWrapper<ImFriendShipEntity>()
+                .eq(ImFriendShipEntity::getAppId, req.getAppId())
+                .eq(ImFriendShipEntity::getFromId, req.getFromId())
+                .eq(ImFriendShipEntity::getToId, req.getToId());
+        ImFriendShipEntity fromItem = imFriendShipMapper.selectOne(lambdaQueryWrapper);
+        if (fromItem == null) {
+            return ResponseVO.errorResponse(FriendShipErrorCode.TO_IS_NOT_YOUR_FRIEND);
+        } else {
+            if (fromItem.getStatus() != null && fromItem.getStatus() == FriendShipStatusEnum.FRIEND_STATUS_NORMAL.getCode()) {
+                ImFriendShipEntity updateImFriendShip = new ImFriendShipEntity();
+                updateImFriendShip.setStatus(FriendShipStatusEnum.FRIEND_STATUS_DELETE.getCode());
+                imFriendShipMapper.update(updateImFriendShip, lambdaQueryWrapper);
+            } else {
+                return ResponseVO.errorResponse(FriendShipErrorCode.FRIEND_IS_DELETED);
+            }
+        }
+        return ResponseVO.successResponse();
     }
 
     @Override
@@ -252,13 +269,68 @@ public class ImFriendServiceImpl implements ImFriendService {
 
     @Override
     public ResponseVO addBlack(AddFriendShipBlackReq req) {
-        // if(StringUtils.isNotEmpty(req))
-        return null;
+        ResponseVO<ImUserDataEntity> fromInfo = imUserService.getSingleUserInfo(req.getFromId(), req.getAppId());
+        if (!fromInfo.isOk()) {
+            return fromInfo;
+        }
+
+        ResponseVO<ImUserDataEntity> toInfo = imUserService.getSingleUserInfo(req.getToId(), req.getAppId());
+        if (!toInfo.isOk()) {
+            return toInfo;
+        }
+        LambdaQueryWrapper<ImFriendShipEntity> lambdaQueryWrapper = new LambdaQueryWrapper<ImFriendShipEntity>()
+                .eq(ImFriendShipEntity::getAppId, req.getAppId())
+                .eq(ImFriendShipEntity::getFromId, req.getFromId())
+                .eq(ImFriendShipEntity::getToId, req.getToId());
+
+        ImFriendShipEntity fromItem = imFriendShipMapper.selectOne(lambdaQueryWrapper);
+
+        if (fromItem == null) {
+            fromItem = new ImFriendShipEntity();
+            fromItem.setFromId(req.getFromId());
+            fromItem.setToId(req.getToId());
+            fromItem.setAppId(req.getAppId());
+            fromItem.setBlack(FriendShipStatusEnum.BLACK_STATUS_BLACKED.getCode());
+
+            fromItem.setCreateTime(System.currentTimeMillis());
+            int insert = imFriendShipMapper.insert(fromItem);
+            if (insert != 1) {
+                return ResponseVO.errorResponse(FriendShipErrorCode.ADD_FRIEND_ERROR);
+            }
+        } else {
+            // 如果存在则判断状态 如果是拉黑 则提示已拉黑
+            if (fromItem.getBlack() != null && fromItem.getBlack() == FriendShipStatusEnum.BLACK_STATUS_BLACKED.getCode()) {
+                return ResponseVO.errorResponse(FriendShipErrorCode.FRIEND_IS_BLACK);
+            } else {
+                ImFriendShipEntity updateImFriendShip = new ImFriendShipEntity();
+                updateImFriendShip.setBlack(FriendShipStatusEnum.BLACK_STATUS_BLACKED.getCode());
+                int result = imFriendShipMapper.update(updateImFriendShip, lambdaQueryWrapper);
+                if (result != 1) {
+                    return ResponseVO.errorResponse(FriendShipErrorCode.ADD_BLACK_ERROR);
+                }
+            }
+        }
+        return ResponseVO.successResponse();
     }
 
     @Override
     public ResponseVO deleteBlack(DeleteBlackReq req) {
-        return null;
+        LambdaQueryWrapper<ImFriendShipEntity> lambdaQueryWrapper = new LambdaQueryWrapper<ImFriendShipEntity>()
+                .eq(ImFriendShipEntity::getFromId, req.getFormId())
+                .eq(ImFriendShipEntity::getAppId, req.getAppId())
+                .eq(ImFriendShipEntity::getToId, req.getToId());
+        ImFriendShipEntity fromItem = imFriendShipMapper.selectOne(lambdaQueryWrapper);
+        if (fromItem.getBlack() != null && fromItem.getBlack() == FriendShipStatusEnum.BLACK_STATUS_NORMAL.getCode()) {
+            throw new ApplicationException(FriendShipErrorCode.FRIEND_IS_NOT_YOUR_BLACK);
+        }
+
+        ImFriendShipEntity updateImFriendShip = new ImFriendShipEntity();
+        updateImFriendShip.setBlack(FriendShipStatusEnum.BLACK_STATUS_NORMAL.getCode());
+        int updateImFriendShipResult = imFriendShipMapper.update(updateImFriendShip, lambdaQueryWrapper);
+        if (updateImFriendShipResult == 1) {
+            return ResponseVO.successResponse();
+        }
+        return ResponseVO.errorResponse();
     }
 
     @Override

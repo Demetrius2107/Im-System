@@ -1,6 +1,7 @@
 package com.hua.im.imservice.friendship.controller;
 
 import com.hua.im.imcommon.ResponseVO;
+import com.hua.im.imservice.friendship.model.req.DeleteFriendReq;
 import com.hua.im.imservice.friendship.model.req.UpdateFriendReq;
 import com.hua.im.imservice.friendship.service.ImFriendService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,11 @@ public class ImFriendShipController {
     public ResponseVO updateFriend(@RequestBody @Validated UpdateFriendReq req, Integer appId){
         req.setAppId(appId);
         return imFriendShipService.updateFriend(req);
+    }
+
+    @RequestMapping("/deleteFriend")
+    public ResponseVO deleteFriend(@RequestBody @Validated DeleteFriendReq req){
+        return imFriendShipService.deleteFriend(req);
     }
 
 }
