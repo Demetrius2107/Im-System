@@ -9,4 +9,10 @@ import lombok.Data;
 public class RequestBase {
 
     private Integer appId;
+
+    private String operator;
+
+    private Integer clientType;
+
+    private String imei;
 }

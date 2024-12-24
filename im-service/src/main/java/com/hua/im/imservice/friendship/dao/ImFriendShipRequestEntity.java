@@ -19,6 +19,8 @@ public class ImFriendShipRequestEntity {
 
     private String fromId;
 
+    private String toId;
+
     /**
      * 备注
      */
@@ -33,6 +35,8 @@ public class ImFriendShipRequestEntity {
      * 好友来源
      */
     private String addSource;
+
+    private String addWording;
 
     /**
      * 审批状态 1同意 2拒绝
