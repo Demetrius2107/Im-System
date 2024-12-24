@@ -12,6 +12,7 @@ import com.hua.im.imservice.friendship.service.ImFriendShipGroupService;
 import com.hua.im.imservice.user.dao.ImUserDataEntity;
 import com.hua.im.imservice.user.service.ImUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import java.util.List;
 /**
  * @author Shukun.Li
  */
+@Service
 public class ImFriendShipGroupMemberServiceImpl implements ImFriendShipGroupMemberService {
 
     @Autowired

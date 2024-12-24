@@ -5,7 +5,6 @@ import com.hua.im.imcommon.ResponseVO;
 import com.hua.im.imcommon.enums.ApproverFriendRequestStatusEnum;
 import com.hua.im.imcommon.enums.FriendShipErrorCode;
 import com.hua.im.imcommon.exception.ApplicationException;
-import com.hua.im.imservice.friendship.dao.ImFriendShipEntity;
 import com.hua.im.imservice.friendship.dao.ImFriendShipRequestEntity;
 import com.hua.im.imservice.friendship.dao.mapper.ImFriendShipRequestMapper;
 import com.hua.im.imservice.friendship.model.req.ApproveFriendRequestReq;
