@@ -26,7 +26,7 @@ public class ImFriendShipRequestController {
     public ResponseVO approveFriendRequest(@RequestBody @Validated
                                            ApproveFriendRequestReq req,
                                            Integer appId,
-                                           String identifier){
+                                           String identifier) {
         req.setAppId(appId);
         req.setOperator(identifier);
         return imFriendShipRequestService.approveFriendRequest(req);
@@ -36,7 +36,7 @@ public class ImFriendShipRequestController {
     public ResponseVO getFriendRequest(@RequestBody @Validated
                                        GetFriendShipRequestReq req,
                                        Integer appId,
-                                       String identifier){
+                                       String identifier) {
         req.setAppId(appId);
         req.setOperator(identifier);
         return imFriendShipRequestService.getFriendRequest(req.getFormId(), req.getAppId());
@@ -44,7 +44,7 @@ public class ImFriendShipRequestController {
 
     @RequestMapping("/readFriendShipRequestReq")
     public ResponseVO readFriendShipRequestReq(@RequestBody @Validated ReadFriendShipRequestReq req,
-                                               Integer appId){
+                                               Integer appId) {
         req.setAppId(appId);
         return imFriendShipRequestService.readFriendShipRequestReq(req);
     }

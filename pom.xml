@@ -20,6 +20,7 @@
         <module>im-service</module>
         <module>im-common</module>
         <module>im-gateway</module>
+        <module>im-app-server</module>
     </modules>
 
     <properties>
