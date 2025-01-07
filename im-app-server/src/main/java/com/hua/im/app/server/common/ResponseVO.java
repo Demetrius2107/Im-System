@@ -1,5 +1,11 @@
 package com.hua.im.app.server.common;
 
+import com.hua.im.app.server.exception.ApplicationExceptionEnum;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 /**
  * @author Shukun.Li
  */
