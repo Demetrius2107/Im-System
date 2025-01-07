@@ -1,5 +1,14 @@
 package com.hua.im.app.server.util;
 
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.hua.im.app.server.config.GlobalHttpClientConfig;
+
 @Component
 public class HttpRequestUtils {
 

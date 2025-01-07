@@ -1,5 +1,9 @@
 package com.hua.im.app.server.util;
 
+import java.io.IOException;
+
+import cn.hutool.core.codec.Base64Decoder;
+
 public class Base64URL {
     public static byte[] base64EncodeUrl(byte[] input) {
         byte[] base64 = new BASE64Encoder().encode(input).getBytes();
@@ -54,7 +58,7 @@ public class Base64URL {
                 default:
                     break;
             }
-        return new BASE64Decoder().decodeBuffer(new String(input,"UTF-8"));
+        return new Base64Decoder().decodeBuffer(new String(input,"UTF-8"));
     }
 
     public static byte[] base64DecodeUrl(byte[] input) throws IOException {
@@ -73,6 +77,6 @@ public class Base64URL {
                 default:
                     break;
             }
-        return new BASE64Decoder().decodeBuffer(base64.toString());
+        return new Base64Decoder().decodeBuffer(base64.toString());
     }
 }

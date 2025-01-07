@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.apache.http.client.config.RequestConfig;
 
 @Configuration
 @ConfigurationProperties(prefix = "httpclient")
@@ -20,6 +21,14 @@ public class GlobalHttpClientConfig {
 
     // 创建链接的最大时间
     private Integer connectTimeOut;
+
+    public Integer getConnectTimeOut() {
+        return connectTimeOut;
+    }
+
+    public void setConnectTimeOut(Integer connectTimeOut) {
+        this.connectTimeOut = connectTimeOut;
+    }
 
     // 链接获取超时时间
     private Integer connectionRequestTimeout;
@@ -67,5 +76,89 @@ public class GlobalHttpClientConfig {
         return httpClientBuilder;
     }
 
+
+public CloseableHttpClient getCloseableHttpClient() {
+    if (httpClientBuilder != null) {
+        return httpClientBuilder.build();
+    }
+    httpClientBuilder = HttpClientBuilder.create();
+    httpClientBuilder.setConnectionManager(getManager());
+    return httpClientBuilder.build();
 }
 
+/**
+ * Builder是RequestConfig的一个内部类 通过RequestConfig的custom方法来获取到一个Builder对象
+ * 设置builder的连接信息
+ *
+ * @return
+ */
+@Bean(name = "builder")
+public RequestConfig.Builder getBuilder() {
+    RequestConfig.Builder builder = RequestConfig.custom();
+    // Bug 修复：将 connectTimeout 改为 getConnectTimeOut()
+    return builder.setConnectTimeout(getConnectTimeOut()).setConnectionRequestTimeout(connectionRequestTimeout)
+            .setSocketTimeout(socketTimeout).setStaleConnectionCheckEnabled(staleConnectionCheckEnabled);
+}
+
+/**
+ * 使用builder构建一个RequestConfig对象
+ *
+ * @param builder
+ * @return
+ */
+@Bean
+public RequestConfig getRequestConfig(@Qualifier("builder") RequestConfig.Builder builder) {
+    return builder.build();
+}
+
+public Integer getMaxTotal() {
+    return maxTotal;
+}
+
+public void setMaxTotal(Integer maxTotal) {
+    this.maxTotal = maxTotal;
+}
+
+public Integer getDefaultMaxPerRoute() {
+    return defaultMaxPerRoute;
+}
+
+public void setDefaultMaxPerRoute(Integer defaultMaxPerRoute) {
+    this.defaultMaxPerRoute = defaultMaxPerRoute;
+}
+
+public Integer getConnectTimeout() {
+    return connectTimeout;
+}
+
+private Integer connectTimeout;
+
+public void setConnectTimeout(Integer connectTimeout) {
+    this.connectTimeout = connectTimeout;
+}
+
+public Integer getConnectionRequestTimeout() {
+    return connectionRequestTimeout;
+}
+
+public void setConnectionRequestTimeout(Integer connectionRequestTimeout) {
+    this.connectionRequestTimeout = connectionRequestTimeout;
+}
+
+public Integer getSocketTimeout() {
+    return socketTimeout;
+}
+
+public void setSocketTimeout(Integer socketTimeout) {
+    this.socketTimeout = socketTimeout;
+}
+
+public boolean isStaleConnectionCheckEnabled() {
+    return staleConnectionCheckEnabled;
+}
+
+public void setStaleConnectionCheckEnabled(boolean staleConnectionCheckEnabled) {
+    this.staleConnectionCheckEnabled = staleConnectionCheckEnabled;
+}
+
+}
