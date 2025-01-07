@@ -1,11 +1,13 @@
 package com.hua.im.app.server.config;
 
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.apache.http.client.config.RequestConfig;
 
 @Configuration
 @ConfigurationProperties(prefix = "httpclient")
@@ -19,6 +21,14 @@ public class GlobalHttpClientConfig {
 
     // 创建链接的最大时间
     private Integer connectTimeOut;
+
+    public Integer getConnectTimeOut() {
+        return connectTimeOut;
+    }
+
+    public void setConnectTimeOut(Integer connectTimeOut) {
+        this.connectTimeOut = connectTimeOut;
+    }
 
     // 链接获取超时时间
     private Integer connectionRequestTimeout;
@@ -66,8 +76,6 @@ public class GlobalHttpClientConfig {
         return httpClientBuilder;
     }
 
-}
-
 
 public CloseableHttpClient getCloseableHttpClient() {
     if (httpClientBuilder != null) {
@@ -87,7 +95,8 @@ public CloseableHttpClient getCloseableHttpClient() {
 @Bean(name = "builder")
 public RequestConfig.Builder getBuilder() {
     RequestConfig.Builder builder = RequestConfig.custom();
-    return builder.setConnectTimeout(connectTimeout).setConnectionRequestTimeout(connectionRequestTimeout)
+    // Bug 修复：将 connectTimeout 改为 getConnectTimeOut()
+    return builder.setConnectTimeout(getConnectTimeOut()).setConnectionRequestTimeout(connectionRequestTimeout)
             .setSocketTimeout(socketTimeout).setStaleConnectionCheckEnabled(staleConnectionCheckEnabled);
 }
 
@@ -121,6 +130,8 @@ public void setDefaultMaxPerRoute(Integer defaultMaxPerRoute) {
 public Integer getConnectTimeout() {
     return connectTimeout;
 }
+
+private Integer connectTimeout;
 
 public void setConnectTimeout(Integer connectTimeout) {
     this.connectTimeout = connectTimeout;

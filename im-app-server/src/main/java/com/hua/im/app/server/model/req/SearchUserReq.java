@@ -1,5 +1,10 @@
 package com.hua.im.app.server.model.req;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
+import lombok.Data;
+
 @Data
 public class SearchUserReq {
 

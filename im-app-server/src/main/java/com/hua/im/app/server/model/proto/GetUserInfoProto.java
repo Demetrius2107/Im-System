@@ -1,4 +1,6 @@
 package com.hua.im.app.server.model.proto;
+import java.util.List;
+import lombok.Data;
 
 @Data
 public class GetUserInfoProto {
