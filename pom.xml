@@ -19,8 +19,8 @@
     <modules>
         <module>im-service</module>
         <module>im-common</module>
-        <module>im-gateway</module>
-        <module>im-app-server</module>
+        <module>im-codec</module>
+        <module>im-tcp</module>
     </modules>
 
     <properties>
@@ -141,20 +141,12 @@
                 <artifactId>mybatis-plus-boot-starter</artifactId>
                 <version>${mybatis-plus.version}</version>
             </dependency>
-
-            <!--            <dependency>-->
-            <!--                <groupId>com.baomidou</groupId>-->
-            <!--                <artifactId>mybatis-plus-generator</artifactId>-->
-            <!--                <version>${mybatis-plus.version}</version>-->
-            <!--            </dependency>-->
-
             <!-- 参数校验 -->
             <dependency>
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-validator</artifactId>
                 <version>${hibernate-validator.version}</version>
             </dependency>
-
             <!-- redisson -->
             <dependency>
                 <groupId>org.redisson</groupId>
