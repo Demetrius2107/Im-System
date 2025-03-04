@@ -1,11 +1,17 @@
 package com.lip.reciver;
 
+import com.alibaba.fastjson.JSONObject;
 import com.lip.constants.Constants;
+import com.lip.model.UserClientDto;
 import com.lip.redis.RedisManager;
+import com.lip.utils.SessionSocketHolder;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import org.redisson.api.RTopic;
 import org.redisson.api.listener.MessageListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * @author: Elon
@@ -35,7 +41,14 @@ public class UserLoginMessageListener {
             @Override
             public void onMessage(CharSequence charSequence, String msg) {
                 logger.info("收到用户上线通知: " + msg);
+                UserClientDto dto = JSONObject.parseObject(msg,UserClientDto.class);
 
+                List<NioSocketChannel> nioSocketChannels = SessionSocketHolder.get(dto.getAppId(), dto.getUserId());
+
+                // NioSocketChannel 循环 判断存储的每一个Session
+                for(NioSocketChannel nioSocketChannel : nioSocketChannels){
+
+                }
 
             }
         });
