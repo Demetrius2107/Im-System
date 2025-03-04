@@ -1,15 +1,8 @@
-<<<<<<< HEAD
-HELP.md
-=======
->>>>>>> sit
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-<<<<<<< HEAD
-### STS ###
-=======
 ### IntelliJ IDEA ###
 .idea/
 .idea/modules.xml
@@ -21,7 +14,6 @@ target/
 *.ipr
 
 ### Eclipse ###
->>>>>>> sit
 .apt_generated
 .classpath
 .factorypath
@@ -30,15 +22,13 @@ target/
 .springBeans
 .sts4-cache
 
-<<<<<<< HEAD
 ### IntelliJ IDEA ###
 .idea
 *.iws
 *.iml
 *.ipr
 
-=======
->>>>>>> sit
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
@@ -51,9 +41,6 @@ build/
 
 ### VS Code ###
 .vscode/
-<<<<<<< HEAD
-=======
 
 ### Mac OS ###
 .DS_Store
->>>>>>> sit

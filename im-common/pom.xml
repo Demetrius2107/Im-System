@@ -1,21 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<<<<<<< HEAD
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>com.hua</groupId>
-    <artifactId>im-common</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>im-common</name>
-    <description>im-common</description>
-    <properties>
-        <java.version>1.8</java.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <spring-boot.version>2.6.13</spring-boot.version>
-        <kotlin.version>1.9.22</kotlin.version>
-    </properties>
-=======
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -34,7 +17,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
->>>>>>> sit
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -57,7 +39,7 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
         </dependency>
-<<<<<<< HEAD
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -89,16 +71,14 @@
         </dependencies>
     </dependencyManagement>
 
-=======
-    </dependencies>
 
->>>>>>> sit
+
     <build>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-<<<<<<< HEAD
+
                 <version>${spring-boot.version}</version>
                 <configuration>
                     <mainClass>com.hua.im.imcommon.ImCommonApplication</mainClass>
@@ -170,14 +150,12 @@
                     <target>1.8</target>
                     <encoding>UTF-8</encoding>
                 </configuration>
-=======
->>>>>>> sit
+
             </plugin>
         </plugins>
     </build>
 
-<<<<<<< HEAD
+
+
 </project>
-=======
-</project>
->>>>>>> sit
+
