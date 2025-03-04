@@ -27,7 +27,7 @@ import java.util.Map;
  * @author: Elon
  * @title: StroeP2PMessageReceiver
  * @projectName: IM-System
- * @description:
+ * @description: 个人消息储存接收器
  * @date: 2025/3/3 19:48
  */
 @Service

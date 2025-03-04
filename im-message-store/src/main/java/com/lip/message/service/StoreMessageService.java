@@ -22,7 +22,7 @@ import java.util.List;
  * @author: Elon
  * @title: StoreMessageService
  * @projectName: IM-System
- * @description:
+ * @description: 消息存储业务实现
  * @date: 2025/3/3 19:30
  */
 @Service
@@ -37,13 +37,25 @@ public class StoreMessageService {
     @Autowired
     ImGroupMessageHistoryMapper imGroupMessageHistoryMapper;
 
+    /**
+     * 事务保持一致性
+     * 存储单聊双方消息
+     * @param doStoreP2PMessageDto
+     */
     @Transactional
     public void doStoreP2PMessage(DoStoreP2PMessageDto doStoreP2PMessageDto) {
         imMessageBodyMapper.insert(doStoreP2PMessageDto.getImMessageBodyEntity());
         List<ImMessageHistoryEntity> imMessageHistoryEntities = extractToP2PMessageHistory(doStoreP2PMessageDto.getMessageContent(), doStoreP2PMessageDto.getImMessageBodyEntity());
+        // 批量存储
         imMessageHistoryMapper.insertBatchSomeColumn(imMessageHistoryEntities);
     }
 
+    /**
+     * 获取聊天双方历史消息记录
+     * @param messageContent
+     * @param imMessageBodyEntity
+     * @return
+     */
     public List<ImMessageHistoryEntity> extractToP2PMessageHistory(MessageContent messageContent,
                                                                    ImMessageBodyEntity imMessageBodyEntity) {
         List<ImMessageHistoryEntity> list = new ArrayList<>();
