@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
  * @description: server参数配置类
  * @date: 2025/3/3 18:23
  */
+@Data
 public class BootStrapConfig {
 
     private TcpConfig lim;
