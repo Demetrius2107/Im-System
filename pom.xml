@@ -1,15 +1,4 @@
-<<<<<<< HEAD
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.hua</groupId>
-    <artifactId>im-system</artifactId>
-    <packaging>pom</packaging>
-    <version>1.0.0-SNAPSHOT</version>
-    <name>im-system</name>
-    <description>l-im project</description>
-=======
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -27,13 +16,12 @@
         <module>im-service</module>
         <module>im-tcp</module>
     </modules>
->>>>>>> sit
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.3.2.RELEASE</version>
-<<<<<<< HEAD
+
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -44,16 +32,11 @@
         <module>im-app-server</module>
     </modules>
 
-    <properties>
-=======
-        <relativePath/>
-    </parent>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
->>>>>>> sit
         <java.version>1.8</java.version>
         <mybatis-plus.version>3.4.2</mybatis-plus.version>
         <hutool.version>5.0.6</hutool.version>
@@ -68,10 +51,10 @@
         <springboot.version>2.3.2.RELEASE</springboot.version>
         <netty.version>4.1.35.Final</netty.version>
         <feign.version>8.18.0</feign.version>
-<<<<<<< HEAD
+
         <kotlin.version>1.9.22</kotlin.version>
-=======
->>>>>>> sit
+
+
     </properties>
 
     <dependencies>
@@ -100,7 +83,6 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
-<<<<<<< HEAD
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib-jdk8</artifactId>
@@ -112,8 +94,6 @@
             <version>${kotlin.version}</version>
             <scope>test</scope>
         </dependency>
-=======
->>>>>>> sit
 
     </dependencies>
 
@@ -178,14 +158,13 @@
                 <version>${mybatis-plus.version}</version>
             </dependency>
 
-<<<<<<< HEAD
+
             <!--            <dependency>-->
             <!--                <groupId>com.baomidou</groupId>-->
             <!--                <artifactId>mybatis-plus-generator</artifactId>-->
             <!--                <version>${mybatis-plus.version}</version>-->
             <!--            </dependency>-->
-=======
->>>>>>> sit
+
 
             <!-- 参数校验 -->
             <dependency>
@@ -256,7 +235,7 @@
     <build>
         <plugins>
             <plugin>
-<<<<<<< HEAD
+
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
                 <version>${kotlin.version}</version>
@@ -307,10 +286,8 @@
                         </goals>
                     </execution>
                 </executions>
-=======
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
->>>>>>> sit
                 <configuration>
                     <source>8</source>
                     <target>8</target>
@@ -318,8 +295,6 @@
             </plugin>
         </plugins>
     </build>
-<<<<<<< HEAD
 
-=======
->>>>>>> sit
+
 </project>
