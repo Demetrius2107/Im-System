@@ -20,7 +20,7 @@ public class RedisManager {
         loginModel = config.getLim().getLoginModel();
         SingleClientStrategy singleClientStrategy = new SingleClientStrategy();
         redissonClient = singleClientStrategy.getRedissonClient(config.getLim().getRedis());
-        UserLogin
+
     }
 
     public static RedissonClient getRedissonClient(){

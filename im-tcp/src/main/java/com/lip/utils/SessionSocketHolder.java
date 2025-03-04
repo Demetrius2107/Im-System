@@ -8,6 +8,7 @@ import com.lip.model.UserClientDto;
 import com.lip.model.UserSession;
 import com.lip.pack.user.UserStatusChangeNotifyPack;
 import com.lip.proto.MessageHeader;
+import com.lip.redis.RedisManager;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.AttributeKey;
 import org.apache.commons.lang3.StringUtils;
@@ -31,7 +32,7 @@ public class SessionSocketHolder {
 
     private static final Map<UserClientDto, NioSocketChannel> CHANNELS = new ConcurrentHashMap<>();
 
-    public static void put(Integer appId, String userId, Integer clientType, String imei,
+    public static void put(Integer appId, String userId, Integer clientType, String imei
             , NioSocketChannel channel) {
         UserClientDto dto = new UserClientDto();
         dto.setImei(imei);
