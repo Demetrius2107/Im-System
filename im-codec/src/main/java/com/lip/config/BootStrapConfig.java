@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
  * @author: Elon
  * @title: BootStrapConfig
  * @projectName: IM-System
- * @description:
+ * @description: server参数配置类
  * @date: 2025/3/3 18:23
  */
 public class BootStrapConfig {

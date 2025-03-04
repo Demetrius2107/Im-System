@@ -11,7 +11,6 @@
  Target Server Version : 50740
  File Encoding         : 65001
 
- Date: 30/01/2023 18:41:03
 */
 
 SET NAMES utf8mb4;
@@ -32,11 +31,6 @@ CREATE TABLE `app_user`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of app_user
--- ----------------------------
-INSERT INTO `app_user` VALUES ('lld', 'lld', 'lld', '13266520732', NULL, NULL);
-
--- ----------------------------
 -- Table structure for im_conversation_set
 -- ----------------------------
 DROP TABLE IF EXISTS `im_conversation_set`;
@@ -52,13 +46,6 @@ CREATE TABLE `im_conversation_set`  (
   `app_id` int(10) NOT NULL,
   PRIMARY KEY (`app_id`, `conversation_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of im_conversation_set
--- ----------------------------
-INSERT INTO `im_conversation_set` VALUES ('0_lld2_lld', 0, 'lld2', 'lld', 0, 0, 23, 120201, 10000);
-INSERT INTO `im_conversation_set` VALUES ('0_lld_lld2', 0, 'lld', 'lld2', 1, 0, 22, 120200, 10000);
-INSERT INTO `im_conversation_set` VALUES ('0_lld_lld3', 0, 'lld', 'lld3', 0, 0, 21, 1, 10000);
 
 -- ----------------------------
 -- Table structure for im_friendship
@@ -78,12 +65,6 @@ CREATE TABLE `im_friendship`  (
   `extra` varchar(1000) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '来源',
   PRIMARY KEY (`app_id`, `from_id`, `to_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of im_friendship
--- ----------------------------
-INSERT INTO `im_friendship` VALUES (10000, 'lld', 'lld2', 'lld小号', 1, NULL, 1673919586042, NULL, NULL, 'group', NULL);
-INSERT INTO `im_friendship` VALUES (10000, 'lld2', 'lld', 'lld小号', 2, NULL, 1673919586046, NULL, NULL, 'group', NULL);
 
 -- ----------------------------
 -- Table structure for im_friendship_group
@@ -133,11 +114,6 @@ CREATE TABLE `im_friendship_request`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of im_friendship_request
--- ----------------------------
-INSERT INTO `im_friendship_request` VALUES (3, 10000, 'lld', 'lld2', 'lld小号', 0, 'group', NULL, 1, 1671612496849, 1673921920088, 4);
-
--- ----------------------------
 -- Table structure for im_group
 -- ----------------------------
 DROP TABLE IF EXISTS `im_group`;
@@ -162,13 +138,6 @@ CREATE TABLE `im_group`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of im_group
--- ----------------------------
-INSERT INTO `im_group` VALUES (10000, '123123', 'lld', 1, 'lld测试群3', 0, NULL, '', NULL, '', '', 1, 7, 1669686480634, NULL, 1671615867897);
-INSERT INTO `im_group` VALUES (10000, 'test1', 'lld', 1, 'lld测试群', 0, NULL, '', NULL, '', '', 1, 1, 1671625608444, NULL, NULL);
-INSERT INTO `im_group` VALUES (10000, 'test2', 'lld', 1, '123456', 0, NULL, '', NULL, '', '', 1, 3, 1671625622489, NULL, 1671625653981);
-
--- ----------------------------
 -- Table structure for im_group_member
 -- ----------------------------
 DROP TABLE IF EXISTS `im_group_member`;
@@ -187,16 +156,6 @@ CREATE TABLE `im_group_member`  (
   `extra` varchar(1000) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
   PRIMARY KEY (`group_member_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of im_group_member
--- ----------------------------
-INSERT INTO `im_group_member` VALUES (5, '123123', 10000, 'lld', 2, NULL, NULL, NULL, 1669686484744, NULL, NULL, NULL);
-INSERT INTO `im_group_member` VALUES (6, '123123', 10000, 'lld2', 1, NULL, NULL, '', 1669686485958, NULL, 'joinType', NULL);
-INSERT INTO `im_group_member` VALUES (7, 'test1', 10000, 'lld', 2, NULL, NULL, NULL, 1671615885587, NULL, NULL, NULL);
-INSERT INTO `im_group_member` VALUES (8, 'test1', 10000, 'lld2', 1, NULL, NULL, '', 1671615885595, NULL, 'joinType', NULL);
-INSERT INTO `im_group_member` VALUES (9, 'test2', 10000, 'lld', 0, NULL, NULL, NULL, 1671616883069, NULL, NULL, NULL);
-INSERT INTO `im_group_member` VALUES (10, 'test2', 10000, 'lld2', 2, NULL, NULL, '', 1671616883077, NULL, 'joinType', NULL);
 
 -- ----------------------------
 -- Table structure for im_group_message_history
@@ -229,6 +188,7 @@ CREATE TABLE `im_message_body`  (
   `del_flag` int(10) NULL DEFAULT NULL,
   PRIMARY KEY (`message_key`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+
 
 -- ----------------------------
 -- Table structure for im_message_history
@@ -270,14 +230,5 @@ CREATE TABLE `im_user_data`  (
   `extra` varchar(1000) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
   PRIMARY KEY (`app_id`, `user_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of im_user_data
--- ----------------------------
-INSERT INTO `im_user_data` VALUES ('lld', 10000, 'lldlld', '123', NULL, NULL, NULL, NULL, NULL, 1, 0, 0, 0, 1, 0, NULL);
-INSERT INTO `im_user_data` VALUES ('lld2', 10000, 'lld2', NULL, NULL, NULL, NULL, NULL, NULL, 2, 0, 0, 0, 1, 0, NULL);
-INSERT INTO `im_user_data` VALUES ('lld3', 10000, 'lld3', NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, 0, 0, 1, 0, NULL);
-INSERT INTO `im_user_data` VALUES ('lld6', 10000, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, 0, 0, 1, 1, NULL);
-INSERT INTO `im_user_data` VALUES ('lld7', 10000, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, 0, 0, 1, 1, NULL);
 
 SET FOREIGN_KEY_CHECKS = 1;
