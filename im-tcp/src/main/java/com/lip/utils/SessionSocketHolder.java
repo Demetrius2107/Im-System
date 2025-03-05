@@ -8,6 +8,7 @@ import com.lip.model.UserClientDto;
 import com.lip.model.UserSession;
 import com.lip.pack.user.UserStatusChangeNotifyPack;
 import com.lip.proto.MessageHeader;
+import com.lip.publish.MqMessageProducer;
 import com.lip.redis.RedisManager;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.AttributeKey;
@@ -25,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author: Elon
  * @title: SessionSocketHolder
  * @projectName: IM-System
- * @description:
+ * @description: SessionSocket持有者
  * @date: 2025/3/5 0:48
  */
 public class SessionSocketHolder {
