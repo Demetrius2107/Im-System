@@ -1,10 +1,11 @@
 package com.lip.im.imservice.user.controller;
 
-import com.hua.im.imcommon.ResponseVO;
+
 import com.lip.im.imservice.user.model.req.DeleteUserReq;
 import com.lip.im.imservice.user.model.req.ImportUserReq;
 import com.lip.im.imservice.user.model.resp.ImportUserResp;
 import com.lip.im.imservice.user.service.ImUserService;
+import com.lip.im.model.ResponseVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;

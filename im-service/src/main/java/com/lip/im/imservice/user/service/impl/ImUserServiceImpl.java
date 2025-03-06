@@ -2,18 +2,16 @@ package com.lip.im.imservice.user.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.lip.im.imservice.user.model.req.*;
 import com.lip.im.model.ResponseVO;
 import com.lip.im.model.enums.DelFlagEnum;
 import com.lip.im.model.enums.UserErrorCode;
 import com.lip.im.imservice.user.dao.mapper.ImUserDataMapper;
-import com.lip.im.imservice.user.model.req.DeleteUserReq;
-import com.lip.im.imservice.user.model.req.GetUserInfoReq;
-import com.lip.im.imservice.user.model.req.ImportUserReq;
-import com.lip.im.imservice.user.model.req.ModifyUserInfoReq;
 import com.lip.im.imservice.user.dao.ImUserDataEntity;
 import com.lip.im.imservice.user.model.resp.GetUserInfoResp;
 import com.lip.im.imservice.user.model.resp.ImportUserResp;
 import com.lip.im.imservice.user.service.ImUserService;
+import com.lip.im.model.exception.ApplicationException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -179,5 +177,15 @@ public class ImUserServiceImpl implements ImUserService {
             return ResponseVO.successResponse();
         }
         throw new ApplicationException(UserErrorCode.MODIFY_USER_ERROR);
+    }
+
+    @Override
+    public ResponseVO login(LoginReq req) {
+        return null;
+    }
+
+    @Override
+    public ResponseVO getUserSequence(GetUserSequenceReq req) {
+        return null;
     }
 }
