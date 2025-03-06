@@ -1,6 +1,5 @@
 package com.lip.im.model.model.message;
 
-
 import com.lip.im.model.model.ClientInfo;
 import lombok.Data;
 
@@ -10,7 +9,7 @@ import lombok.Data;
  * @version: 1.0
  */
 @Data
-public class MessageReciveAckContent extends ClientInfo {
+public class MessageReceiveAckContent extends ClientInfo {
 
     private Long messageKey;
 
