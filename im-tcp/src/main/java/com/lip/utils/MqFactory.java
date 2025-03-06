@@ -13,13 +13,15 @@ import java.util.concurrent.TimeoutException;
  * @author: Elon
  * @title: MqFactory
  * @projectName: IM-System
- * @description: MQ工厂
+ * @description: MQ工厂 初始化mq
  * @date: 2025/3/5 1:24
  */
 public class MqFactory {
 
+    // 连接工厂
     private static ConnectionFactory factory = null;
 
+    // 管道
     private static Channel defaultChannel;
 
     private static ConcurrentHashMap<String, Channel> channelMap = new ConcurrentHashMap<>();
@@ -45,7 +47,12 @@ public class MqFactory {
         return channel;
     }
 
+    /**
+     * 初始化方法
+     * @param rabbitmq
+     */
     public static void init(BootStrapConfig.Rabbitmq rabbitmq) {
+        // 针对MQFactory初始化
         if (factory == null) {
             factory = new ConnectionFactory();
             factory.setHost(rabbitmq.getHost());

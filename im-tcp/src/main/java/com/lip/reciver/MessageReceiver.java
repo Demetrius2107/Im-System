@@ -20,7 +20,7 @@ import java.util.concurrent.TimeoutException;
  * @author: Elon
  * @title: MessageReceiver
  * @projectName: IM-System
- * @description: 消息接收器
+ * @description: 消息接收器 监听消息 逻辑层投递至网关层的消息
  * @date: 2025/3/5 1:22
  */
 @Slf4j
@@ -40,6 +40,7 @@ public class MessageReceiver {
             channel.basicConsume(Constants.RabbitConstants.MessageService2Im + brokerId, false,
                     new DefaultConsumer(channel) {
 
+                        // 收到消息后处理业务逻辑
                         @Override
                         public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
                             try {

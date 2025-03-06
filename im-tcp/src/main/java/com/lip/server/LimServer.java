@@ -60,6 +60,7 @@ public class LimServer {
                         // ch.pipeline().addLast(new IdleStateHandler(
                         // 0, 0,
                         // 10));
+                        // 传入超时时间
                         ch.pipeline().addLast(new HeartBeatHandler(config.getHeartBeatTime()));
                         ch.pipeline().addLast(new NettyServerHandler(config.getBrokerId(), config.getLogicUrl()));
                     }

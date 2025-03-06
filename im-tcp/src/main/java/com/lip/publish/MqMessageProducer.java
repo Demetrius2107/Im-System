@@ -17,7 +17,7 @@ import java.util.concurrent.TimeoutException;
  * @author: Elon
  * @title: MqMessageProducer
  * @projectName: IM-System
- * @description: MQ消息生产者
+ * @description: MQ消息生产者 网关层投递消息到逻辑层
  * @date: 2025/3/5 19:02
  */
 @Slf4j
@@ -47,6 +47,7 @@ public class MqMessageProducer {
                 o.put("clientType",message.getMessageHeader().getClientType());
                 o.put("imei",message.getMessageHeader().getImei());
                 o.put("appId",message.getMessageHeader().getAppId());
+                // 发送消息
                 channel.basicPublish(channelName,"",
                         null,o.toJSONString().getBytes());
 

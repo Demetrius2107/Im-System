@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class HeartBeatHandler extends ChannelInboundHandlerAdapter {
 
-
+    // 心跳检测超时时间 ms
     private Long heartBeatTime;
 
     public HeartBeatHandler(Long heartBeatTime) {
@@ -44,6 +44,8 @@ public class HeartBeatHandler extends ChannelInboundHandlerAdapter {
             } else if (event.state() == IdleState.WRITER_IDLE) {
                 log.info("进入写空闲");
             } else if (event.state() == IdleState.ALL_IDLE) {
+                // 全空闲
+                // 获取最后一次写入事件的时间 根据ping command
                 Long lastReadTime = (Long) ctx.channel()
                         .attr(AttributeKey.valueOf(Constants.ReadTime)).get();
 
@@ -51,9 +53,7 @@ public class HeartBeatHandler extends ChannelInboundHandlerAdapter {
 
                 if(lastReadTime != null && now -lastReadTime > heartBeatTime){
                     // TODO 退后台逻辑
-
                 }
-
             }
         }
     }

@@ -42,16 +42,21 @@ public class Starter {
 
     private static void start(String path){
         try{
+            // 读取config配置
             Yaml yaml = new Yaml();
             InputStream inputStream = new FileInputStream(path);
             BootStrapConfig bootStrapConfig = yaml.loadAs(inputStream,BootStrapConfig.class);
 
+            // 启动tcp网关
             new LimServer(bootStrapConfig.getLim()).start();
             new LimWebSocketServer(bootStrapConfig.getLim()).start();
 
+            // 初始化redis
             RedisManager.init(bootStrapConfig);
+            // 初始化mq
             MqFactory.init(bootStrapConfig.getLim().getRabbitmq());
             MessageReceiver.init(bootStrapConfig.getLim().getBrokerId() + "");
+            // zookeeper注册
             registerZK(bootStrapConfig);
 
         } catch (FileNotFoundException e) {

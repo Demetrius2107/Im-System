@@ -12,7 +12,7 @@ import org.redisson.config.SingleServerConfig;
  * @author: Elon
  * @title: SingleClientStrategy
  * @projectName: IM-System
- * @description: 单一客户端登录策略
+ * @description: 单机版本客户端登录策略 获取RedisClient
  * @date: 2025/3/5 1:13
  */
 public class SingleClientStrategy {

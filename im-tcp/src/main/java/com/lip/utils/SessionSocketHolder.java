@@ -69,6 +69,7 @@ public class SessionSocketHolder {
     }
 
 
+    // 删除Session
     public static void remove(Integer appId,String userId,Integer clientType,String imei){
         UserClientDto dto = new UserClientDto();
         dto.setAppId(appId);
@@ -82,6 +83,12 @@ public class SessionSocketHolder {
         CHANNELS.entrySet().stream().filter(entity -> entity.getValue() == channel)
                 .forEach(entry -> CHANNELS.remove(entry.getKey()));
     }
+
+
+    /**
+     *  删除用户session
+     * @param nioSocketChannel
+     */
 
     public static void removeUserSession(NioSocketChannel nioSocketChannel){
         String userId = (String) nioSocketChannel.attr(AttributeKey.valueOf(Constants.UserId)).get();
@@ -110,6 +117,10 @@ public class SessionSocketHolder {
         nioSocketChannel.close();
     }
 
+    /**
+     * 离线用户session
+     * @param nioSocketChannel
+     */
     public static void offlineUserSession(NioSocketChannel nioSocketChannel){
         String userId = (String) nioSocketChannel.attr(AttributeKey.valueOf(Constants.UserId)).get();
         Integer appId = (Integer) nioSocketChannel.attr(AttributeKey.valueOf(Constants.AppId)).get();
@@ -136,6 +147,7 @@ public class SessionSocketHolder {
         UserStatusChangeNotifyPack userStatusChangeNotifyPack = new UserStatusChangeNotifyPack();
         userStatusChangeNotifyPack.setAppId(appId);
         userStatusChangeNotifyPack.setUserId(userId);
+        // 更改成离线状态
         userStatusChangeNotifyPack.setStatus(ImConnectStatusEnum.OFFLINE_STATUS.getCode());
         MqMessageProducer.sendMessage(userStatusChangeNotifyPack,messageHeader, UserEventCommand.USER_ONLINE_STATUS_CHANGE.getCommand());
 

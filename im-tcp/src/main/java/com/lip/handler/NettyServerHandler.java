@@ -73,7 +73,8 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
     protected void channelRead0(ChannelHandlerContext ctx, Message msg) throws Exception {
 
         Integer command = msg.getMessageHeader().getCommand();
-        //登录command
+
+        // 登录command
         if(command == SystemCommand.LOGIN.getCommand()){
 
             LoginPack loginPack = JSON.parseObject(JSONObject.toJSONString(msg.getMessagePack()),
@@ -113,13 +114,21 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
             }
 
             RedissonClient redissonClient = RedisManager.getRedissonClient();
-            RMap<String, String> map = redissonClient.getMap(msg.getMessageHeader().getAppId() + Constants.RedisConstants.UserSessionConstants + loginPack.getUserId());
+
+            RMap<String, String> map = redissonClient
+                    .getMap(msg.getMessageHeader().getAppId()
+                            + Constants.RedisConstants.UserSessionConstants + loginPack.getUserId());
             map.put(msg.getMessageHeader().getClientType()+":" + msg.getMessageHeader().getImei()
                     ,JSONObject.toJSONString(userSession));
+            // Session 存入Redis
             SessionSocketHolder
-                    .put(msg.getMessageHeader().getAppId()
+                    .put(msg.getMessageHeader().
+                                    getAppId()
                             ,loginPack.getUserId(),
-                            msg.getMessageHeader().getClientType(),msg.getMessageHeader().getImei(),(NioSocketChannel) ctx.channel());
+                            msg.getMessageHeader()
+                                    .getClientType(),
+                            msg.getMessageHeader()
+                                    .getImei(),(NioSocketChannel) ctx.channel());
 
             UserClientDto dto = new UserClientDto();
             dto.setImei(msg.getMessageHeader().getImei());
@@ -144,11 +153,16 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
             loginSuccess.setAppId(msg.getMessageHeader().getAppId());
             ctx.channel().writeAndFlush(loginSuccess);
 
-        }else if(command == SystemCommand.LOGOUT.getCommand()){
+        }
+        // 登出command
+        else if(command == SystemCommand.LOGOUT.getCommand()){
             //删除session
             //redis 删除
             SessionSocketHolder.removeUserSession((NioSocketChannel) ctx.channel());
-        }else if(command == SystemCommand.PING.getCommand()){
+        }
+        // ping Command
+        // 绑定最后一次读写事件的事件
+        else if(command == SystemCommand.PING.getCommand()){
             ctx.channel()
                     .attr(AttributeKey.valueOf(Constants.ReadTime)).set(System.currentTimeMillis());
         }else if(command == MessageCommand.MSG_P2P.getCommand()

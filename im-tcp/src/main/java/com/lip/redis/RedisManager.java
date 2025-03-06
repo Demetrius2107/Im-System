@@ -12,10 +12,12 @@ import org.redisson.api.RedissonClient;
  */
 public class RedisManager {
 
+    // Redis客户端
     private static RedissonClient redissonClient;
 
     private static Integer loginModel;
 
+    // 初始化
     public static void init(BootStrapConfig config){
         loginModel = config.getLim().getLoginModel();
         SingleClientStrategy singleClientStrategy = new SingleClientStrategy();
@@ -23,6 +25,7 @@ public class RedisManager {
 
     }
 
+    // 获取私有变量
     public static RedissonClient getRedissonClient(){
         return redissonClient;
     }

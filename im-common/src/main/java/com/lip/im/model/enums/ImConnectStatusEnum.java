@@ -1,5 +1,9 @@
 package com.lip.im.model.enums;
 
+/**
+ * @author Elon
+ */
+
 public enum ImConnectStatusEnum {
 
     /**
