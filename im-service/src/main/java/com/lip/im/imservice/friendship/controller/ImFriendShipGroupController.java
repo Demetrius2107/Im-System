@@ -1,12 +1,13 @@
 package com.lip.im.imservice.friendship.controller;
 
-import com.hua.im.imcommon.ResponseVO;
+
 import com.lip.im.imservice.friendship.model.req.AddFriendShipGroupMemberReq;
 import com.lip.im.imservice.friendship.model.req.AddFriendShipGroupReq;
 import com.lip.im.imservice.friendship.model.req.DeleteFriendShipGroupMemberReq;
 import com.lip.im.imservice.friendship.model.req.DeleteFriendShipGroupReq;
 import com.lip.im.imservice.friendship.service.ImFriendShipGroupMemberService;
 import com.lip.im.imservice.friendship.service.ImFriendShipGroupService;
+import com.lip.im.model.ResponseVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;

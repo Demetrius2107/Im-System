@@ -1,12 +1,13 @@
 package com.lip.im.imservice.user.controller;
 
-import com.hua.im.imcommon.ResponseVO;
+
 import com.lip.im.imservice.user.dao.ImUserDataEntity;
 import com.lip.im.imservice.user.model.req.GetUserInfoReq;
 import com.lip.im.imservice.user.model.req.ModifyUserInfoReq;
 import com.lip.im.imservice.user.model.req.UserId;
 import com.lip.im.imservice.user.model.resp.GetUserInfoResp;
 import com.lip.im.imservice.user.service.ImUserService;
+import com.lip.im.model.ResponseVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

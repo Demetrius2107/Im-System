@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lip.im.imservice.user.model.req.*;
 import com.lip.im.model.ResponseVO;
+import com.lip.im.model.constants.Constants;
 import com.lip.im.model.enums.DelFlagEnum;
 import com.lip.im.model.enums.UserErrorCode;
 import com.lip.im.imservice.user.dao.mapper.ImUserDataMapper;
@@ -12,13 +13,16 @@ import com.lip.im.imservice.user.model.resp.GetUserInfoResp;
 import com.lip.im.imservice.user.model.resp.ImportUserResp;
 import com.lip.im.imservice.user.service.ImUserService;
 import com.lip.im.model.exception.ApplicationException;
+import com.lip.pack.user.UserModifyPack;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author ShuKun.Li
@@ -30,6 +34,9 @@ public class ImUserServiceImpl implements ImUserService {
     @Autowired
     ImUserDataMapper imUserDataMapper;
 
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
+
     /**
      * 导入用户资料
      *
@@ -37,11 +44,13 @@ public class ImUserServiceImpl implements ImUserService {
      * @return ResponseVO
      */
     @Override
-    public ResponseVO<ImportUserResp> importUser(ImportUserReq req) {
+    public ResponseVO importUser(ImportUserReq req) {
+
         // 导入用户数量大小判断
         if (req.getUserData().size() > 100) {
             return ResponseVO.errorResponse(UserErrorCode.IMPORT_SIZE_BEYOND);
         }
+
         ImportUserResp resp = new ImportUserResp();
         //导入成功id
         List<String> successId = new ArrayList<>();
@@ -64,6 +73,7 @@ public class ImUserServiceImpl implements ImUserService {
         resp.setErrorId(errorId);
         resp.setSuccessId(successId);
         return ResponseVO.successResponse(resp);
+
     }
 
     /**
@@ -113,15 +123,17 @@ public class ImUserServiceImpl implements ImUserService {
                 .eq(ImUserDataEntity::getAppId,appId)
                 .eq(ImUserDataEntity::getUserId,userId)
                 .eq(ImUserDataEntity::getDelFlag,DelFlagEnum.NORMAL.getCode());
+
         ImUserDataEntity imUserDataEntity = imUserDataMapper.selectOne(lambdaQueryWrapper);
         if (imUserDataEntity == null) {
             return ResponseVO.errorResponse(UserErrorCode.USER_IS_NOT_EXIST);
         }
+
         return ResponseVO.successResponse(imUserDataEntity);
     }
 
     @Override
-    public ResponseVO<ImportUserResp> deleteUser(DeleteUserReq req) {
+    public ResponseVO deleteUser(DeleteUserReq req) {
         ImUserDataEntity entity = new ImUserDataEntity();
         entity.setDelFlag(DelFlagEnum.DELETE.getCode());
 
@@ -133,7 +145,7 @@ public class ImUserServiceImpl implements ImUserService {
             wrapper.eq("app_id", req.getAppId());
             wrapper.eq("user_id", userId);
             wrapper.eq("del_flag", DelFlagEnum.NORMAL.getCode());
-            int update;
+            int update = 0;
 
             try {
                 update = imUserDataMapper.update(entity, wrapper);
@@ -152,6 +164,7 @@ public class ImUserServiceImpl implements ImUserService {
         resp.setSuccessId(successId);
         resp.setErrorId(errorId);
         return ResponseVO.successResponse(resp);
+
     }
 
     @Override
@@ -174,6 +187,8 @@ public class ImUserServiceImpl implements ImUserService {
         int updateRes = imUserDataMapper.update(update, queryWrapper);
 
         if (updateRes == 1) {
+            UserModifyPack pack = new UserModifyPack();
+            BeanUtils.copyProperties(req,pack);
             return ResponseVO.successResponse();
         }
         throw new ApplicationException(UserErrorCode.MODIFY_USER_ERROR);
@@ -181,11 +196,12 @@ public class ImUserServiceImpl implements ImUserService {
 
     @Override
     public ResponseVO login(LoginReq req) {
-        return null;
+        return ResponseVO.successResponse();
     }
 
     @Override
     public ResponseVO getUserSequence(GetUserSequenceReq req) {
+        Map<Object,Object> map = stringRedisTemplate.opsForHash().entries(req.getAppId() + ":" + Constants.RedisConstants.SeqPrefix + ":" + req.getUserId());
         return null;
     }
 }
