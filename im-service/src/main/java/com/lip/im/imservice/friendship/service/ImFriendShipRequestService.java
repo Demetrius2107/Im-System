@@ -1,9 +1,10 @@
 package com.lip.im.imservice.friendship.service;
 
-import com.hua.im.imcommon.ResponseVO;
+
 import com.lip.im.imservice.friendship.model.req.ApproveFriendRequestReq;
 import com.lip.im.imservice.friendship.model.req.FriendDto;
 import com.lip.im.imservice.friendship.model.req.ReadFriendShipRequestReq;
+import com.lip.im.model.ResponseVO;
 
 /**
  * @author Shukun.Li

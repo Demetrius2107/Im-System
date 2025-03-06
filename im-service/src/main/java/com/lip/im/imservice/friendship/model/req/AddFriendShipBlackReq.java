@@ -1,6 +1,7 @@
 package com.lip.im.imservice.friendship.model.req;
 
-import com.hua.im.imcommon.model.RequestBase;
+
+import com.lip.im.model.model.RequestBase;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
