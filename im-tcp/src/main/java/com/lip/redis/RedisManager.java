@@ -1,6 +1,7 @@
 package com.lip.redis;
 
 import com.lip.config.BootStrapConfig;
+import com.lip.reciver.UserLoginMessageListener;
 import org.redisson.api.RedissonClient;
 
 /**
@@ -22,7 +23,8 @@ public class RedisManager {
         loginModel = config.getLim().getLoginModel();
         SingleClientStrategy singleClientStrategy = new SingleClientStrategy();
         redissonClient = singleClientStrategy.getRedissonClient(config.getLim().getRedis());
-
+        UserLoginMessageListener userLoginMessageListener = new UserLoginMessageListener(loginModel);
+        userLoginMessageListener.listenerUserLogin();
     }
 
     // 获取私有变量

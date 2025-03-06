@@ -22,8 +22,8 @@ import java.util.List;
  * @title: UserLoginMessageListener
  * @projectName: IM-System
  * @description: 用户登录消息监听器  用户下线处理
- * 多端同步：1单端登录：一端在线：踢掉除了本clientType + imel 的设备
- *         2双端登录：允许pc/mobile 其中一端登录 + web端 踢掉除了本clientType + imel 以外的web端设备
+ * 多端同步：1单端登录：一端在线：踢掉除了本clientType + imei 的设备
+ *         2双端登录：允许pc/mobile 其中一端登录 + web端 踢掉除了本clientType + imei 以外的web端设备
  *         3 三端登录：允许手机+pc+web，踢掉同端的其他imei 除了web
  *         4 不做任何处理
  * @date: 2025/3/5 1:21
@@ -39,21 +39,28 @@ public class UserLoginMessageListener {
     }
 
     public void listenerUserLogin(){
+
         RTopic topic = RedisManager.getRedissonClient().getTopic(Constants.RedisConstants.UserLoginChannel);
+
         topic.addListener(String.class, new MessageListener<String>() {
             @Override
             public void onMessage(CharSequence charSequence, String msg) {
                 logger.info("收到用户上线通知：" + msg);
                 UserClientDto dto = JSONObject.parseObject(msg, UserClientDto.class);
+
+                // 拿到当前Netty服务器所有用户在线的端
                 List<NioSocketChannel> nioSocketChannels = SessionSocketHolder.get(dto.getAppId(), dto.getUserId());
 
                 for (NioSocketChannel nioSocketChannel : nioSocketChannels) {
                     // 单端登录
                     if(loginModel == DeviceMultiLoginEnum.ONE.getLoginMode()){
+
                         Integer clientType = (Integer) nioSocketChannel.attr(AttributeKey.valueOf(Constants.ClientType)).get();
                         String imei = (String) nioSocketChannel.attr(AttributeKey.valueOf(Constants.Imei)).get();
 
+                        // 如果clientType 和 imei 与当前登录的设备不相同 则踢出
                         if(!(clientType + ":" + imei).equals(dto.getClientType()+":"+dto.getImei())){
+                            // 告诉客户端 其他端登录
                             MessagePack<Object> pack = new MessagePack<>();
                             pack.setToId((String) nioSocketChannel.attr(AttributeKey.valueOf(Constants.UserId)).get());
                             pack.setUserId((String) nioSocketChannel.attr(AttributeKey.valueOf(Constants.UserId)).get());
@@ -64,6 +71,7 @@ public class UserLoginMessageListener {
                     }
                     // 双端登录
                     else if(loginModel == DeviceMultiLoginEnum.TWO.getLoginMode()){
+                        // web端不做处理 web端支持多端登录
                         if(dto.getClientType() == com.lld.im.common.ClientType.WEB.getCode()){
                             continue;
                         }
@@ -72,6 +80,7 @@ public class UserLoginMessageListener {
                         if (clientType == com.lld.im.common.ClientType.WEB.getCode()){
                             continue;
                         }
+
                         String imei = (String) nioSocketChannel.attr(AttributeKey.valueOf(Constants.Imei)).get();
                         if(!(clientType + ":" + imei).equals(dto.getClientType()+":"+dto.getImei())){
                             MessagePack<Object> pack = new MessagePack<>();
@@ -91,6 +100,7 @@ public class UserLoginMessageListener {
                             continue;
                         }
 
+                        // ios 和 android 属于同端
                         Boolean isSameClient = false;
                         if((clientType == com.lld.im.common.ClientType.IOS.getCode() ||
                                 clientType == com.lld.im.common.ClientType.ANDROID.getCode()) &&

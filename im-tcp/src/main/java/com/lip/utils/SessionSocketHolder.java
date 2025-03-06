@@ -54,6 +54,12 @@ public class SessionSocketHolder {
         return CHANNELS.get(dto);
     }
 
+    /**
+     * 获取某个用户的所有channel
+     * @param appId
+     * @param id
+     * @return
+     */
     public static List<NioSocketChannel> get(Integer appId , String id) {
 
         Set<UserClientDto> channelInfos = CHANNELS.keySet();
