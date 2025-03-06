@@ -1,0 +1,13 @@
+package com.lip.im.imservice.friendship.dao.mapper;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.lip.im.imservice.friendship.dao.ImFriendShipEntity;
+import org.apache.ibatis.annotations.Mapper;
+
+/**
+ * @author Shukun.Li
+ */
+@Mapper
+public interface ImFriendShipMapper extends BaseMapper<ImFriendShipEntity> {
+
+}
