@@ -130,12 +130,15 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
                             msg.getMessageHeader()
                                     .getImei(),(NioSocketChannel) ctx.channel());
 
+            // 用户在某一端上线之后传递数据给MQ进行广播处理 发送至其他端
             UserClientDto dto = new UserClientDto();
             dto.setImei(msg.getMessageHeader().getImei());
             dto.setUserId(loginPack.getUserId());
             dto.setClientType(msg.getMessageHeader().getClientType());
             dto.setAppId(msg.getMessageHeader().getAppId());
+            // 广播模式启用
             RTopic topic = redissonClient.getTopic(Constants.RedisConstants.UserLoginChannel);
+            // 广播发送用户数据 --> UserClientDto
             topic.publish(JSONObject.toJSONString(dto));
 
             UserStatusChangeNotifyPack userStatusChangeNotifyPack = new UserStatusChangeNotifyPack();
