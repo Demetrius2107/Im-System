@@ -11,8 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @description: TODO
  * @date: 2025/3/6 17:13
  */
-@SpringBootApplication(scanBasePackages = {"com.lip.im.imservice",
-        "com.lip.im.model"})
+@SpringBootApplication(scanBasePackages = {"com.lip.im.imservice", "com.lip.im.model"})
 @MapperScan("com.lip.im.imservice.*.dao.mapper")
 //导入用户资料，删除用户资料，修改用户资料，查询用户资料
 public class Application {
