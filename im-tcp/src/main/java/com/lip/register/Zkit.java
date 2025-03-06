@@ -14,6 +14,10 @@ public class Zkit {
 
     private ZkClient zkClient;
 
+    public Zkit(ZkClient zkClient) {
+        this.zkClient = zkClient;
+    }
+
     // im-coreRoot/rcp/ip:root
     public void createRootNode() {
 
