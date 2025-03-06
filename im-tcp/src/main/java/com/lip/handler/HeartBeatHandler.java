@@ -1,6 +1,6 @@
 package com.lip.handler;
 
-import com.lip.constants.Constants;
+import com.lip.im.model.constants.Constants;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleState;

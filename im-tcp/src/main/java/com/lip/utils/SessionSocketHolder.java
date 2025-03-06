@@ -1,11 +1,11 @@
 package com.lip.utils;
 
 import com.alibaba.fastjson.JSONObject;
-import com.lip.constants.Constants;
-import com.lip.enums.ImConnectStatusEnum;
-import com.lip.enums.command.UserEventCommand;
-import com.lip.model.UserClientDto;
-import com.lip.model.UserSession;
+import com.lip.im.model.constants.Constants;
+import com.lip.im.model.enums.ImConnectStatusEnum;
+import com.lip.im.model.enums.command.UserEventCommand;
+import com.lip.im.model.model.UserClientDto;
+import com.lip.im.model.model.UserSession;
 import com.lip.pack.user.UserStatusChangeNotifyPack;
 import com.lip.proto.MessageHeader;
 import com.lip.publish.MqMessageProducer;

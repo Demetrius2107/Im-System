@@ -1,6 +1,6 @@
 package com.lip.im.imservice.user.model.resp;
 
-import com.hua.im.imcommon.model.UserSession;
+import com.lip.im.model.model.UserSession;
 
 import java.util.List;
 

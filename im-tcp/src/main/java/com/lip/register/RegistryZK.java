@@ -1,7 +1,7 @@
 package com.lip.register;
 
 import com.lip.config.BootStrapConfig;
-import com.lip.constants.Constants;
+import com.lip.im.model.constants.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

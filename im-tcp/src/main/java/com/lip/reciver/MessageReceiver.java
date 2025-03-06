@@ -1,7 +1,7 @@
 package com.lip.reciver;
 
 import com.alibaba.fastjson.JSONObject;
-import com.lip.constants.Constants;
+import com.lip.im.model.constants.Constants;
 import com.lip.proto.MessagePack;
 import com.lip.reciver.process.BaseProcess;
 import com.lip.reciver.process.ProcessFactory;

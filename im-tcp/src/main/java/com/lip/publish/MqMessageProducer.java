@@ -2,8 +2,8 @@ package com.lip.publish;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.lip.constants.Constants;
-import com.lip.enums.command.CommandType;
+import com.lip.im.model.constants.Constants;
+import com.lip.im.model.enums.command.CommandType;
 import com.lip.proto.Message;
 import com.lip.proto.MessageHeader;
 import com.lip.utils.MqFactory;

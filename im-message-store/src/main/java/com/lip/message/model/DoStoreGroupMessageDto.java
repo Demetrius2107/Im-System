@@ -2,7 +2,7 @@ package com.lip.message.model;
 
 
 import com.lip.message.dao.ImMessageBodyEntity;
-import com.lip.model.message.GroupChatMessageContent;
+import com.lip.im.model.model.message.GroupChatMessageContent;
 import lombok.Data;
 
 /**

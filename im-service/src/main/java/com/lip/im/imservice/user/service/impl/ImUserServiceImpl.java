@@ -2,10 +2,9 @@ package com.lip.im.imservice.user.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.hua.im.imcommon.ResponseVO;
-import com.hua.im.imcommon.enums.DelFlagEnum;
-import com.hua.im.imcommon.enums.UserErrorCode;
-import com.hua.im.imcommon.exception.ApplicationException;
+import com.lip.im.model.ResponseVO;
+import com.lip.im.model.enums.DelFlagEnum;
+import com.lip.im.model.enums.UserErrorCode;
 import com.lip.im.imservice.user.dao.mapper.ImUserDataMapper;
 import com.lip.im.imservice.user.model.req.DeleteUserReq;
 import com.lip.im.imservice.user.model.req.GetUserInfoReq;

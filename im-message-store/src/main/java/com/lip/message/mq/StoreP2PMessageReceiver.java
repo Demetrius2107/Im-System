@@ -2,7 +2,7 @@ package com.lip.message.mq;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.lip.constants.Constants;
+import com.lip.im.model.constants.Constants;
 import com.lip.message.dao.ImMessageBodyEntity;
 import com.lip.message.model.DoStoreP2PMessageDto;
 import com.lip.message.service.StoreMessageService;

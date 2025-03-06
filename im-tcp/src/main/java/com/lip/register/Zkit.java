@@ -1,6 +1,6 @@
 package com.lip.register;
 
-import com.lip.constants.Constants;
+import com.lip.im.model.constants.Constants;
 import org.I0Itec.zkclient.ZkClient;
 
 /**

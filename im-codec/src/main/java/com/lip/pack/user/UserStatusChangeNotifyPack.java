@@ -1,7 +1,7 @@
 package com.lip.pack.user;
 
 
-import com.lip.model.UserSession;
+import com.lip.im.model.model.UserSession;
 import lombok.Data;
 
 import java.util.List;

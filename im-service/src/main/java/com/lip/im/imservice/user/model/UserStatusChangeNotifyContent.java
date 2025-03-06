@@ -1,6 +1,7 @@
 package com.lip.im.imservice.user.model;
 
-import com.hua.im.imcommon.model.ClientInfo;
+
+import com.lip.im.model.model.ClientInfo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

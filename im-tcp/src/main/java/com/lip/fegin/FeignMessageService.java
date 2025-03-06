@@ -1,7 +1,7 @@
 package com.lip.fegin;
 
-import com.lip.ResponseVO;
-import com.lip.model.message.CheckSendMessageReq;
+import com.lip.im.model.ResponseVO;
+import com.lip.im.model.model.message.CheckSendMessageReq;
 import feign.Headers;
 import feign.RequestLine;
 

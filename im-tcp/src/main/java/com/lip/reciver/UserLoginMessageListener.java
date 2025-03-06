@@ -1,8 +1,8 @@
 package com.lip.reciver;
 
 import com.alibaba.fastjson.JSONObject;
-import com.lip.constants.Constants;
-import com.lip.model.UserClientDto;
+import com.lip.im.model.constants.Constants;
+import com.lip.im.model.model.UserClientDto;
 import com.lip.redis.RedisManager;
 import com.lip.utils.SessionSocketHolder;
 import io.netty.channel.socket.nio.NioSocketChannel;
