@@ -1,11 +1,34 @@
-package com.lip.im.model;
+package com.lld.im.common;
 
 /**
- * @author: Elon
- * @title: ClientType
- * @projectName: IM-System
- * @description: TODO
- * @date: 2025/3/3 18:44
- */
-public class ClientType {
+ * @author: Chackylee
+ * @description:
+ **/
+public enum ClientType {
+
+    WEBAPI(0,"webApi"),
+    WEB(1,"web"),
+    IOS(2,"ios"),
+    ANDROID(3,"android"),
+    WINDOWS(4,"windows"),
+    MAC(5,"mac"),
+    ;
+
+    private int code;
+    private String error;
+
+    ClientType(int code, String error){
+        this.code = code;
+        this.error = error;
+    }
+    public int getCode() {
+        return this.code;
+    }
+
+    public String getError() {
+        return this.error;
+    }
+
+
+
 }

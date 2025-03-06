@@ -588,7 +588,7 @@ public class ImFriendServiceImpl implements ImFriendService {
     @Override
     public ResponseVO deleteBlack(DeleteBlackReq req) {
         QueryWrapper queryFrom = new QueryWrapper<>()
-                .eq("from_id", req.getFromId())
+                .eq("from_id", req.getFormId())
                 .eq("app_id", req.getAppId())
                 .eq("to_id", req.getToId());
         ImFriendShipEntity fromItem = imFriendShipMapper.selectOne(queryFrom);
@@ -603,18 +603,18 @@ public class ImFriendServiceImpl implements ImFriendService {
         update.setBlack(FriendShipStatusEnum.BLACK_STATUS_NORMAL.getCode());
         int update1 = imFriendShipMapper.update(update, queryFrom);
         if(update1 == 1){
-            writeUserSeq.writeUserSeq(req.getAppId(),req.getFromId(),Constants.SeqConstants.Friendship,seq);
+            writeUserSeq.writeUserSeq(req.getAppId(),req.getFormId(),Constants.SeqConstants.Friendship,seq);
             DeleteBlackPack deleteFriendPack = new DeleteBlackPack();
-            deleteFriendPack.setFromId(req.getFromId());
+            deleteFriendPack.setFromId(req.getFormId());
             deleteFriendPack.setSequence(seq);
             deleteFriendPack.setToId(req.getToId());
-            messageProducer.sendToUser(req.getFromId(), req.getClientType(), req.getImei(), FriendshipEventCommand.FRIEND_BLACK_DELETE,
+            messageProducer.sendToUser(req.getFormId(), req.getClientType(), req.getImei(), FriendshipEventCommand.FRIEND_BLACK_DELETE,
                     deleteFriendPack, req.getAppId());
 
             //之后回调
             if (appConfig.isAddFriendShipBlackAfterCallback()){
                 AddFriendBlackAfterCallbackDto callbackDto = new AddFriendBlackAfterCallbackDto();
-                callbackDto.setFromId(req.getFromId());
+                callbackDto.setFromId(req.getFormId());
                 callbackDto.setToId(req.getToId());
                 callbackService.beforeCallback(req.getAppId(),
                         Constants.CallbackCommand.DeleteBlack, JSONObject

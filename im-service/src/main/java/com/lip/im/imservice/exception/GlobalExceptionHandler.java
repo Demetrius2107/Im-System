@@ -1,8 +1,9 @@
 package com.lip.im.imservice.exception;
 
-import com.hua.im.imcommon.BaseErrorCode;
-import com.hua.im.imcommon.ResponseVO;
-import com.hua.im.imcommon.exception.ApplicationException;
+
+import com.lip.im.model.BaseErrorCode;
+import com.lip.im.model.ResponseVO;
+import com.lip.im.model.exception.ApplicationException;
 import org.hibernate.validator.internal.engine.path.PathImpl;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;

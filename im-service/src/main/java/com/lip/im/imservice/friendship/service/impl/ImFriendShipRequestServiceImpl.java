@@ -63,7 +63,7 @@ public class ImFriendShipRequestServiceImpl implements ImFriendShipRequestServic
 
 
     //A + B
-    @Override
+
     public ResponseVO addFienshipRequest(String fromId, FriendDto dto, Integer appId) {
 
         QueryWrapper<ImFriendShipRequestEntity> queryWrapper = new QueryWrapper<>();
@@ -116,9 +116,9 @@ public class ImFriendShipRequestServiceImpl implements ImFriendShipRequestServic
         return ResponseVO.successResponse();
     }
 
-    @Override
+
     @Transactional
-    public ResponseVO approverFriendRequest(ApproverFriendRequestReq req) {
+    public ResponseVO approverFriendRequest(ApproveFriendRequestReq req) {
 
         ImFriendShipRequestEntity imFriendShipRequestEntity = imFriendShipRequestMapper.selectById(req.getId());
         if(imFriendShipRequestEntity == null){

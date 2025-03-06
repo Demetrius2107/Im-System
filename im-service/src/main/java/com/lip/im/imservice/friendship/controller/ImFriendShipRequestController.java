@@ -24,12 +24,12 @@ public class ImFriendShipRequestController {
                                            ApproveFriendRequestReq req, Integer appId, String identifier){
         req.setAppId(appId);
         req.setOperater(identifier);
-        return imFriendShipRequestService.approverFriendRequest(req);
+        return imFriendShipRequestService.approveFriendRequest(req);
     }
     @RequestMapping("/getFriendRequest")
     public ResponseVO getFriendRequest(@RequestBody @Validated GetFriendShipRequestReq req, Integer appId){
         req.setAppId(appId);
-        return imFriendShipRequestService.getFriendRequest(req.getFromId(),req.getAppId());
+        return imFriendShipRequestService.getFriendRequest(req.getFormId(),req.getAppId());
     }
 
     @RequestMapping("/readFriendShipRequestReq")

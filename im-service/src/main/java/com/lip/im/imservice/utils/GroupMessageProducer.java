@@ -1,6 +1,8 @@
 package com.lip.im.imservice.utils;
 
 import com.alibaba.fastjson.JSONObject;
+import com.lip.im.imservice.group.model.req.GroupMemberDto;
+import com.lip.im.imservice.group.service.ImGroupMemberService;
 import com.lip.im.model.enums.command.Command;
 import com.lip.im.model.enums.command.GroupEventCommand;
 import com.lip.im.model.model.ClientInfo;
@@ -35,14 +37,14 @@ public class GroupMessageProducer {
                     = o.toJavaObject(AddGroupMemberPack.class);
             List<String> members = addGroupMemberPack.getMembers();
             for (GroupMemberDto groupMemberDto : groupManager) {
-                if(clientInfo.getClientType() != ClientType.WEBAPI.getCode() && groupMemberDto.getMemberId().equals(userId)){
+                if(clientInfo.getClientType() != com.lld.im.common.ClientType.WEBAPI.getCode() && groupMemberDto.getMemberId().equals(userId)){
                     messageProducer.sendToUserExceptClient(groupMemberDto.getMemberId(),command,data,clientInfo);
                 }else{
                     messageProducer.sendToUser(groupMemberDto.getMemberId(),command,data,clientInfo.getAppId());
                 }
             }
             for (String member : members) {
-                if(clientInfo.getClientType() != ClientType.WEBAPI.getCode() && member.equals(userId)){
+                if(clientInfo.getClientType() != com.lld.im.common.ClientType.WEBAPI.getCode() && member.equals(userId)){
                     messageProducer.sendToUserExceptClient(member,command,data,clientInfo);
                 }else{
                     messageProducer.sendToUser(member,command,data,clientInfo.getAppId());
@@ -54,7 +56,7 @@ public class GroupMessageProducer {
             List<String> members = imGroupMemberService.getGroupMemberId(groupId, clientInfo.getAppId());
             members.add(member);
             for (String memberId : members) {
-                if(clientInfo.getClientType() != ClientType.WEBAPI.getCode() && member.equals(userId)){
+                if(clientInfo.getClientType() != com.lld.im.common.ClientType.WEBAPI.getCode() && member.equals(userId)){
                     messageProducer.sendToUserExceptClient(memberId,command,data,clientInfo);
                 }else{
                     messageProducer.sendToUser(memberId,command,data,clientInfo.getAppId());
@@ -69,7 +71,7 @@ public class GroupMessageProducer {
             groupMemberDto.setMemberId(memberId);
             groupManager.add(groupMemberDto);
             for (GroupMemberDto member : groupManager) {
-                if(clientInfo.getClientType() != ClientType.WEBAPI.getCode() && member.equals(userId)){
+                if(clientInfo.getClientType() != com.lld.im.common.ClientType.WEBAPI.getCode() && member.equals(userId)){
                     messageProducer.sendToUserExceptClient(member.getMemberId(),command,data,clientInfo);
                 }else{
                     messageProducer.sendToUser(member.getMemberId(),command,data,clientInfo.getAppId());
@@ -78,7 +80,7 @@ public class GroupMessageProducer {
         }else {
             for (String memberId : groupMemberId) {
                 if(clientInfo.getClientType() != null && clientInfo.getClientType() !=
-                        ClientType.WEBAPI.getCode() && memberId.equals(userId)){
+                        com.lld.im.common.ClientType.WEBAPI.getCode() && memberId.equals(userId)){
                     messageProducer.sendToUserExceptClient(memberId,command,
                             data,clientInfo);
                 }else{
