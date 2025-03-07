@@ -44,12 +44,15 @@ public class MessageReceiver {
                         @Override
                         public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
                             try {
+
+                                // TCP服务处理逻辑层传入的消息 投递的消息
                                 String msgStr = new String(body);
                                 log.info(msgStr);
                                 MessagePack messagePack = JSONObject.parseObject(msgStr, MessagePack.class);
+                                // 处理工厂
                                 BaseProcess messageProcess = ProcessFactory.getMessageProcess(messagePack.getCommand());
                                 messageProcess.process(messagePack);
-
+                                // 消息确认
                                 channel.basicAck(envelope.getDeliveryTag(), false);
                             } catch (Exception e) {
                                 e.printStackTrace();

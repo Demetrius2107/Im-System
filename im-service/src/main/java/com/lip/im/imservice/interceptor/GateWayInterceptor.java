@@ -44,6 +44,8 @@ public class GateWayInterceptor implements HandlerInterceptor {
             return false;
         }
 
+
+        // 操作人
         String identifier = request.getParameter("identifier");
         if(StringUtils.isBlank(identifier)){
             resp(ResponseVO.errorResponse(GateWayErrorCode
@@ -51,6 +53,7 @@ public class GateWayInterceptor implements HandlerInterceptor {
             return false;
         }
 
+        // 用户签名数据
         String userSign = request.getParameter("userSign");
         if(StringUtils.isBlank(userSign)){
             resp(ResponseVO.errorResponse(GateWayErrorCode

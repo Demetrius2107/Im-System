@@ -17,6 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * 获取指定Session IM服务器订阅发送给用户
+ */
 @Service
 public class MessageProducer {
 
@@ -56,7 +59,7 @@ public class MessageProducer {
         return sendMessage(session, body);
     }
 
-    //发送给所有端的方法
+    // 发送给所有端的方法
     public List<ClientInfo> sendToUser(String toId, Command command, Object data, Integer appId){
         List<UserSession> userSession
                 = userSessionUtils.getUserSession(appId, toId);
@@ -94,7 +97,7 @@ public class MessageProducer {
                 && Objects.equals(sessionDto.getClientType(), clientInfo.getClientType());
     }
 
-    //发送给除了某一端的其他端
+    // 发送给除了某一端的其他端
     public void sendToUserExceptClient(String toId, Command command
             , Object data, ClientInfo clientInfo){
         List<UserSession> userSession = userSessionUtils

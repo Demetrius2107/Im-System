@@ -17,7 +17,7 @@ import java.util.zip.Inflater;
 
 
 /**
- * @description: app用户 后台管理员
+ * @description: app用户 后台管理员  接口加密鉴权
  *
  * 10000 xxx 10001 bbbb
  * @author: lld

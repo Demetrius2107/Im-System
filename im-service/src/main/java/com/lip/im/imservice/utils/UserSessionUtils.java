@@ -22,6 +22,7 @@ import java.util.Map;
 public class UserSessionUtils {
 
     public Object get;
+
     @Autowired
     StringRedisTemplate stringRedisTemplate;
 
@@ -29,13 +30,19 @@ public class UserSessionUtils {
 
     public List<UserSession> getUserSession(Integer appId, String userId){
 
+        // key appId + UserId 从Redis中获取
         String userSessionKey = appId + Constants.RedisConstants.UserSessionConstants
                 + userId;
+
         Map<Object, Object> entries =
                 stringRedisTemplate.opsForHash().entries(userSessionKey);
+        // UserSession 返回值集合
         List<UserSession> list = new ArrayList<>();
+        // 获取所有values
         Collection<Object> values = entries.values();
+
         for (Object o : values){
+            // 转换为String类型
             String str = (String) o;
             UserSession session =
                     JSONObject.parseObject(str, UserSession.class);
@@ -46,10 +53,7 @@ public class UserSessionUtils {
         return list;
     }
 
-    //2.获取用户除了本端的session
-
-    //1.获取用户所有的session
-
+    //2.获取用户除了本端的session 指定端Session
     public UserSession getUserSession(Integer appId,String userId
             ,Integer clientType,String imei){
 

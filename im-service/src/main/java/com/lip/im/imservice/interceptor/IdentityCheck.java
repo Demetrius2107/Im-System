@@ -42,6 +42,7 @@ public class IdentityCheck {
     @Autowired
     StringRedisTemplate stringRedisTemplate;
 
+    // 用户鉴权
     public ApplicationExceptionEnum checkUserSig(String identifier,
                                                  String appId, String userSig){
 

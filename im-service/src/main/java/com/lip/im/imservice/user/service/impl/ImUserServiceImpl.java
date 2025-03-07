@@ -184,6 +184,7 @@ public class ImUserServiceImpl implements ImUserService {
         update.setUserId(null);
         int update1 = imUserDataMapper.update(update, query);
         if(update1 == 1){
+            // 用户数据发生变更后 将数据从IM发送要其他端
             UserModifyPack pack = new UserModifyPack();
             BeanUtils.copyProperties(req,pack);
             messageProducer.sendToUser(req.getUserId(),req.getClientType(),req.getImei(),
