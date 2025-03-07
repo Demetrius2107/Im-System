@@ -6,7 +6,7 @@ import com.lip.im.model.route.RouteHandle;
 import java.util.List;
 
 /**
- * @description:
+ * @description: 一致性哈希算法路由策略
  * @author: lld
  * @version: 1.0
  */

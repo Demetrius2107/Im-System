@@ -1,5 +1,6 @@
 package com.lip.im.imservice.utils;
 
+import com.alibaba.fastjson.JSON;
 import com.lip.im.model.constants.Constants;
 import org.I0Itec.zkclient.ZkClient;
 import org.slf4j.Logger;
@@ -23,6 +24,7 @@ public class ZKit {
 
     @Autowired
     private ZkClient zkClient;
+
     /**
      * get all TCP server node from zookeeper
      *
@@ -30,7 +32,7 @@ public class ZKit {
      */
     public List<String> getAllTcpNode() {
         List<String> children = zkClient.getChildren(Constants.ImCoreZkRoot + Constants.ImCoreZkRootTcp);
-//        logger.info("Query all node =[{}] success.", JSON.toJSONString(children));
+        logger.info("Query all node =[{}] success.", JSON.toJSONString(children));
         return children;
     }
 
@@ -41,7 +43,7 @@ public class ZKit {
      */
     public List<String> getAllWebNode() {
         List<String> children = zkClient.getChildren(Constants.ImCoreZkRoot + Constants.ImCoreZkRootWeb);
-//        logger.info("Query all node =[{}] success.", JSON.toJSONString(children));
+        logger.info("Query all node =[{}] success.", JSON.toJSONString(children));
         return children;
     }
 

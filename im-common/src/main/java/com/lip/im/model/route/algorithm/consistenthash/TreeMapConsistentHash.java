@@ -21,9 +21,12 @@ public class TreeMapConsistentHash extends AbstractConsistentHash {
 
     @Override
     protected void add(long key, String value) {
+        // 创建虚拟节点 保证哈希均匀
         for (int i = 0; i < NODE_SIZE; i++) {
+            // 调用父类的哈希算法 虚拟节点
             treeMap.put(super.hash("node" + key +i),value);
         }
+        // 存入哈希值和key
         treeMap.put(key,value);
     }
 

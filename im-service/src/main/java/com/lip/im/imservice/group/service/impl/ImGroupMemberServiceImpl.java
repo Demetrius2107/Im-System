@@ -265,6 +265,7 @@ public class ImGroupMemberServiceImpl implements ImGroupMemberService {
         }
 
         List<GroupMemberDto> memberDtos = req.getMembers();
+        // 回调
         if(appConfig.isAddGroupMemberBeforeCallback()){
 
             ResponseVO responseVO = callbackService.beforeCallback(req.getAppId(), Constants.CallbackCommand.GroupMemberAddBefore

@@ -9,7 +9,7 @@ public enum ImUrlRouteWayEnum {
 
 
     /**
-     * 1.轮训
+     * 轮询
      */
     LOOP(2,"com.lld.im.common.route.algorithm.loop.LoopHandle"),
 

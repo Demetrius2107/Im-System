@@ -128,6 +128,7 @@ public class ImFriendServiceImpl implements ImFriendService {
             return toInfo;
         }
 
+        // 添加好友之前回调
         if(appConfig.isAddFriendBeforeCallback()){
             ResponseVO callbackResp = callbackService
                     .beforeCallback(req.getAppId(),

@@ -15,7 +15,7 @@ import java.util.Map;
  * @author: Elon
  * @title: CallbackService
  * @projectName: IM-System
- * @description: TODO
+ * @description: 回调函数
  * @date: 2025/3/6 19:40
  */
 @Component
@@ -32,6 +32,12 @@ public class CallbackService {
     @Autowired
     ShareThreadPool shareThreadPool;
 
+    /**
+     * 之后回调
+     * @param appId
+     * @param callbackCommand
+     * @param jsonBody
+     */
     public void callback(Integer appId,String callbackCommand,String jsonBody){
         shareThreadPool.submit(() -> {
             try {
@@ -43,6 +49,13 @@ public class CallbackService {
         });
     }
 
+    /**
+     * 之前回调
+     * @param appId
+     * @param callbackCommand
+     * @param jsonBody
+     * @return
+     */
     public ResponseVO beforeCallback(Integer appId,String callbackCommand,String jsonBody){
         try {
             ResponseVO responseVO = httpRequestUtils.doPost("", ResponseVO.class, builderUrlParams(appId, callbackCommand),

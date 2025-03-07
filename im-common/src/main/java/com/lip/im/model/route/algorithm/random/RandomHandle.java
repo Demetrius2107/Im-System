@@ -17,10 +17,12 @@ import java.util.concurrent.ThreadLocalRandom;
 public class RandomHandle implements RouteHandle {
     @Override
     public String routeServer(List<String> values, String key) {
+        // 获取地址集合大小
         int size = values.size();
         if(size == 0){
             throw new ApplicationException(UserErrorCode.SERVER_NOT_AVAILABLE);
         }
+        // 随机获取
         int i = ThreadLocalRandom.current().nextInt(size);
         return values.get(i);
     }

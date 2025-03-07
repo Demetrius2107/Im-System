@@ -10,12 +10,13 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * @description:
+ * @description: 轮询路由策略
  * @author: lld
  * @version: 1.0
  */
 public class LoopHandle implements RouteHandle {
 
+    // 保证线程安全
     private AtomicLong index = new AtomicLong();
 
     @Override
@@ -24,7 +25,11 @@ public class LoopHandle implements RouteHandle {
         if(size == 0){
             throw new ApplicationException(UserErrorCode.SERVER_NOT_AVAILABLE);
         }
+
+        // 取模递增获取
         Long l = index.incrementAndGet() % size;
+
+        // 到达最后，直接重新初始化
         if(l < 0){
             l = 0L;
         }

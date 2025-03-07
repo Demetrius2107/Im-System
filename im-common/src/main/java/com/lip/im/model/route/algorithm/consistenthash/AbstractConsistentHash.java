@@ -12,13 +12,13 @@ import java.util.List;
  */
 public abstract class AbstractConsistentHash {
 
-    //add
+    // add
     protected abstract void add(long key,String value);
 
-    //sort
+    // sort
     protected void sort(){}
 
-    //获取节点 get
+    // 获取节点 get
     protected abstract String getFirstNodeValue(String value);
 
     /**
@@ -42,7 +42,7 @@ public abstract class AbstractConsistentHash {
     }
 
 
-    //hash
+    // hash
     /**
      * hash 运算
      * @param value
