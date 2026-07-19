@@ -2,6 +2,7 @@ package com.lip.message.mq;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.lip.im.model.constants.Constants;
 import com.lip.message.dao.ImMessageBodyEntity;
 import com.lip.message.model.DoStoreGroupMessageDto;
 import com.lip.message.service.StoreMessageService;
@@ -9,6 +10,10 @@ import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.annotation.Exchange;
+import org.springframework.amqp.rabbit.annotation.Queue;
+import org.springframework.amqp.rabbit.annotation.QueueBinding;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Headers;
@@ -36,6 +41,12 @@ public class StoreGroupMessageReceiver {
     StoreMessageService storeMessageService;
 
 
+    @RabbitListener(
+            bindings = @QueueBinding(
+                    value = @Queue(value = Constants.RabbitConstants.StoreGroupMessage, durable = "true"),
+                    exchange = @Exchange(value = Constants.RabbitConstants.StoreGroupMessage, durable = "true")
+            ), concurrency = "1"
+    )
     public void onChatMessage(@Payload Message message,
                               @Headers Map<String,Object> headers,
                               Channel channel) throws IOException {

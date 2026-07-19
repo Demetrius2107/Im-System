@@ -214,12 +214,12 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
     }
 
     //表示 channel 处于不活动状态
-//    @Override
-//    public void channelInactive(ChannelHandlerContext ctx) {
-//        //设置离线
-//        SessionSocketHolder.offlineUserSession((NioSocketChannel) ctx.channel());
-//        ctx.close();
-//    }
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) {
+        //设置离线
+        SessionSocketHolder.offlineUserSession((NioSocketChannel) ctx.channel());
+        ctx.close();
+    }
 
 
     @Override
