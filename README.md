@@ -1,6 +1,6 @@
 # IM-System — 基于 DDD 六边形架构的即时通讯系统
 
-> **毕业设计项目** | 基于 SpringBoot + Netty 实现的高性能即时通讯系统
+> **企业级即时通讯系统** | 基于 SpringBoot + Netty 实现的高性能即时通讯系统
 
 ---
 
