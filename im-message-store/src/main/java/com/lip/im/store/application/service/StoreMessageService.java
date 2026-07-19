@@ -19,11 +19,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * <p>Title: StoreMessageService</p>
+ * <p>Description: 消息存储应用服务，负责单聊和群聊消息的持久化写入，支持事务保持一致性。</p>
+ * <p>项目名称: IM-System</p>
+ *
  * @author wanqiu
- * @title: StoreMessageService
- * @projectName: IM-System
- * @description: 消息存储业务实现
- * @date: 2025/3/3 19:30
+ * @since 1.0
+ * @createTime 2025-03-03
+ * @updateTime 2026-07-19
+ *
+ * Copyright © 2026 wanqiu All rights reserved
  */
 @Service
 public class StoreMessageService {
