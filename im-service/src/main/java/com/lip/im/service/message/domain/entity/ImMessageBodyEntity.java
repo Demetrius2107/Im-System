@@ -7,6 +7,18 @@ import lombok.Data;
  * @author: Chackylee
  * @description:
  **/
+/**
+ * <p>Title: ImMessageBodyEntity</p>
+ * <p>Description: 消息体领域实体，映射 im_message_body 表</p>
+ * <p>项目名称: IM-System</p>
+ *
+ * @author lld
+ * @since 1.0
+ * @createTime 2025-03-06
+ * @updateTime 2025-03-06
+ *
+ * Copyright © 2025 lld All rights reserved
+ */
 @Data
 @TableName("im_message_body")
 public class ImMessageBodyEntity {

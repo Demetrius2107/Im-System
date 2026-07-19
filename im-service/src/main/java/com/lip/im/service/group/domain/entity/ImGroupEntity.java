@@ -4,6 +4,18 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+/**
+ * <p>Title: ImGroupEntity</p>
+ * <p>Description: 群组领域实体，映射 im_group 表</p>
+ * <p>项目名称: IM-System</p>
+ *
+ * @author lld
+ * @since 1.0
+ * @createTime 2025-03-06
+ * @updateTime 2025-03-06
+ *
+ * Copyright © 2025 lld All rights reserved
+ */
 @Data
 @TableName("im_group")
 public class ImGroupEntity {

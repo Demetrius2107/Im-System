@@ -3,6 +3,18 @@ package com.lip.im.service.conversation.domain.entity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+/**
+ * <p>Title: ImConversationSetEntity</p>
+ * <p>Description: 会话领域实体，映射 im_conversation_set 表，管理会话置顶/免打扰/已读状态</p>
+ * <p>项目名称: IM-System</p>
+ *
+ * @author lld
+ * @since 1.0
+ * @createTime 2025-03-06
+ * @updateTime 2025-03-06
+ *
+ * Copyright © 2025 lld All rights reserved
+ */
 @Data
 @TableName("im_conversation_set")
 public class ImConversationSetEntity {
