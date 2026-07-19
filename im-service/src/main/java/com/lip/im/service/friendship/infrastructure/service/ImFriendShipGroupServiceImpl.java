@@ -28,7 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author Elon
+ * @author wanqiu
  */
 @Service
 public class ImFriendShipGroupServiceImpl implements ImFriendShipGroupService {

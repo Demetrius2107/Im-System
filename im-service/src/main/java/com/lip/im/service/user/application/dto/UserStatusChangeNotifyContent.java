@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * @author Shukun.Li
+ * @author wanqiu
  * @description: status 区分是上线还是下线
  */
 @EqualsAndHashCode(callSuper = true)

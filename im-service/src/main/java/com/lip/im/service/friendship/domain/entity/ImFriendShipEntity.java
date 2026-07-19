@@ -10,7 +10,7 @@ import lombok.Data;
  * <p>Description: 好友关系领域实体，映射 im_friendship 表</p>
  * <p>项目名称: IM-System</p>
  *
- * @author Shukun.Li
+ * @author wanqiu
  * @since 1.0
  * @createTime 2025-03-06
  * @updateTime 2025-03-06

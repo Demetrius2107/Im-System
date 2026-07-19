@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: BootStrapConfig
  * @projectName: IM-System
  * @description: server参数配置类

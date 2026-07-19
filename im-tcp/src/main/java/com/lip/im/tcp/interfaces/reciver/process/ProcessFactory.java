@@ -1,7 +1,7 @@
 package com.lip.im.tcp.interfaces.reciver.process;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: ProcessFactory
  * @projectName: IM-System
  * @description:

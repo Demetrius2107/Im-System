@@ -10,7 +10,7 @@ import com.lip.im.service.user.application.dto.resp.UserOnlineStatusResp;
 import java.util.Map;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: ImUserStatusService
  * @projectName: IM-System
  * @description:

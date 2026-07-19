@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: MqFactory
  * @projectName: IM-System
  * @description: MQ工厂 初始化mq

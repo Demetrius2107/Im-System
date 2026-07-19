@@ -9,7 +9,7 @@ import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 /**
- * @author Shukun.Li
+ * @author wanqiu
  */
 @EqualsAndHashCode(callSuper = true)
 @Data

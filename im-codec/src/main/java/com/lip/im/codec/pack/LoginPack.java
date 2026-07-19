@@ -3,7 +3,7 @@ package com.lip.im.codec.pack;
 import lombok.Data;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: LoginPack
  * @projectName: IM-System
  * @description:

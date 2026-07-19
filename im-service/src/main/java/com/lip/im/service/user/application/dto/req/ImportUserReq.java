@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 import java.util.List;
 
 /**
- * @author Shukun.Li
+ * @author wanqiu
  */
 @EqualsAndHashCode(callSuper = true)
 @Data

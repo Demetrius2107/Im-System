@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 /**
- * @author Shukun.Li
+ * @author wanqiu
  */
 @Data
 @TableName("im_friendship_group")

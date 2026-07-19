@@ -2,7 +2,7 @@ package com.lip.im.shared.constants;
 
 /**
  * @description:
- * @author: lld
+ * @author wanqiu
  * @version: 1.0
  */
 public class Constants {

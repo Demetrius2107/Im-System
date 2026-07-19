@@ -10,12 +10,12 @@ import lombok.Data;
  * <p>Description: 群组成员领域实体，映射 im_group_member 表</p>
  * <p>项目名称: IM-System</p>
  *
- * @author lld
+ * @author wanqiu
  * @since 1.0
  * @createTime 2025-03-06
  * @updateTime 2025-03-06
  *
- * Copyright © 2025 lld All rights reserved
+ * Copyright © 2026 wanqiu All rights reserved
  */
 @Data
 @TableName("im_group_member")

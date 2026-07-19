@@ -5,7 +5,7 @@ import com.lip.im.tcp.infrastructure.utils.SessionSocketHolder;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: BaseProcess
  * @projectName: IM-System
  * @description:

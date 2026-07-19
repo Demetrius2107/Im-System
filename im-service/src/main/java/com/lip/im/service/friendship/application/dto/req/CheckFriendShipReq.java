@@ -11,7 +11,7 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
- * @author Shukun.Li
+ * @author wanqiu
  */
 @EqualsAndHashCode(callSuper = true)
 @Data

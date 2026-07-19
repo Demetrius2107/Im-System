@@ -5,7 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: Application
  * @projectName: IM-System
  * @description: TODO

@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: ShareThreadPool
  * @projectName: IM-System
  * @description: 共享线程池

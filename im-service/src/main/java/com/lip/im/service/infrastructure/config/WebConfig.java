@@ -8,7 +8,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: WebConfig
  * @projectName: IM-System
  * @description: TODO

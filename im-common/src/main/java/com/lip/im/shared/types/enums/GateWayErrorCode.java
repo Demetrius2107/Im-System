@@ -4,7 +4,7 @@ package com.lip.im.shared.types.enums;
 import com.lip.im.shared.exception.ApplicationExceptionEnum;
 
 /**
- * @author: Chackylee
+ * @author wanqiu
  * @description: 6
  **/
 public enum GateWayErrorCode implements ApplicationExceptionEnum {

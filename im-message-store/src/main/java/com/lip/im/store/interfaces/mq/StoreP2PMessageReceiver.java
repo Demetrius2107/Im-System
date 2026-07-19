@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: StroeP2PMessageReceiver
  * @projectName: IM-System
  * @description: 个人消息储存接收器

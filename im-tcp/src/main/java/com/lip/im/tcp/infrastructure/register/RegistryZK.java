@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: RegistryZK
  * @projectName: IM-System
  * @description:

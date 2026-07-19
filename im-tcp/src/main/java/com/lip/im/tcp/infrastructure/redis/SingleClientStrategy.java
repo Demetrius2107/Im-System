@@ -9,7 +9,7 @@ import org.redisson.config.Config;
 import org.redisson.config.SingleServerConfig;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: SingleClientStrategy
  * @projectName: IM-System
  * @description: 单机版本客户端登录策略 获取RedisClient

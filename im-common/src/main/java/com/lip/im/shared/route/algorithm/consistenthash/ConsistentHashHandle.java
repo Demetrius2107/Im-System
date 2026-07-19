@@ -7,7 +7,7 @@ import java.util.List;
 
 /**
  * @description: 一致性哈希算法路由策略
- * @author: lld
+ * @author wanqiu
  * @version: 1.0
  */
 public class ConsistentHashHandle implements RouteHandle {

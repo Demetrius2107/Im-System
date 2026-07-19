@@ -5,7 +5,7 @@ import com.lip.im.service.user.domain.entity.ImUserDataEntity;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
- * @author Shukun.Li
+ * @author wanqiu
  */
 @Mapper
 public interface ImUserDataMapper extends BaseMapper<ImUserDataEntity> {

@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @description:
- * @author: lld
+ * @author wanqiu
  * @version: 1.0
  */
 @Service
@@ -156,7 +156,7 @@ public class MessageStoreService {
      * @description: 存储单人离线消息
      * @param
      * @return void
-     * @author lld 
+     * @author wanqiu 
      */
     public void storeOfflineMessage(OfflineMessageContent offlineMessage){
 
@@ -196,7 +196,7 @@ public class MessageStoreService {
      * @description: 存储单人离线消息
      * @param
      * @return void
-     * @author lld
+     * @author wanqiu
      */
     public void storeGroupOfflineMessage(OfflineMessageContent offlineMessage
     ,List<String> memberIds){

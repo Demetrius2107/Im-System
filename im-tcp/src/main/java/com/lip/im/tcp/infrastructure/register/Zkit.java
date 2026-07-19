@@ -4,7 +4,7 @@ import com.lip.im.shared.constants.Constants;
 import org.I0Itec.zkclient.ZkClient;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: Zkit
  * @projectName: IM-System
  * @description:

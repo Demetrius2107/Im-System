@@ -5,7 +5,7 @@ import com.lip.im.store.domain.entity.ImMessageBodyEntity;
 import org.springframework.stereotype.Repository;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: ImMessageBodyMapper
  * @projectName: IM-System
  * @description:

@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: CallbackService
  * @projectName: IM-System
  * @description: 回调函数

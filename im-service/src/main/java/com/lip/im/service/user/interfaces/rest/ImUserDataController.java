@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * @author Shukun.Li
+ * @author wanqiu
  */
 @RestController
 @RequestMapping("v1/user/data")

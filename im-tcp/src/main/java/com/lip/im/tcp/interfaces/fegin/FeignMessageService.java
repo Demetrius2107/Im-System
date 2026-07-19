@@ -6,7 +6,7 @@ import feign.Headers;
 import feign.RequestLine;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: FeignMessageService
  * @projectName: IM-System
  * @description:

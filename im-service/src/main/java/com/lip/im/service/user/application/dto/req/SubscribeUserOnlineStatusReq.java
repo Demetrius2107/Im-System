@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * @author Elon
+ * @author wanqiu
  */
 @Data
 public class SubscribeUserOnlineStatusReq extends RequestBase {

@@ -43,7 +43,7 @@ import java.util.Set;
 
 /**
  * @description:
- * @author: lld
+ * @author wanqiu
  * @version: 1.0
  */
 @Service
@@ -83,7 +83,7 @@ public class MessageSyncService {
      * @description: 消息已读。更新会话的seq，通知在线的同步端发送指定command ，发送已读回执通知对方（消息发起方）我已读
      * @param
      * @return void
-     * @author lld
+     * @author wanqiu
      */
     public void readMark(MessageReadedContent messageContent) {
         conversationService.messageMarkRead(messageContent);

@@ -45,7 +45,7 @@ import java.util.*;
 
 /**
  * @description:
- * @author: lld
+ * @author wanqiu
  * @version: 1.0
  */
 @Service
@@ -111,7 +111,7 @@ public class ImGroupMemberServiceImpl implements ImGroupMemberService {
      * @param
      * @return com.lld.im.common.ResponseVO
      * @description: 添加群成员，内部调用
-     * @author lld
+     * @author wanqiu
      */
     @Override
     @Transactional
@@ -172,7 +172,7 @@ public class ImGroupMemberServiceImpl implements ImGroupMemberService {
      * @param
      * @return com.lld.im.common.ResponseVO
      * @description: 删除群成员，内部调用
-     * @author lld
+     * @author wanqiu
      */
     @Override
     public ResponseVO removeGroupMember(String groupId, Integer appId, String memberId) {
@@ -200,7 +200,7 @@ public class ImGroupMemberServiceImpl implements ImGroupMemberService {
      * @param groupId, memberId, appId]
      * @return com.lld.im.common.ResponseVO<com.lld.im.service.group.model.resp.GetRoleInGroupResp>
      * @description 查询用户在群内的角色
-     * @author chackylee
+     * @author wanqiu
      */
     @Override
     public ResponseVO<GetRoleInGroupResp> getRoleInGroupOne(String groupId, String memberId, Integer appId) {
@@ -251,7 +251,7 @@ public class ImGroupMemberServiceImpl implements ImGroupMemberService {
      * @return com.lld.im.common.ResponseVO
      * @description: 添加群成员，拉人入群的逻辑，直接进入群聊。如果是后台管理员，则直接拉入群，
      * 否则只有私有群可以调用本接口，并且群成员也可以拉人入群.只有私有群可以调用本接口
-     * @author lld
+     * @author wanqiu
      */
     @Override
     public ResponseVO addMember(AddGroupMemberReq req) {

@@ -5,7 +5,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: MessagePack
  * @projectName: IM-System
  * @description:

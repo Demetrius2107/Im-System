@@ -4,7 +4,7 @@ package com.lip.im.shared.types.enums;
 import com.lip.im.shared.exception.ApplicationExceptionEnum;
 
 /**
- * @author: Chackylee
+ * @author wanqiu
  * @description:
  **/
 public enum ConversationErrorCode implements ApplicationExceptionEnum {

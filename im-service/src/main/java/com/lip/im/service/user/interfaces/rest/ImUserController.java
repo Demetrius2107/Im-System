@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author Shukun.Li
+ * @author wanqiu
  */
 @RestController
 @RequestMapping("v1/user")
@@ -54,7 +54,7 @@ public class ImUserController {
      * @param req
      * @return com.lld.im.common.ResponseVO
      * @description im的登录接口，返回im地址
-     * @author chackylee
+     * @author wanqiu
      */
     @RequestMapping("/login")
     public ResponseVO login(@RequestBody @Validated LoginReq req, Integer appId) {

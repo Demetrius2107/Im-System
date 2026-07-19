@@ -3,7 +3,7 @@ package com.lip.im.codec.pack.group;
 import lombok.Data;
 
 /**
- * @author: Chackylee
+ * @author wanqiu
  * @description: 群聊消息分发报文
  **/
 @Data

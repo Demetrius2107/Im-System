@@ -3,7 +3,7 @@ package com.lip.im.codec.protocol;
 import lombok.Data;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: MessageHeader
  * @projectName: IM-System
  * @description:

@@ -8,7 +8,7 @@ import com.lip.im.shared.types.SyncReq;
 
 /**
  * @description:
- * @author: lld
+ * @author wanqiu
  * @version: 1.0
  */
 public interface ImGroupService {

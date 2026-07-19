@@ -6,7 +6,7 @@ import com.lip.im.shared.types.message.GroupChatMessageContent;
 import lombok.Data;
 
 /**
- * @author: Chackylee
+ * @author wanqiu
  * @description:
  **/
 @Data

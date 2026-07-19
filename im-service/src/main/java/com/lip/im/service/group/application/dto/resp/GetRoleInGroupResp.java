@@ -3,7 +3,7 @@ package com.lip.im.service.group.application.dto.resp;
 import lombok.Data;
 
 /**
- * @author: Chackylee
+ * @author wanqiu
  * @description:
  **/
 @Data

@@ -5,7 +5,7 @@ import com.lip.im.service.friendship.domain.entity.ImFriendShipRequestEntity;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
- * @author Shukun.Li
+ * @author wanqiu
  */
 @Mapper
 public interface ImFriendShipRequestMapper extends BaseMapper<ImFriendShipRequestEntity> {

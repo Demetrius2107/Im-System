@@ -16,7 +16,7 @@ import java.io.PrintWriter;
 
 /**
  * @description: 网关拦截器
- * @author: lld
+ * @author wanqiu
  * @version: 1.0
  */
 @Component

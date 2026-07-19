@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: MqMessageProducer
  * @projectName: IM-System
  * @description: MQ消息生产者 网关层投递消息到逻辑层

@@ -9,7 +9,7 @@ import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: HeartBeatHandler
  * @projectName: IM-System
  * @description: 心跳处理器

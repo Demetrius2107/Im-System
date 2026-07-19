@@ -5,7 +5,7 @@ import com.lip.im.shared.types.ClientInfo;
 import lombok.Data;
 
 /**
- * @author: Chackylee
+ * @author wanqiu
  * @description:
  **/
 @Data

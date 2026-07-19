@@ -10,7 +10,7 @@ import com.lip.im.shared.types.SyncReq;
 import java.util.List;
 
 /**
- * @author Shukun.Li
+ * @author wanqiu
  */
 public interface ImFriendService {
 

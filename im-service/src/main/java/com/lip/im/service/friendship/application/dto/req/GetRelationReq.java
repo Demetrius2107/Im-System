@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 import javax.validation.constraints.NotBlank;
 
 /**
- * @author Shukun.Li
+ * @author wanqiu
  */
 @EqualsAndHashCode(callSuper = true)
 @Data

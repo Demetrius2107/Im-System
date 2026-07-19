@@ -3,7 +3,7 @@ package com.lip.im.shared.exception;
 import com.lip.im.shared.exception.ApplicationExceptionEnum;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: BaseErrorCode
  * @projectName: IM-System
  * @description:

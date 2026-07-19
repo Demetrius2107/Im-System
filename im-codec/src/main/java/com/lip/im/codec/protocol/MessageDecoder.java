@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * @description: 消息解码类
- * @author: lld
+ * @author wanqiu
  * @version: 1.0
  */
 public class MessageDecoder extends ByteToMessageDecoder {

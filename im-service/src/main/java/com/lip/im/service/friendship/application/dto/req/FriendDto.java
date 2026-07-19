@@ -3,7 +3,7 @@ package com.lip.im.service.friendship.application.dto.req;
 import lombok.Data;
 
 /**
- * @author Shukun.Li
+ * @author wanqiu
  */
 @Data
 public class FriendDto {

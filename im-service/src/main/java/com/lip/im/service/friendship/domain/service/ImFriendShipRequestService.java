@@ -7,7 +7,7 @@ import com.lip.im.service.friendship.application.dto.req.ReadFriendShipRequestRe
 import com.lip.im.shared.base.ResponseVO;
 
 /**
- * @author Shukun.Li
+ * @author wanqiu
  */
 public interface ImFriendShipRequestService {
 

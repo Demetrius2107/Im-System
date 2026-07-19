@@ -5,7 +5,7 @@ import com.lip.im.tcp.interfaces.reciver.UserLoginMessageListener;
 import org.redisson.api.RedissonClient;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: RedisManager
  * @projectName: IM-System
  * @description: Redis管理器 封装Redis 用户信息

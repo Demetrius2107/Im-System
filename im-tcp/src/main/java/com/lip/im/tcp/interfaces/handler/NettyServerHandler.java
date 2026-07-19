@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 import java.net.InetAddress;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: NettyServerHandler
  * @projectName: IM-System
  * @description:

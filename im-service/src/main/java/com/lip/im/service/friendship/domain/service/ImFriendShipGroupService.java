@@ -7,7 +7,7 @@ import com.lip.im.service.friendship.application.dto.req.DeleteFriendShipGroupRe
 import com.lip.im.shared.base.ResponseVO;
 
 /**
- * @author Shukun.Li
+ * @author wanqiu
  * @date 2024/12/19
  */
 public interface ImFriendShipGroupService {

@@ -10,7 +10,7 @@ import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 /**
- * @author Shukun.Li
+ * @author wanqiu
  * @description: 删除分组，同时删除分组下的成员
  */
 @EqualsAndHashCode(callSuper = true)

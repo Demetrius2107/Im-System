@@ -47,7 +47,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * @author Shukun.Li
+ * @author wanqiu
  */
 @Service
 public class ImFriendServiceImpl implements ImFriendService {

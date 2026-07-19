@@ -20,7 +20,7 @@ import java.util.zip.Inflater;
  * @description: app用户 后台管理员  接口加密鉴权
  *
  * 10000 xxx 10001 bbbb
- * @author: lld
+ * @author wanqiu
  * @version: 1.0
  */
 public class SigAPI {
@@ -45,7 +45,7 @@ public class SigAPI {
      * @description: 解密方法
      * @param
      * @return com.alibaba.fastjson.JSONObject
-     * @author lld
+     * @author wanqiu
      */
     public static JSONObject decodeUserSig(String userSig) {
         JSONObject sigDoc = new JSONObject(true);

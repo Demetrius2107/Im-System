@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @description: 标识检查
- * @author: lld
+ * @author wanqiu
  * @version: 1.0
  */
 @Component

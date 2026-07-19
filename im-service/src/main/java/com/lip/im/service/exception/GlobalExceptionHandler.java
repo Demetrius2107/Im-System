@@ -19,7 +19,7 @@ import javax.validation.ConstraintViolationException;
 import java.util.Set;
 
 /**
- * @author Shukun.Li
+ * @author wanqiu
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {

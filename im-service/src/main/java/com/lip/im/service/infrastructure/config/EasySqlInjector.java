@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.extension.injector.methods.InsertBatchSomeColumn
 import java.util.List;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: EasySqlInjector
  * @projectName: IM-System
  * @description: SQL注入

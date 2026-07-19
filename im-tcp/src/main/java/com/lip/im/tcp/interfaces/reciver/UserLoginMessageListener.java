@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: UserLoginMessageListener
  * @projectName: IM-System
  * @description: 用户登录消息监听器  用户下线处理

@@ -3,7 +3,7 @@ package com.lip.im.shared.types;
 import lombok.Data;
 
 /**
- * @author: Chackylee
+ * @author wanqiu
  * @description:
  **/
 @Data

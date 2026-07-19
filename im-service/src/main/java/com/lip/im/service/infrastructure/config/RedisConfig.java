@@ -11,7 +11,7 @@ import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: RedisConfig
  * @projectName: IM-System
  * @description: TODO

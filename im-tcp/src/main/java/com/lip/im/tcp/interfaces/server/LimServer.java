@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: LimServer
  * @projectName: IM-System
  * @description: 运行时服务器

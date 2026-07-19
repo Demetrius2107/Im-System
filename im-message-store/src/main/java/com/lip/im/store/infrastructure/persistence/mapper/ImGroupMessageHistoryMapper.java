@@ -5,7 +5,7 @@ import com.lip.im.store.domain.entity.ImGroupMessageHistoryEntity;
 import org.springframework.stereotype.Repository;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: ImGroupMessageHistoryMapper
  * @projectName: IM-System
  * @description:

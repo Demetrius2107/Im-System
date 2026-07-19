@@ -1,7 +1,7 @@
 package com.lld.im.common;
 
 /**
- * @author: Chackylee
+ * @author wanqiu
  * @description:
  **/
 public enum ClientType {

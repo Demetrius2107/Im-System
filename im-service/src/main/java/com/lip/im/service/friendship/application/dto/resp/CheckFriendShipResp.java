@@ -3,7 +3,7 @@ package com.lip.im.service.friendship.application.dto.resp;
 import lombok.Data;
 
 /**
- * @author Shukun.Li
+ * @author wanqiu
  * @date 2024/12/19
  * @description: 检查好友关系
  */

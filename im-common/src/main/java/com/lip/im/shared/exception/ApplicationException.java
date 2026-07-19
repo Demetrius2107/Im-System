@@ -1,7 +1,7 @@
 package com.lip.im.shared.exception;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: ApplicationException
  * @projectName: IM-System
  * @description:

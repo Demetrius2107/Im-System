@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author Shukun.Li
+ * @author wanqiu
  */
 @Service
 public class ImFriendShipGroupMemberServiceImpl

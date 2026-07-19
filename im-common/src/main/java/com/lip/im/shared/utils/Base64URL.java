@@ -6,7 +6,7 @@ import java.util.Base64;
 
 /**
  * @description:
- * @author: lld
+ * @author wanqiu
  * @version: 1.0
  */
 public class Base64URL {

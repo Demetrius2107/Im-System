@@ -23,7 +23,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: SessionSocketHolder
  * @projectName: IM-System
  * @description: SessionSocket持有者

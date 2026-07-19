@@ -30,7 +30,7 @@ import java.util.List;
 
 /**
  * @description:
- * @author: lld
+ * @author wanqiu
  * @version: 1.0
  */
 @Service
@@ -92,7 +92,7 @@ public class ConversationService {
      * @description: 删除会话
      * @param
      * @return com.lld.im.common.ResponseVO
-     * @author lld
+     * @author wanqiu
      */
     public ResponseVO deleteConversation(DeleteConversationReq req){
 
@@ -122,7 +122,7 @@ public class ConversationService {
      * @description: 更新会话 置顶or免打扰
      * @param
      * @return com.lld.im.common.ResponseVO
-     * @author lld
+     * @author wanqiu
      */
     public ResponseVO updateConversation(UpdateConversationReq req){
 

@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: ResponseVO
  * @projectName: IM-System
  * @description: TODO

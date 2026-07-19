@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * @author: Chackylee
+ * @author wanqiu
  * @description: 消息key生成
  **/
 public class MessageKeyGenerate {

@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: StoreGroupMessageReceiver
  * @projectName: IM-System
  * @description: 群组消息储存接收器

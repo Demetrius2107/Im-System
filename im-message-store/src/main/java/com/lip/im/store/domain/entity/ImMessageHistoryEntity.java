@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 /**
- * @author: Chackylee
+ * @author wanqiu
  * @description:
  **/
 /**
@@ -12,12 +12,12 @@ import lombok.Data;
  * <p>Description: 单聊消息历史持久化实体，映射 im_message_history 表</p>
  * <p>项目名称: IM-System</p>
  *
- * @author Elon
+ * @author wanqiu
  * @since 1.0
  * @createTime 2025-03-03
  * @updateTime 2025-03-03
  *
- * Copyright © 2025 Elon All rights reserved
+ * Copyright © 2026 wanqiu All rights reserved
  */
 @Data
 @TableName("im_message_history")

@@ -29,7 +29,7 @@ import java.util.List;
 
 
 /**
- * @author Elon
+ * @author wanqiu
  */
 @Service
 public class ImFriendShipRequestServiceImpl implements ImFriendShipRequestService {

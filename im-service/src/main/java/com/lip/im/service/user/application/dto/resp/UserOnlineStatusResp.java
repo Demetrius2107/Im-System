@@ -5,7 +5,7 @@ import com.lip.im.shared.types.UserSession;
 import java.util.List;
 
 /**
- * @author Shukun.Li
+ * @author wanqiu
  */
 public class UserOnlineStatusResp {
 

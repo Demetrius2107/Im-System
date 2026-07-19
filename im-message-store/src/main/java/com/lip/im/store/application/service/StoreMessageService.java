@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: StoreMessageService
  * @projectName: IM-System
  * @description: 消息存储业务实现

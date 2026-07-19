@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: MessageReceiver
  * @projectName: IM-System
  * @description: 消息接收器 监听消息 逻辑层投递至网关层的消息

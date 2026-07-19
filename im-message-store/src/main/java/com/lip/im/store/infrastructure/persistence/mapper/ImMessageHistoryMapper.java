@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Collection;
 
 /**
- * @author: Elon
+ * @author wanqiu
  * @title: ImMessageHistoryMapper
  * @projectName: IM-System
  * @description:

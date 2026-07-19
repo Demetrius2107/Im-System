@@ -1,7 +1,7 @@
 package com.lip.im.service.interfaces.interceptor;
 
 /**
- * @author: Chackylee
+ * @author wanqiu
  * @description:
  **/
 public class RequestHolder {

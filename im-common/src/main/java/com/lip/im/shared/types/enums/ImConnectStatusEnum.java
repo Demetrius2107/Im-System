@@ -1,7 +1,7 @@
 package com.lip.im.shared.types.enums;
 
 /**
- * @author Elon
+ * @author wanqiu
  */
 
 public enum ImConnectStatusEnum {
