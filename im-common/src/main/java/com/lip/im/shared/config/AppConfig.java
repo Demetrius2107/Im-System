@@ -69,50 +69,49 @@ public class AppConfig {
     /** 添加好友后回调开关 */
     private boolean addFriendAfterCallback;
 
-    /** im管道地址路由策略*/
-    private Integer imRouteWay;
+    /** 添加好友前回调开关 */
+    private boolean addFriendBeforeCallback;
 
-    private boolean sendMessageCheckFriend; //发送消息是否校验关系链
+    /** 修改好友后回调开关 */
+    private boolean modifyFriendAfterCallback;
 
-    private boolean sendMessageCheckBlack; //发送消息是否校验黑名单
+    /** 删除好友后回调开关 */
+    private boolean deleteFriendAfterCallback;
 
-    /** 如果选用一致性hash的话具体hash算法*/
-    private Integer consistentHashWay;
+    /** 添加黑名单后回调开关 */
+    private boolean addFriendShipBlackAfterCallback;
 
-    private String callbackUrl;
+    /** 删除黑名单后回调开关 */
+    private boolean deleteFriendShipBlackAfterCallback;
 
-    private boolean modifyUserAfterCallback; //用户资料变更之后回调开关
+    /** 创建群聊后回调开关 */
+    private boolean createGroupAfterCallback;
 
-    private boolean addFriendAfterCallback; //添加好友之后回调开关
+    /** 修改群聊后回调开关 */
+    private boolean modifyGroupAfterCallback;
 
-    private boolean addFriendBeforeCallback; //添加好友之前回调开关
+    /** 解散群聊后回调开关 */
+    private boolean destroyGroupAfterCallback;
 
-    private boolean modifyFriendAfterCallback; //修改好友之后回调开关
+    /** 删除群成员后回调开关 */
+    private boolean deleteGroupMemberAfterCallback;
 
-    private boolean deleteFriendAfterCallback; //删除好友之后回调开关
+    /** 拉人入群前回调开关 */
+    private boolean addGroupMemberBeforeCallback;
 
-    private boolean addFriendShipBlackAfterCallback; //添加黑名单之后回调开关
+    /** 拉人入群后回调开关 */
+    private boolean addGroupMemberAfterCallback;
 
-    private boolean deleteFriendShipBlackAfterCallback; //删除黑名单之后回调开关
+    /** 发送单聊消息后回调开关 */
+    private boolean sendMessageAfterCallback;
 
-    private boolean createGroupAfterCallback; //创建群聊之后回调开关
+    /** 发送单聊消息前回调开关 */
+    private boolean sendMessageBeforeCallback;
 
-    private boolean modifyGroupAfterCallback; //修改群聊之后回调开关
-
-    private boolean destroyGroupAfterCallback;//解散群聊之后回调开关
-
-    private boolean deleteGroupMemberAfterCallback;//删除群成员之后回调
-
-    private boolean addGroupMemberBeforeCallback;//拉人入群之前回调
-
-    private boolean addGroupMemberAfterCallback;//拉人入群之后回调
-
-    private boolean sendMessageAfterCallback;//发送单聊消息之后
-
-    private boolean sendMessageBeforeCallback;//发送单聊消息之前
-
+    /** 会话删除同步模式：1-多端同步 */
     private Integer deleteConversationSyncMode;
 
-    private Integer offlineMessageCount;//离线消息最大条数
+    /** 离线消息最大存储条数 */
+    private Integer offlineMessageCount;
 
 }

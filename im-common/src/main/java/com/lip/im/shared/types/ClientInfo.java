@@ -1,5 +1,6 @@
 package com.lip.im.shared.types;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
