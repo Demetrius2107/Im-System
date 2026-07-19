@@ -1,0 +1,40 @@
+package com.vela.im.tcp.infrastructure.redis;
+
+import com.vela.im.codec.config.BootStrapConfig;
+import org.apache.commons.lang3.StringUtils;
+import org.redisson.Redisson;
+import org.redisson.api.RedissonClient;
+import org.redisson.client.codec.StringCodec;
+import org.redisson.config.Config;
+import org.redisson.config.SingleServerConfig;
+
+/**
+ * @author wanqiu
+ * @title: SingleClientStrategy
+ * @projectName: IM-System
+ * @description: 单机版本客户端登录策略 获取RedisClient
+ * @date: 2025/3/5 1:13
+ */
+public class SingleClientStrategy {
+
+    public RedissonClient getRedissonClient(BootStrapConfig.RedisConfig redisConfig){
+        Config config = new Config();
+        String node = redisConfig.getSingle().getAddress();
+        node = node.startsWith("redis:://") ? node: "redis://" + node;
+        SingleServerConfig serverConfig = config.useSingleServer()
+                .setAddress(node)
+                .setDatabase(redisConfig.getDatabase())
+                .setTimeout(redisConfig.getTimeout())
+                .setConnectionMinimumIdleSize(redisConfig.getPoolMinIdle())
+                .setConnectTimeout(redisConfig.getPoolConnTimeout())
+                .setConnectionPoolSize(redisConfig.getPoolSize());
+
+        if(StringUtils.isNotBlank(redisConfig.getPassword())){
+            serverConfig.setPassword(redisConfig.getPassword());
+        }
+        StringCodec stringCodec = new StringCodec();
+        config.setCodec(stringCodec);
+        return Redisson.create(config);
+    }
+
+}

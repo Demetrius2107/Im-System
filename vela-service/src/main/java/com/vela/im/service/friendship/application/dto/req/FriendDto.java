@@ -1,0 +1,20 @@
+package com.vela.im.service.friendship.application.dto.req;
+
+import lombok.Data;
+
+/**
+ * @author wanqiu
+ */
+@Data
+public class FriendDto {
+
+    private String toId;
+
+    private String remark;
+
+    private String addSource;
+
+    private String extra;
+
+    private  String addWording;
+}
