@@ -6,11 +6,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
+ * <p>Title: BootStrapConfig</p>
+ * <p>Description: 服务端启动参数配置类，包含TCP/WebSocket端口、心跳超时、BrokerId、Redis/RabbitMQ/ZK连接配置。</p>
+ * <p>项目名称: IM-System</p>
+ *
  * @author wanqiu
- * @title: BootStrapConfig
- * @projectName: IM-System
- * @description: server参数配置类
- * @date: 2025/3/3 18:23
+ * @since 1.0
+ * @createTime 2025-03-03
+ * @updateTime 2025-03-06
+ *
+ * Copyright © 2026 wanqiu All rights reserved
  */
 @Data
 public class BootStrapConfig {

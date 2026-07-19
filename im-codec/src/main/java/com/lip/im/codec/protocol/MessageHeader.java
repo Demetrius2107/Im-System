@@ -3,11 +3,17 @@ package com.lip.im.codec.protocol;
 import lombok.Data;
 
 /**
+ * <p>Title: MessageHeader</p>
+ * <p>Description: 消息协议头，包含指令(command)、版本(version)、端类型(clientType)、消息解析类型(messageType)、</p>
+ * <p>appId、imei长度(imeiLength)、body长度(bodyLength)及imei号。</p>
+ * <p>项目名称: IM-System</p>
+ *
  * @author wanqiu
- * @title: MessageHeader
- * @projectName: IM-System
- * @description:
- * @date: 2025/3/3 18:26
+ * @since 1.0
+ * @createTime 2025-03-03
+ * @updateTime 2025-03-06
+ *
+ * Copyright © 2026 wanqiu All rights reserved
  */
 @Data
 public class MessageHeader {

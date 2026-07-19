@@ -7,9 +7,18 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
 /**
+ * <p>Title: MessageEncoder</p>
+ * <p>Description: 消息编码器，Netty MessageToByteEncoder 实现，将 MessagePack 编码为二进制协议数据。</p>
+ * <p>私有协议规则：前4位长度 + 4位command + JSON序列化body</p>
+ * <p>项目名称: IM-System</p>
+ *
  * @author wanqiu
- * @description: 消息编码类，私有协议规则，前4位表示长度，接着command4位，后面是数据
- **/
+ * @since 1.0
+ * @createTime 2025-03-03
+ * @updateTime 2025-03-06
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ */
 public class MessageEncoder extends MessageToByteEncoder {
 
     @Override

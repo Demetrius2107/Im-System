@@ -11,9 +11,16 @@ import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import java.util.List;
 
 /**
- * @description:
+ * <p>Title: WebSocketMessageDecoder</p>
+ * <p>Description: WebSocket 消息解码器，将 BinaryWebSocketFrame 解码为 Message 协议对象。</p>
+ * <p>项目名称: IM-System</p>
+ *
  * @author wanqiu
- * @version: 1.0
+ * @since 1.0
+ * @createTime 2025-03-03
+ * @updateTime 2025-03-06
+ *
+ * Copyright © 2026 wanqiu All rights reserved
  */
 public class WebSocketMessageDecoder extends MessageToMessageDecoder<BinaryWebSocketFrame> {
     @Override

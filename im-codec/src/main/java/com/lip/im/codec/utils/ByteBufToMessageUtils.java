@@ -6,20 +6,17 @@ import com.lip.im.codec.protocol.MessageHeader;
 import io.netty.buffer.ByteBuf;
 
 /**
+ * <p>Title: ByteBufToMessageUtils</p>
+ * <p>Description: ByteBuf 转 Message 工具类，根据私有协议规则解析二进制数据。</p>
+ * <p>私有协议规则: 4位command + 4位version + 4位clientType + 4位messageType + 4位appId + 4位imeiLength + imei + 4位bodyLength + body</p>
+ * <p>项目名称: IM-System</p>
+ *
  * @author wanqiu
- * @description: 将ByteBuf转化为Message实体，根据私有协议转换
- *               私有协议规则，
- *               4位表示Command表示消息的开始，
- *               4位表示version
- *               4位表示clientType
- *               4位表示messageType
- *               4位表示appId
- *               4位表示imei长度
- *               imei
- *               4位表示数据长度
- *               data
- *               后续将解码方式加到数据头根据不同的解码方式解码，如pb，json，现在用json字符串
- * @version: 1.0
+ * @since 1.0
+ * @createTime 2025-03-03
+ * @updateTime 2025-03-06
+ *
+ * Copyright © 2026 wanqiu All rights reserved
  */
 public class ByteBufToMessageUtils {
 

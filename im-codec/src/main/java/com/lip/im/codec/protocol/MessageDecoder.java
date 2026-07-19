@@ -12,9 +12,17 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 import java.util.List;
 
 /**
- * @description: 消息解码类
+ * <p>Title: MessageDecoder</p>
+ * <p>Description: 消息解码器，Netty ByteToMessageDecoder 实现，将二进制流解码为 Message 协议对象。</p>
+ * <p>私有协议规则：前4字节长度 + 4字节command + 变长body</p>
+ * <p>项目名称: IM-System</p>
+ *
  * @author wanqiu
- * @version: 1.0
+ * @since 1.0
+ * @createTime 2025-03-03
+ * @updateTime 2025-03-06
+ *
+ * Copyright © 2026 wanqiu All rights reserved
  */
 public class MessageDecoder extends ByteToMessageDecoder {
 

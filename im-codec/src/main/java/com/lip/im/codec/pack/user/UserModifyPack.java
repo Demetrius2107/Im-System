@@ -3,9 +3,16 @@ package com.lip.im.codec.pack.user;
 import lombok.Data;
 
 /**
- * @description:
+ * <p>Title: UserModifyPack</p>
+ * <p>Description: 用户资料变更通知包，当用户资料修改后广播给所有在线端。</p>
+ * <p>项目名称: IM-System</p>
+ *
  * @author wanqiu
- * @version: 1.0
+ * @since 1.0
+ * @createTime 2025-03-03
+ * @updateTime 2025-03-06
+ *
+ * Copyright © 2026 wanqiu All rights reserved
  */
 @Data
 public class UserModifyPack {

@@ -5,11 +5,16 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
+ * <p>Title: MessagePack</p>
+ * <p>Description: 消息封装体，泛型容器，携带userId/appId/clientType/imei/command等路由信息及业务数据data。</p>
+ * <p>项目名称: IM-System</p>
+ *
  * @author wanqiu
- * @title: MessagePack
- * @projectName: IM-System
- * @description:
- * @date: 2025/3/3 18:26
+ * @since 1.0
+ * @createTime 2025-03-03
+ * @updateTime 2025-03-06
+ *
+ * Copyright © 2026 wanqiu All rights reserved
  */
 @Data
 public class MessagePack<T> implements Serializable {

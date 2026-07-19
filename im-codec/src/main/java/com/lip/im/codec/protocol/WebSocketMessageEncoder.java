@@ -14,9 +14,17 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
+ * <p>Title: WebSocketMessageEncoder</p>
+ * <p>Description: WebSocket 消息编码器，将 MessagePack 编码为 BinaryWebSocketFrame。</p>
+ * <p>项目名称: IM-System</p>
+ *
  * @author wanqiu
- * @description:
- **/
+ * @since 1.0
+ * @createTime 2025-03-03
+ * @updateTime 2025-03-06
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ */
 public class WebSocketMessageEncoder extends MessageToMessageEncoder<MessagePack> {
 
     private static Logger log = LoggerFactory.getLogger(WebSocketMessageEncoder.class);
