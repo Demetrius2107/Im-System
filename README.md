@@ -1,6 +1,6 @@
-# IM-System — 基于 DDD 六边形架构的即时通讯系统
+# Vela — 基于 DDD 六边形架构的即时通讯系统
 
-> **毕业设计项目** | 基于 SpringBoot + Netty 实现的高性能即时通讯系统
+> **企业级即时通讯系统** | 基于 SpringBoot + Netty 实现的高性能即时通讯系统
 
 ---
 
@@ -20,7 +20,7 @@
 
 ## 项目概述
 
-IM-System 是一个基于 DDD（领域驱动设计）六边形架构的高性能即时通讯系统。系统采用 **网关 + 业务服务 + 存储服务** 分离的微服务架构，支持 TCP 和 WebSocket 双协议接入，提供完整的消息推送、好友关系、群组管理、会话管理等功能。
+Vela 是一个基于 DDD（领域驱动设计）六边形架构的高性能即时通讯系统。系统采用 **网关 + 业务服务 + 存储服务** 分离的微服务架构，支持 TCP 和 WebSocket 双协议接入，提供完整的消息推送、好友关系、群组管理、会话管理等功能。
 
 ### 核心设计理念
 
@@ -303,7 +303,7 @@ mvn clean compile
 ## 项目结构
 
 ```
-IM-System/
+Vela/
 ├── im-common/               # 共享内核层
 │   └── src/main/java/com/lip/im/shared/
 ├── im-codec/                # 基础设施：协议编解码
@@ -353,7 +353,7 @@ interfaces → application → domain ← infrastructure
 /**
  * <p>Title: ClassName</p>
  * <p>Description: 类功能描述</p>
- * <p>项目名称: IM-System</p>
+ * <p>项目名称: Vela</p>
  *
  * @author author
  * @since version

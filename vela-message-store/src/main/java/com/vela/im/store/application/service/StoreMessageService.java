@@ -1,0 +1,105 @@
+package com.vela.im.store.application.service;
+
+import com.vela.im.store.domain.entity.ImGroupMessageHistoryEntity;
+import com.vela.im.store.domain.entity.ImMessageBodyEntity;
+import com.vela.im.store.domain.entity.ImMessageHistoryEntity;
+import com.vela.im.store.infrastructure.persistence.mapper.ImGroupMessageHistoryMapper;
+import com.vela.im.store.infrastructure.persistence.mapper.ImMessageBodyMapper;
+import com.vela.im.store.infrastructure.persistence.mapper.ImMessageHistoryMapper;
+import com.vela.im.store.application.dto.DoStoreGroupMessageDto;
+import com.vela.im.store.application.dto.DoStoreP2PMessageDto;
+import com.vela.im.shared.types.message.GroupChatMessageContent;
+import com.vela.im.shared.types.message.MessageContent;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * <p>Title: StoreMessageService</p>
+ * <p>Description: 消息存储应用服务，负责单聊和群聊消息的持久化写入，支持事务保持一致性。</p>
+ * <p>项目名称: IM-System</p>
+ *
+ * @author wanqiu
+ * @since 1.0
+ * @createTime 2025-03-03
+ * @updateTime 2026-07-19
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ */
+@Service
+public class StoreMessageService {
+
+    @Autowired
+    ImMessageHistoryMapper imMessageHistoryMapper;
+
+    @Autowired
+    ImMessageBodyMapper imMessageBodyMapper;
+
+    @Autowired
+    ImGroupMessageHistoryMapper imGroupMessageHistoryMapper;
+
+    /**
+     * 事务保持一致性
+     * 存储单聊双方消息
+     * @param doStoreP2PMessageDto
+     */
+    @Transactional
+    public void doStoreP2PMessage(DoStoreP2PMessageDto doStoreP2PMessageDto) {
+        imMessageBodyMapper.insert(doStoreP2PMessageDto.getImMessageBodyEntity());
+        List<ImMessageHistoryEntity> imMessageHistoryEntities = extractToP2PMessageHistory(doStoreP2PMessageDto.getMessageContent(), doStoreP2PMessageDto.getImMessageBodyEntity());
+        // 批量存储
+        imMessageHistoryMapper.insertBatchSomeColumn(imMessageHistoryEntities);
+    }
+
+    /**
+     * 获取聊天双方历史消息记录
+     * @param messageContent
+     * @param imMessageBodyEntity
+     * @return
+     */
+    public List<ImMessageHistoryEntity> extractToP2PMessageHistory(MessageContent messageContent,
+                                                                   ImMessageBodyEntity imMessageBodyEntity) {
+        List<ImMessageHistoryEntity> list = new ArrayList<>();
+        ImMessageHistoryEntity fromHistory = new ImMessageHistoryEntity();
+        BeanUtils.copyProperties(messageContent, fromHistory);
+        fromHistory.setOwnerId(messageContent.getFromId());
+        fromHistory.setMessageKey(messageContent.getMessageKey());
+        fromHistory.setCreateTime(System.currentTimeMillis());
+        fromHistory.setSequence(messageContent.getMessageSequence());
+
+        ImMessageHistoryEntity toHistory = new ImMessageHistoryEntity();
+        BeanUtils.copyProperties(messageContent, toHistory);
+        toHistory.setOwnerId(messageContent.getToId());
+        toHistory.setMessageKey(messageContent.getMessageKey());
+        toHistory.setCreateTime(System.currentTimeMillis());
+        toHistory.setSequence(messageContent.getMessageSequence());
+
+        list.add(fromHistory);
+        list.add(toHistory);
+        return list;
+    }
+
+    @Transactional
+    public void doStoreGroupMessage(DoStoreGroupMessageDto doStoreGroupMessageDto) {
+        imMessageBodyMapper.insert(doStoreGroupMessageDto.getImMessageBodyEntity());
+        ImGroupMessageHistoryEntity imGroupMessageHistoryEntity = extractToGroupMessageHistory(doStoreGroupMessageDto.getGroupChatMessageContent(),doStoreGroupMessageDto.getImMessageBodyEntity());
+        imGroupMessageHistoryMapper.insert(imGroupMessageHistoryEntity);
+
+    }
+
+    private ImGroupMessageHistoryEntity extractToGroupMessageHistory(GroupChatMessageContent
+                                                                             messageContent , ImMessageBodyEntity messageBodyEntity){
+        ImGroupMessageHistoryEntity result = new ImGroupMessageHistoryEntity();
+        BeanUtils.copyProperties(messageContent,result);
+        result.setGroupId(messageContent.getGroupId());
+        result.setMessageKey(messageBodyEntity.getMessageKey());
+        result.setCreateTime(System.currentTimeMillis());
+        return result;
+    }
+
+
+}
