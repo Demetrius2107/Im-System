@@ -23,16 +23,32 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * <p>Title: SessionSocketHolder</p>
+ * <p>Description: 用户 Session 与 Netty Channel 的持有者，管理客户端连接映射关系及离线/下线处理</p>
+ * <p>项目名称: Vellastra</p>
+ *
  * @author wanqiu
- * @title: SessionSocketHolder
- * @projectName: IM-System
- * @description: SessionSocket持有者
- * @date: 2025/3/5 0:48
+ * @since 1.1
+ * @createTime 2025-03-05
+ * @updateTime 2026-07-19
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 public class SessionSocketHolder {
 
+    /** 用户客户端与 Channel 的映射关系 */
     private static final Map<UserClientDto, NioSocketChannel> CHANNELS = new ConcurrentHashMap<>();
 
+    /**
+     * 存储用户 Channel 映射
+     *
+     * @param appId      应用ID
+     * @param userId     用户ID
+     * @param clientType 客户端类型
+     * @param imei       设备IMEI
+     * @param channel    Netty 通道
+     */
     public static void put(Integer appId, String userId, Integer clientType, String imei
             , NioSocketChannel channel) {
         UserClientDto dto = new UserClientDto();
@@ -43,7 +59,15 @@ public class SessionSocketHolder {
         CHANNELS.put(dto, channel);
     }
 
-
+    /**
+     * 根据用户标识获取指定端的 Channel
+     *
+     * @param appId      应用ID
+     * @param userId     用户ID
+     * @param clientType 客户端类型
+     * @param imei       设备IMEI
+     * @return NioSocketChannel 或 null
+     */
     public static NioSocketChannel get(Integer appId,String userId,
                                        Integer clientType,String imei){
         UserClientDto dto = new UserClientDto();
@@ -55,13 +79,13 @@ public class SessionSocketHolder {
     }
 
     /**
-     * 获取某个用户的所有channel
-     * @param appId
-     * @param id
-     * @return
+     * 获取某个用户的所有端 Channel 列表
+     *
+     * @param appId 应用ID
+     * @param id    用户ID
+     * @return 该用户所有在线的 Channel 列表
      */
     public static List<NioSocketChannel> get(Integer appId , String id) {
-
         Set<UserClientDto> channelInfos = CHANNELS.keySet();
         List<NioSocketChannel> channels = new ArrayList<>();
 
@@ -74,8 +98,14 @@ public class SessionSocketHolder {
         return channels;
     }
 
-
-    // 删除Session
+    /**
+     * 移除指定端的 Channel 映射
+     *
+     * @param appId      应用ID
+     * @param userId     用户ID
+     * @param clientType 客户端类型
+     * @param imei       设备IMEI
+     */
     public static void remove(Integer appId,String userId,Integer clientType,String imei){
         UserClientDto dto = new UserClientDto();
         dto.setAppId(appId);
@@ -85,17 +115,21 @@ public class SessionSocketHolder {
         CHANNELS.remove(dto);
     }
 
+    /**
+     * 根据 Channel 实例移除映射
+     *
+     * @param channel 要移除的 Netty 通道
+     */
     public static void remove(NioSocketChannel channel){
         CHANNELS.entrySet().stream().filter(entity -> entity.getValue() == channel)
                 .forEach(entry -> CHANNELS.remove(entry.getKey()));
     }
 
-
     /**
-     *  删除用户session
-     * @param nioSocketChannel
+     * 删除用户 Session：清理本地 Channel 映射、Redis 缓存，广播下线通知并关闭连接
+     *
+     * @param nioSocketChannel 用户 Netty 通道
      */
-
     public static void removeUserSession(NioSocketChannel nioSocketChannel){
         String userId = (String) nioSocketChannel.attr(AttributeKey.valueOf(Constants.UserId)).get();
         Integer appId = (Integer) nioSocketChannel.attr(AttributeKey.valueOf(Constants.AppId)).get();
@@ -124,8 +158,9 @@ public class SessionSocketHolder {
     }
 
     /**
-     * 离线用户session
-     * @param nioSocketChannel
+     * 离线用户 Session：更新 Redis 中的连接状态为离线，广播下线通知并关闭连接
+     *
+     * @param nioSocketChannel 用户 Netty 通道
      */
     public static void offlineUserSession(NioSocketChannel nioSocketChannel){
         String userId = (String) nioSocketChannel.attr(AttributeKey.valueOf(Constants.UserId)).get();
@@ -153,7 +188,6 @@ public class SessionSocketHolder {
         UserStatusChangeNotifyPack userStatusChangeNotifyPack = new UserStatusChangeNotifyPack();
         userStatusChangeNotifyPack.setAppId(appId);
         userStatusChangeNotifyPack.setUserId(userId);
-        // 更改成离线状态
         userStatusChangeNotifyPack.setStatus(ImConnectStatusEnum.OFFLINE_STATUS.getCode());
         MqMessageProducer.sendMessage(userStatusChangeNotifyPack,messageHeader, UserEventCommand.USER_ONLINE_STATUS_CHANGE.getCommand());
 

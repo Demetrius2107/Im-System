@@ -14,53 +14,71 @@ import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
 /**
+ * <p>Title: MqMessageProducer</p>
+ * <p>Description: MQ 消息生产者，网关层将消息投递到逻辑层对应的 RabbitMQ 队列</p>
+ * <p>项目名称: Vellastra</p>
+ *
  * @author wanqiu
- * @title: MqMessageProducer
- * @projectName: IM-System
- * @description: MQ消息生产者 网关层投递消息到逻辑层
- * @date: 2025/3/5 19:02
+ * @since 1.1
+ * @createTime 2025-03-05
+ * @updateTime 2026-07-19
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @Slf4j
 public class MqMessageProducer {
 
-        public static void sendMessage(Message message ,Integer command){
-            Channel channel = null;
-            String com = command.toString();
-            String commandSub = com.substring(0,1);
-            CommandType commandType = CommandType.getCommandType(commandSub);
-            String channelName = "";
-            if(commandType == CommandType.MESSAGE){
-                channelName = Constants.RabbitConstants.Im2MessageService;
-            } else if (commandType == CommandType.GROUP){
-                channelName = Constants.RabbitConstants.Im2GroupService;
-            } else if(commandType == CommandType.FRIEND){
-                channelName = Constants.RabbitConstants.Im2FriendshipService;
-            } else if(commandType == CommandType.USER){
-                channelName = Constants.RabbitConstants.Im2UserService;
-            }
-
-            try{
-                channel = MqFactory.getChannel(channelName);
-
-                JSONObject o = (JSONObject) JSON.toJSON(message.getMessagePack());
-                o.put("command",command);
-                o.put("clientType",message.getMessageHeader().getClientType());
-                o.put("imei",message.getMessageHeader().getImei());
-                o.put("appId",message.getMessageHeader().getAppId());
-                // 发送消息
-                channel.basicPublish(channelName,"",
-                        null,o.toJSONString().getBytes());
-
-            } catch (IOException e) {
-                log.error("发送消息出现异常:{}",e.getMessage());
-                throw new RuntimeException(e);
-            } catch (TimeoutException e) {
-                log.error("发送消息出现异常:{}",e.getMessage());
-                throw new RuntimeException(e);
-            }
-
+    /**
+     * 发送 Message 消息到 MQ，根据 command 类型路由到对应的服务队列
+     *
+     * @param message 消息体
+     * @param command 指令类型
+     */
+    public static void sendMessage(Message message ,Integer command){
+        Channel channel = null;
+        String com = command.toString();
+        String commandSub = com.substring(0,1);
+        CommandType commandType = CommandType.getCommandType(commandSub);
+        String channelName = "";
+        if(commandType == CommandType.MESSAGE){
+            channelName = Constants.RabbitConstants.Im2MessageService;
+        } else if (commandType == CommandType.GROUP){
+            channelName = Constants.RabbitConstants.Im2GroupService;
+        } else if(commandType == CommandType.FRIEND){
+            channelName = Constants.RabbitConstants.Im2FriendshipService;
+        } else if(commandType == CommandType.USER){
+            channelName = Constants.RabbitConstants.Im2UserService;
         }
 
+        try{
+            channel = MqFactory.getChannel(channelName);
+
+            JSONObject o = (JSONObject) JSON.toJSON(message.getMessagePack());
+            o.put("command",command);
+            o.put("clientType",message.getMessageHeader().getClientType());
+            o.put("imei",message.getMessageHeader().getImei());
+            o.put("appId",message.getMessageHeader().getAppId());
+            channel.basicPublish(channelName,"",
+                    null,o.toJSONString().getBytes());
+
+        } catch (IOException e) {
+            log.error("发送消息出现异常:{}",e.getMessage());
+            throw new RuntimeException(e);
+        } catch (TimeoutException e) {
+            log.error("发送消息出现异常:{}",e.getMessage());
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    /**
+     * 发送消息体与消息头到 MQ，根据 command 类型路由到对应的服务队列
+     *
+     * @param message 消息体对象
+     * @param header  消息头
+     * @param command 指令类型
+     */
     public static void sendMessage(Object message, MessageHeader header, Integer command){
         Channel channel = null;
         String com = command.toString();
@@ -91,6 +109,5 @@ public class MqMessageProducer {
             log.error("发送消息出现异常：{}",e.getMessage());
         }
     }
-
 
 }

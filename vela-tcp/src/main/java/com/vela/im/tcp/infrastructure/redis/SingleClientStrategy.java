@@ -9,14 +9,26 @@ import org.redisson.config.Config;
 import org.redisson.config.SingleServerConfig;
 
 /**
+ * <p>Title: SingleClientStrategy</p>
+ * <p>Description: Redis单机模式客户端策略，根据配置构建单机 RedissonClient</p>
+ * <p>项目名称: Vellastra</p>
+ *
  * @author wanqiu
- * @title: SingleClientStrategy
- * @projectName: IM-System
- * @description: 单机版本客户端登录策略 获取RedisClient
- * @date: 2025/3/5 1:13
+ * @since 1.1
+ * @createTime 2025-03-05
+ * @updateTime 2026-07-19
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 public class SingleClientStrategy {
 
+    /**
+     * 根据 Redis 单机配置创建 Redisson 客户端
+     *
+     * @param redisConfig Redis单机配置
+     * @return RedissonClient 实例
+     */
     public RedissonClient getRedissonClient(BootStrapConfig.RedisConfig redisConfig){
         Config config = new Config();
         String node = redisConfig.getSingle().getAddress();

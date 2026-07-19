@@ -10,34 +10,49 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 
 /**
+ * <p>Title: MqFactory</p>
+ * <p>Description: MQ连接工厂，管理 RabbitMQ ConnectionFactory 和 Channel 缓存，提供初始化与获取通道能力</p>
+ * <p>项目名称: Vellastra</p>
+ *
  * @author wanqiu
- * @title: MqFactory
- * @projectName: IM-System
- * @description: MQ工厂 初始化mq
- * @date: 2025/3/5 1:24
+ * @since 1.1
+ * @createTime 2025-03-05
+ * @updateTime 2026-07-19
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 public class MqFactory {
 
-    // 连接工厂
+    /** 连接工厂 */
     private static ConnectionFactory factory = null;
 
-    // 管道
+    /** 默认管道 */
     private static Channel defaultChannel;
 
+    /** 通道缓存，key为通道名称，value为Channel实例 */
     private static ConcurrentHashMap<String, Channel> channelMap = new ConcurrentHashMap<>();
 
     /**
-     * 建立连接
+     * 建立与 RabbitMQ 的新连接
      *
-     * @return
-     * @throws IOException
-     * @throws TimeoutException
+     * @return Connection 连接实例
+     * @throws IOException IO异常
+     * @throws TimeoutException 连接超时异常
      */
     private static Connection getConnection() throws IOException, TimeoutException {
         Connection connection = factory.newConnection();
         return connection;
     }
 
+    /**
+     * 根据通道名称获取Channel，若不存在则新建并缓存
+     *
+     * @param channelName 通道名称
+     * @return Channel 通道实例
+     * @throws IOException IO异常
+     * @throws TimeoutException 连接超时异常
+     */
     public static Channel getChannel(String channelName) throws IOException, TimeoutException {
         Channel channel = channelMap.get(channelName);
         if (channel == null) {
@@ -48,11 +63,11 @@ public class MqFactory {
     }
 
     /**
-     * 初始化方法
-     * @param rabbitmq
+     * 初始化 MQ 连接工厂，配置 RabbitMQ 连接参数
+     *
+     * @param rabbitmq RabbitMQ配置
      */
     public static void init(BootStrapConfig.Rabbitmq rabbitmq) {
-        // 针对MQFactory初始化
         if (factory == null) {
             factory = new ConnectionFactory();
             factory.setHost(rabbitmq.getHost());
@@ -62,6 +77,5 @@ public class MqFactory {
             factory.setVirtualHost(rabbitmq.getVirtualHost());
         }
     }
-
 
 }

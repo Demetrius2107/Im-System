@@ -31,56 +31,71 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.AttributeKey;
+import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RMap;
 import org.redisson.api.RTopic;
 import org.redisson.api.RedissonClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 
 /**
+ * <p>Title: NettyServerHandler</p>
+ * <p>Description: Netty 服务端消息处理器，处理登录/登出、心跳、私聊/群聊消息的路由与分发</p>
+ * <p>项目名称: Vellastra</p>
+ *
  * @author wanqiu
- * @title: NettyServerHandler
- * @projectName: IM-System
- * @description:
- * @date: 2025/3/5 19:35
+ * @since 1.1
+ * @createTime 2025-03-05
+ * @updateTime 2026-07-19
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
+@Slf4j
 public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
 
-    private final static Logger logger = LoggerFactory.getLogger(NettyServerHandler.class);
+    /** 当前 Broker ID */
+    private final Integer brokerId;
 
-    private Integer brokerId;
+    /** 逻辑层服务 URL */
+    private final String logicUrl;
 
-    private String logicUrl;
+    /** Feign 远程调用服务 */
+    private final FeignMessageService feignMessageService;
 
-    private FeignMessageService feignMessageService;
-
+    /**
+     * 构造 Netty 服务端处理器
+     *
+     * @param brokerId 当前 Broker ID
+     * @param logicUrl 逻辑层服务 URL
+     */
     public NettyServerHandler(Integer brokerId,String logicUrl) {
         this.brokerId = brokerId;
+        this.logicUrl = logicUrl;
         feignMessageService = Feign.builder()
                 .encoder(new JacksonEncoder())
                 .decoder(new JacksonDecoder())
-                .options(new Request.Options(1000, 3500))//设置超时时间
+                .options(new Request.Options(1000, 3500))
                 .target(FeignMessageService.class, logicUrl);
     }
 
-    //String
-    //Map
-    // userId client1 session
-    // userId client2 session
+    /**
+     * 处理客户端消息：登录、登出、心跳、私聊/群聊消息等
+     *
+     * @param ctx 通道处理器上下文
+     * @param msg 消息体
+     * @throws Exception 处理异常
+     */
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Message msg) throws Exception {
-
         Integer command = msg.getMessageHeader().getCommand();
 
         // 登录command
         if(command == SystemCommand.LOGIN.getCommand()){
-
             LoginPack loginPack = JSON.parseObject(JSONObject.toJSONString(msg.getMessagePack()),
                     new TypeReference<LoginPack>() {
                     }.getType());
-            /** 登陸事件 **/
+            /** 登陆事件 **/
             String userId = loginPack.getUserId();
             /** 为channel设置用户id **/
             ctx.channel().attr(AttributeKey.valueOf(Constants.UserId)).set(userId);
@@ -95,9 +110,6 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
             /** 为channel设置Imei **/
             ctx.channel().attr(AttributeKey.valueOf(Constants.Imei))
                     .set(msg.getMessageHeader().getImei());
-            //将channel存起来
-
-            //Redis map
 
             UserSession userSession = new UserSession();
             userSession.setAppId(msg.getMessageHeader().getAppId());
@@ -110,7 +122,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
                 InetAddress localHost = InetAddress.getLocalHost();
                 userSession.setBrokerHost(localHost.getHostAddress());
             }catch (Exception e){
-                e.printStackTrace();
+                log.error("Failed to get local host address", e);
             }
 
             RedissonClient redissonClient = RedisManager.getRedissonClient();
@@ -130,15 +142,13 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
                             msg.getMessageHeader()
                                     .getImei(),(NioSocketChannel) ctx.channel());
 
-            // 用户在某一端上线之后传递数据给MQ进行广播处理 发送至其他端
+            // 广播用户上线通知
             UserClientDto dto = new UserClientDto();
             dto.setImei(msg.getMessageHeader().getImei());
             dto.setUserId(loginPack.getUserId());
             dto.setClientType(msg.getMessageHeader().getClientType());
             dto.setAppId(msg.getMessageHeader().getAppId());
-            // 广播模式启用
             RTopic topic = redissonClient.getTopic(Constants.RedisConstants.UserLoginChannel);
-            // 广播发送用户数据 --> UserClientDto
             topic.publish(JSONObject.toJSONString(dto));
 
             UserStatusChangeNotifyPack userStatusChangeNotifyPack = new UserStatusChangeNotifyPack();
@@ -147,6 +157,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
             userStatusChangeNotifyPack.setStatus(ImConnectStatusEnum.ONLINE_STATUS.getCode());
             MqMessageProducer.sendMessage(userStatusChangeNotifyPack,msg.getMessageHeader(), UserEventCommand.USER_ONLINE_STATUS_CHANGE.getCommand());
 
+            // 返回登录成功响应
             MessagePack<LoginAckPack> loginSuccess = new MessagePack<>();
             LoginAckPack loginAckPack = new LoginAckPack();
             loginAckPack.setUserId(loginPack.getUserId());
@@ -155,22 +166,18 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
             loginSuccess.setImei(msg.getMessageHeader().getImei());
             loginSuccess.setAppId(msg.getMessageHeader().getAppId());
             ctx.channel().writeAndFlush(loginSuccess);
-
         }
         // 登出command
         else if(command == SystemCommand.LOGOUT.getCommand()){
-            //删除session
-            //redis 删除
             SessionSocketHolder.removeUserSession((NioSocketChannel) ctx.channel());
         }
         // ping Command
-        // 绑定最后一次读写事件的事件
         else if(command == SystemCommand.PING.getCommand()){
             ctx.channel()
                     .attr(AttributeKey.valueOf(Constants.ReadTime)).set(System.currentTimeMillis());
         }else if(command == MessageCommand.MSG_P2P.getCommand()
                 || command == GroupEventCommand.MSG_GROUP.getCommand()){
-
+            // 私聊/群聊消息：校验发送权限后投递到 MQ
             try {
                 String toId = "";
                 CheckSendMessageReq req = new CheckSendMessageReq();
@@ -205,33 +212,31 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
                     ctx.channel().writeAndFlush(ack);
                 }
             }catch (Exception e){
-                e.printStackTrace();
+                log.error("Failed to process message", e);
             }
         }else {
             MqMessageProducer.sendMessage(msg,command);
         }
-
     }
 
-    //表示 channel 处于不活动状态
+    /**
+     * 通道不活动时，执行用户离线处理
+     *
+     * @param ctx 通道处理器上下文
+     */
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-        //设置离线
         SessionSocketHolder.offlineUserSession((NioSocketChannel) ctx.channel());
         ctx.close();
     }
 
-
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-
-
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        cause.printStackTrace();
+        log.error("NettyServerHandler exception", cause);
         super.exceptionCaught(ctx, cause);
-
     }
 }

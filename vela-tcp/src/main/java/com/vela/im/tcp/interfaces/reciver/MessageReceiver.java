@@ -17,17 +17,27 @@ import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
 /**
+ * <p>Title: MessageReceiver</p>
+ * <p>Description: 消息接收器，监听 RabbitMQ 队列，消费逻辑层投递到网关层的消息并交由 Process 处理</p>
+ * <p>项目名称: Vellastra</p>
+ *
  * @author wanqiu
- * @title: MessageReceiver
- * @projectName: IM-System
- * @description: 消息接收器 监听消息 逻辑层投递至网关层的消息
- * @date: 2025/3/5 1:22
+ * @since 1.1
+ * @createTime 2025-03-05
+ * @updateTime 2026-07-19
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @Slf4j
 public class MessageReceiver {
 
+    /** 当前 Broker ID */
     private static String brokerId;
 
+    /**
+     * 启动消息监听，消费 MessageService2Im 队列中的消息
+     */
     private static void startReceiverMessage() {
         try {
             Channel channel = MqFactory.getChannel(Constants.RabbitConstants.MessageService2Im + brokerId);
@@ -40,19 +50,18 @@ public class MessageReceiver {
             channel.basicConsume(Constants.RabbitConstants.MessageService2Im + brokerId, false,
                     new DefaultConsumer(channel) {
 
-                        // 收到消息后处理业务逻辑
+                        /**
+                         * 处理收到的消息：反序列化后交由 ProcessFactory 处理
+                         */
                         @Override
                         public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
                             try {
-
-                                // TCP服务处理逻辑层传入的消息 投递的消息
                                 String msgStr = new String(body);
                                 log.info(msgStr);
                                 MessagePack messagePack = JSONObject.parseObject(msgStr, MessagePack.class);
-                                // 处理工厂
                                 BaseProcess messageProcess = ProcessFactory.getMessageProcess(messagePack.getCommand());
                                 messageProcess.process(messagePack);
-                                // 消息确认
+                                // 手动确认消息
                                 channel.basicAck(envelope.getDeliveryTag(), false);
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -68,10 +77,18 @@ public class MessageReceiver {
         }
     }
 
+    /**
+     * 初始化消息接收器（无参）
+     */
     public static void init() {
         startReceiverMessage();
     }
 
+    /**
+     * 初始化消息接收器，设置 BrokerId 后启动监听
+     *
+     * @param brokerId 当前服务 Broker ID
+     */
     public static void init(String brokerId) {
         if (StringUtils.isBlank(MessageReceiver.brokerId)) {
             MessageReceiver.brokerId = brokerId;

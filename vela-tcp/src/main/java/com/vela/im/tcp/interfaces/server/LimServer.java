@@ -6,37 +6,47 @@ import com.vela.im.codec.config.BootStrapConfig;
 import com.vela.im.tcp.interfaces.handler.HeartBeatHandler;
 import com.vela.im.tcp.interfaces.handler.NettyServerHandler;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
+ * <p>Title: LimServer</p>
+ * <p>Description: TCP 网关服务器，基于 Netty 构建，处理客户端 TCP 长连接消息</p>
+ * <p>项目名称: Vellastra</p>
+ *
  * @author wanqiu
- * @title: LimServer
- * @projectName: IM-System
- * @description: 运行时服务器
- * @date: 2025/3/6 16:35
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-19
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
+@Slf4j
 public class LimServer {
 
+    /** TCP 服务配置 */
+    private final BootStrapConfig.TcpConfig config;
 
-    private final static Logger logger = LoggerFactory.getLogger(LimServer.class);
+    /** 主线程组（Boss） */
+    private final EventLoopGroup mainGroup;
 
-    BootStrapConfig.TcpConfig config;
-    BootStrapConfig bootStrapConfig;
-    EventLoopGroup mainGroup;
+    /** 工作线程组（Worker） */
+    private final EventLoopGroup subGroup;
 
-    EventLoopGroup subGroup;
+    /** Netty 服务启动器 */
+    private final ServerBootstrap server;
 
-    ServerBootstrap server;
-
-
+    /**
+     * 构造 TCP 网关服务器，配置 Netty 线程模型与 Channel 管道
+     *
+     * @param config TCP 服务配置
+     */
     public LimServer(BootStrapConfig.TcpConfig config) {
         this.config = config;
         mainGroup = new NioEventLoopGroup(config.getBossThreadSize());
@@ -44,30 +54,24 @@ public class LimServer {
         server = new ServerBootstrap();
         server.group(mainGroup, subGroup)
                 .channel(NioServerSocketChannel.class)
-                // 服务端可连接队列大小
                 .option(ChannelOption.SO_BACKLOG, 10240)
-                // 参数表示允许重复使用本地地址和端口
                 .option(ChannelOption.SO_REUSEADDR, true)
-                // 是否禁用Nagle算法 简单点说是否批量发送数据 true关闭 false开启。 开启的话可以减少一定的网络开销，但影响消息实时性
                 .childOption(ChannelOption.TCP_NODELAY, true)
-                // 保活开关2h没有数据服务端会发送心跳包
                 .childOption(ChannelOption.SO_KEEPALIVE, true)
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
                         ch.pipeline().addLast(new MessageDecoder());
                         ch.pipeline().addLast(new MessageEncoder());
-                        // ch.pipeline().addLast(new IdleStateHandler(
-                        // 0, 0,
-                        // 10));
-                        // 传入超时时间
                         ch.pipeline().addLast(new HeartBeatHandler(config.getHeartBeatTime()));
                         ch.pipeline().addLast(new NettyServerHandler(config.getBrokerId(), config.getLogicUrl()));
                     }
                 });
     }
 
-
+    /**
+     * 启动 TCP 服务器，绑定端口
+     */
     public void start() {
         this.server.bind(this.config.getTcpPort());
     }

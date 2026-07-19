@@ -12,66 +12,73 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.AttributeKey;
 import org.redisson.api.RTopic;
 import org.redisson.api.listener.MessageListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
 /**
+ * <p>Title: UserLoginMessageListener</p>
+ * <p>Description: 用户登录消息监听器，订阅 Redis 登录频道，根据登录模式处理多端互踢逻辑</p>
+ * <p>项目名称: Vellastra</p>
+ * <p>多端同步策略：
+ * 1 单端登录：踢掉除本 clientType+imei 之外的所有设备
+ * 2 双端登录：允许 PC/Mobile 一端 + Web 端，踢掉同端其他设备
+ * 3 三端登录：允许手机+PC+Web，踢掉同端其他 imei（Web 除外）
+ * 4 不做任何处理</p>
+ *
  * @author wanqiu
- * @title: UserLoginMessageListener
- * @projectName: IM-System
- * @description: 用户登录消息监听器  用户下线处理
- * 多端同步：1单端登录：一端在线：踢掉除了本clientType + imei 的设备
- *         2双端登录：允许pc/mobile 其中一端登录 + web端 踢掉除了本clientType + imei 以外的web端设备
- *         3 三端登录：允许手机+pc+web，踢掉同端的其他imei 除了web
- *         4 不做任何处理
- * @date: 2025/3/5 1:21
+ * @since 1.1
+ * @createTime 2025-03-05
+ * @updateTime 2026-07-19
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
+@Slf4j
 public class UserLoginMessageListener {
 
-    private final static Logger logger = LoggerFactory.getLogger(UserLoginMessageListener.class);
+    /** 登录模式：1单端 2双端 3三端 4不处理 */
+    private final Integer loginModel;
 
-    private Integer loginModel;
-
+    /**
+     * 构造用户登录监听器
+     *
+     * @param loginModel 登录模式
+     */
     public UserLoginMessageListener(Integer loginModel){
         this.loginModel = loginModel;
     }
 
+    /**
+     * 订阅 Redis 用户登录频道，监听用户上线事件，根据 loginModel 执行多端互踢策略
+     */
     public void listenerUserLogin(){
-
         RTopic topic = RedisManager.getRedissonClient().getTopic(Constants.RedisConstants.UserLoginChannel);
 
         topic.addListener(String.class, new MessageListener<String>() {
             @Override
             public void onMessage(CharSequence charSequence, String msg) {
-                logger.info("收到用户上线通知：" + msg);
+                log.info("收到用户上线通知：" + msg);
                 UserClientDto dto = JSONObject.parseObject(msg, UserClientDto.class);
 
-                // 拿到当前Netty服务器所有用户在线的端
                 List<NioSocketChannel> nioSocketChannels = SessionSocketHolder.get(dto.getAppId(), dto.getUserId());
 
                 for (NioSocketChannel nioSocketChannel : nioSocketChannels) {
-                    // 单端登录
+                    // 单端登录：踢掉除本 clientType+imei 外所有设备
                     if(loginModel == DeviceMultiLoginEnum.ONE.getLoginMode()){
-
                         Integer clientType = (Integer) nioSocketChannel.attr(AttributeKey.valueOf(Constants.ClientType)).get();
                         String imei = (String) nioSocketChannel.attr(AttributeKey.valueOf(Constants.Imei)).get();
 
-                        // 如果clientType 和 imei 与当前登录的设备不相同 则踢出
                         if(!(clientType + ":" + imei).equals(dto.getClientType()+":"+dto.getImei())){
-                            // 告诉客户端 其他端登录
                             MessagePack<Object> pack = new MessagePack<>();
                             pack.setToId((String) nioSocketChannel.attr(AttributeKey.valueOf(Constants.UserId)).get());
                             pack.setUserId((String) nioSocketChannel.attr(AttributeKey.valueOf(Constants.UserId)).get());
                             pack.setCommand(SystemCommand.MUTUALLOGIN.getCommand());
                             nioSocketChannel.writeAndFlush(pack);
                         }
-
                     }
-                    // 双端登录
+                    // 双端登录：Web 端不做处理，PC/Mobile 同端互踢
                     else if(loginModel == DeviceMultiLoginEnum.TWO.getLoginMode()){
-                        // web端不做处理 web端支持多端登录
                         if(dto.getClientType() == com.lld.im.common.ClientType.WEB.getCode()){
                             continue;
                         }
@@ -89,18 +96,16 @@ public class UserLoginMessageListener {
                             pack.setCommand(SystemCommand.MUTUALLOGIN.getCommand());
                             nioSocketChannel.writeAndFlush(pack);
                         }
-
                     }
-                    // 多端登录
+                    // 三端登录：手机/PC 同端互踢，Web 不做处理
                     else if(loginModel == DeviceMultiLoginEnum.THREE.getLoginMode()){
-
                         Integer clientType = (Integer) nioSocketChannel.attr(AttributeKey.valueOf(Constants.ClientType)).get();
                         String imei = (String) nioSocketChannel.attr(AttributeKey.valueOf(Constants.Imei)).get();
                         if(dto.getClientType() == com.lld.im.common.ClientType.WEB.getCode()){
                             continue;
                         }
 
-                        // ios 和 android 属于同端
+                        // iOS 和 Android 属于同端
                         Boolean isSameClient = false;
                         if((clientType == com.lld.im.common.ClientType.IOS.getCode() ||
                                 clientType == com.lld.im.common.ClientType.ANDROID.getCode()) &&
@@ -125,11 +130,8 @@ public class UserLoginMessageListener {
                         }
                     }
                 }
-
-
             }
         });
     }
-
 
 }

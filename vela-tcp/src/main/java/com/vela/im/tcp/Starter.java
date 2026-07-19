@@ -19,11 +19,17 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 /**
+ * <p>Title: Starter</p>
+ * <p>Description: 服务启动入口，加载配置、启动 TCP/WebSocket 网关、初始化 Redis/MQ/ZK 组件</p>
+ * <p>项目名称: Vellastra</p>
+ *
  * @author wanqiu
- * @title: Starter
- * @projectName: IM-System
- * @description:
- * @date: 2025/3/3 23:46
+ * @since 1.1
+ * @createTime 2025-03-03
+ * @updateTime 2026-07-19
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 public class Starter {
 
