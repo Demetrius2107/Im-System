@@ -7,11 +7,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
+ * <p>Title: ResponseVO</p>
+ * <p>Description: 统一API响应对象，封装返回码、消息和数据，所有接口统一使用此对象返回。</p>
+ * <p>项目名称: IM-System</p>
+ *
  * @author wanqiu
- * @title: ResponseVO
- * @projectName: IM-System
- * @description: TODO
- * @date: 2025/3/3 18:44
+ * @since 1.0
+ * @createTime 2025-03-03
+ * @updateTime 2026-07-19
+ *
+ * Copyright © 2026 wanqiu All rights reserved
  */
 @Data
 @Builder
@@ -19,10 +24,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ResponseVO<T> {
 
+    /** 返回码，0-成功，非0-失败 */
     private int code;
 
+    /** 返回消息 */
     private String msg;
 
+    /** 返回数据 */
     private T data;
 
     public static ResponseVO successResponse(Object data) {
