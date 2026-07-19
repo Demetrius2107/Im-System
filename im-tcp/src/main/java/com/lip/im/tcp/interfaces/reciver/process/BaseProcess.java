@@ -1,7 +1,7 @@
-package com.lip.reciver.process;
+package com.lip.im.tcp.interfaces.reciver.process;
 
-import com.lip.proto.MessagePack;
-import com.lip.utils.SessionSocketHolder;
+import com.lip.im.codec.protocol.MessagePack;
+import com.lip.im.tcp.infrastructure.utils.SessionSocketHolder;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 /**

@@ -1,6 +1,6 @@
-package com.lip.utils;
+package com.lip.im.tcp.infrastructure.utils;
 
-import com.lip.config.BootStrapConfig;
+import com.lip.im.codec.config.BootStrapConfig;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;

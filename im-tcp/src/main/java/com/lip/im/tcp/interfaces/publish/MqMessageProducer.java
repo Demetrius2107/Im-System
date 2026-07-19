@@ -1,12 +1,12 @@
-package com.lip.publish;
+package com.lip.im.tcp.interfaces.publish;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.lip.im.model.constants.Constants;
-import com.lip.im.model.enums.command.CommandType;
-import com.lip.proto.Message;
-import com.lip.proto.MessageHeader;
-import com.lip.utils.MqFactory;
+import com.lip.im.shared.constants.Constants;
+import com.lip.im.shared.types.enums.command.CommandType;
+import com.lip.im.codec.protocol.Message;
+import com.lip.im.codec.protocol.MessageHeader;
+import com.lip.im.tcp.infrastructure.utils.MqFactory;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 

@@ -1,7 +1,7 @@
-package com.lip.redis;
+package com.lip.im.tcp.infrastructure.redis;
 
-import com.lip.config.BootStrapConfig;
-import com.lip.reciver.UserLoginMessageListener;
+import com.lip.im.codec.config.BootStrapConfig;
+import com.lip.im.tcp.interfaces.reciver.UserLoginMessageListener;
 import org.redisson.api.RedissonClient;
 
 /**

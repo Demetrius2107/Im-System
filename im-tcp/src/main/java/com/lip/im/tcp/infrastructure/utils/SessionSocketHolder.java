@@ -1,15 +1,15 @@
-package com.lip.utils;
+package com.lip.im.tcp.infrastructure.utils;
 
 import com.alibaba.fastjson.JSONObject;
-import com.lip.im.model.constants.Constants;
-import com.lip.im.model.enums.ImConnectStatusEnum;
-import com.lip.im.model.enums.command.UserEventCommand;
-import com.lip.im.model.model.UserClientDto;
-import com.lip.im.model.model.UserSession;
-import com.lip.pack.user.UserStatusChangeNotifyPack;
-import com.lip.proto.MessageHeader;
-import com.lip.publish.MqMessageProducer;
-import com.lip.redis.RedisManager;
+import com.lip.im.shared.constants.Constants;
+import com.lip.im.shared.types.enums.ImConnectStatusEnum;
+import com.lip.im.shared.types.enums.command.UserEventCommand;
+import com.lip.im.shared.types.UserClientDto;
+import com.lip.im.shared.types.UserSession;
+import com.lip.im.codec.pack.user.UserStatusChangeNotifyPack;
+import com.lip.im.codec.protocol.MessageHeader;
+import com.lip.im.tcp.interfaces.publish.MqMessageProducer;
+import com.lip.im.tcp.infrastructure.redis.RedisManager;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.AttributeKey;
 import org.apache.commons.lang3.StringUtils;

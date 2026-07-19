@@ -1,7 +1,7 @@
-package com.lip.register;
+package com.lip.im.tcp.infrastructure.register;
 
-import com.lip.config.BootStrapConfig;
-import com.lip.im.model.constants.Constants;
+import com.lip.im.codec.config.BootStrapConfig;
+import com.lip.im.shared.constants.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

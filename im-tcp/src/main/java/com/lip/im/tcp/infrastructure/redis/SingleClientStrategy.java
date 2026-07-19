@@ -1,6 +1,6 @@
-package com.lip.redis;
+package com.lip.im.tcp.infrastructure.redis;
 
-import com.lip.config.BootStrapConfig;
+import com.lip.im.codec.config.BootStrapConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;

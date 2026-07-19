@@ -1,13 +1,13 @@
-package com.lip;
+package com.lip.im.tcp;
 
-import com.lip.config.BootStrapConfig;
-import com.lip.reciver.MessageReceiver;
-import com.lip.redis.RedisManager;
-import com.lip.register.RegistryZK;
-import com.lip.register.Zkit;
-import com.lip.server.LimServer;
-import com.lip.server.LimWebSocketServer;
-import com.lip.utils.MqFactory;
+import com.lip.im.codec.config.BootStrapConfig;
+import com.lip.im.tcp.interfaces.reciver.MessageReceiver;
+import com.lip.im.tcp.infrastructure.redis.RedisManager;
+import com.lip.im.tcp.infrastructure.register.RegistryZK;
+import com.lip.im.tcp.infrastructure.register.Zkit;
+import com.lip.im.tcp.interfaces.server.LimServer;
+import com.lip.im.tcp.interfaces.server.LimWebSocketServer;
+import com.lip.im.tcp.infrastructure.utils.MqFactory;
 import org.I0Itec.zkclient.ZkClient;
 import org.yaml.snakeyaml.Yaml;
 

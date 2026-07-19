@@ -1,6 +1,6 @@
-package com.lip.register;
+package com.lip.im.tcp.infrastructure.register;
 
-import com.lip.im.model.constants.Constants;
+import com.lip.im.shared.constants.Constants;
 import org.I0Itec.zkclient.ZkClient;
 
 /**

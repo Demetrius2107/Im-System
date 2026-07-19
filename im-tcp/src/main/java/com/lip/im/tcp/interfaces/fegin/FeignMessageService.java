@@ -1,7 +1,7 @@
-package com.lip.fegin;
+package com.lip.im.tcp.interfaces.fegin;
 
-import com.lip.im.model.ResponseVO;
-import com.lip.im.model.model.message.CheckSendMessageReq;
+import com.lip.im.shared.base.ResponseVO;
+import com.lip.im.shared.types.message.CheckSendMessageReq;
 import feign.Headers;
 import feign.RequestLine;
 

@@ -1,11 +1,11 @@
-package com.lip.reciver;
+package com.lip.im.tcp.interfaces.reciver;
 
 import com.alibaba.fastjson.JSONObject;
-import com.lip.im.model.constants.Constants;
-import com.lip.proto.MessagePack;
-import com.lip.reciver.process.BaseProcess;
-import com.lip.reciver.process.ProcessFactory;
-import com.lip.utils.MqFactory;
+import com.lip.im.shared.constants.Constants;
+import com.lip.im.codec.protocol.MessagePack;
+import com.lip.im.tcp.interfaces.reciver.process.BaseProcess;
+import com.lip.im.tcp.interfaces.reciver.process.ProcessFactory;
+import com.lip.im.tcp.infrastructure.utils.MqFactory;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DefaultConsumer;

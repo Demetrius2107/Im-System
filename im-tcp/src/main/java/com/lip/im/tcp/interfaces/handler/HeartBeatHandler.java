@@ -1,6 +1,6 @@
-package com.lip.handler;
+package com.lip.im.tcp.interfaces.handler;
 
-import com.lip.im.model.constants.Constants;
+import com.lip.im.shared.constants.Constants;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleState;

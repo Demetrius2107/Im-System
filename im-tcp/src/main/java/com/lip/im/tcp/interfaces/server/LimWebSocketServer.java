@@ -1,9 +1,9 @@
-package com.lip.server;
+package com.lip.im.tcp.interfaces.server;
 
-import com.lip.WebSocketMessageDecoder;
-import com.lip.WebSocketMessageEncoder;
-import com.lip.config.BootStrapConfig;
-import com.lip.handler.NettyServerHandler;
+import com.lip.im.codec.protocol.WebSocketMessageDecoder;
+import com.lip.im.codec.protocol.WebSocketMessageEncoder;
+import com.lip.im.codec.config.BootStrapConfig;
+import com.lip.im.tcp.interfaces.handler.NettyServerHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;

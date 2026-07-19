@@ -1,4 +1,4 @@
-package com.lip.reciver.process;
+package com.lip.im.tcp.interfaces.reciver.process;
 
 /**
  * @author: Elon

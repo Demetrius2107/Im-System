@@ -1,10 +1,10 @@
-package com.lip.server;
+package com.lip.im.tcp.interfaces.server;
 
-import com.lip.MessageDecoder;
-import com.lip.MessageEncoder;
-import com.lip.config.BootStrapConfig;
-import com.lip.handler.HeartBeatHandler;
-import com.lip.handler.NettyServerHandler;
+import com.lip.im.codec.protocol.MessageDecoder;
+import com.lip.im.codec.protocol.MessageEncoder;
+import com.lip.im.codec.config.BootStrapConfig;
+import com.lip.im.tcp.interfaces.handler.HeartBeatHandler;
+import com.lip.im.tcp.interfaces.handler.NettyServerHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;

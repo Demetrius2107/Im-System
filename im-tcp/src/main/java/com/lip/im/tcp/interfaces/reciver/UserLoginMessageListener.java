@@ -1,13 +1,13 @@
-package com.lip.reciver;
+package com.lip.im.tcp.interfaces.reciver;
 
 import com.alibaba.fastjson.JSONObject;
-import com.lip.im.model.constants.Constants;
-import com.lip.im.model.enums.DeviceMultiLoginEnum;
-import com.lip.im.model.enums.command.SystemCommand;
-import com.lip.im.model.model.UserClientDto;
-import com.lip.proto.MessagePack;
-import com.lip.redis.RedisManager;
-import com.lip.utils.SessionSocketHolder;
+import com.lip.im.shared.constants.Constants;
+import com.lip.im.shared.types.enums.DeviceMultiLoginEnum;
+import com.lip.im.shared.types.enums.command.SystemCommand;
+import com.lip.im.shared.types.UserClientDto;
+import com.lip.im.codec.protocol.MessagePack;
+import com.lip.im.tcp.infrastructure.redis.RedisManager;
+import com.lip.im.tcp.infrastructure.utils.SessionSocketHolder;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.AttributeKey;
 import org.redisson.api.RTopic;
