@@ -7,10 +7,17 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
+ * <p>Title: 消息key生成</p>
+ * <p>Description: </p>
+ * <p>项目名称: IM-System</p>
+ *
  * @author wanqiu
- * @description: 消息key生成
- **/
-public class MessageKeyGenerate {
+ * @since 1.0
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-19
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ */public class MessageKeyGenerate {
 
     //标识从2020.1.1开始
     private static final long T202001010000 = 1577808000000L;
