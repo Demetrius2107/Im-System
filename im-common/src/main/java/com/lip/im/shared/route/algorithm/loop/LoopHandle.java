@@ -10,9 +10,16 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * @description: 轮询路由策略
+ * <p>Title: LoopHandle</p>
+ * <p>Description: 轮询路由策略，按顺序循环选择服务器节点。</p>
+ * <p>项目名称: IM-System</p>
+ *
  * @author wanqiu
- * @version: 1.0
+ * @since 1.0
+ * @createTime 2025-03-03
+ * @updateTime 2026-07-19
+ *
+ * Copyright © 2026 wanqiu All rights reserved
  */
 public class LoopHandle implements RouteHandle {
 

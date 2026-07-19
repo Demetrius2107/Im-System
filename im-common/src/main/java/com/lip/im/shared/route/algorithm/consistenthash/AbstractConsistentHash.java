@@ -6,9 +6,16 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 /**
- * @description: 一致性hash 抽象类
+ * <p>Title: AbstractConsistentHash</p>
+ * <p>Description: 一致性哈希抽象类，定义哈希环的添加节点、获取节点等核心操作模板。</p>
+ * <p>项目名称: IM-System</p>
+ *
  * @author wanqiu
- * @version: 1.0
+ * @since 1.0
+ * @createTime 2025-03-03
+ * @updateTime 2026-07-19
+ *
+ * Copyright © 2026 wanqiu All rights reserved
  */
 public abstract class AbstractConsistentHash {
 

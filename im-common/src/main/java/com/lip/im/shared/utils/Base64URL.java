@@ -5,9 +5,16 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 /**
- * @description:
+ * <p>Title: Base64URL</p>
+ * <p>Description: Base64 URL-safe encode/decode utility.</p>
+ * <p>Project: IM-System</p>
+ *
  * @author wanqiu
- * @version: 1.0
+ * @since 1.0
+ * @createTime 2025-03-03
+ * @updateTime 2026-07-19
+ *
+ * Copyright (c) 2026 wanqiu All rights reserved
  */
 public class Base64URL {
     public static byte[] base64EncodeUrl(byte[] input) {

@@ -17,11 +17,16 @@ import java.util.zip.Inflater;
 
 
 /**
- * @description: app用户 后台管理员  接口加密鉴权
+ * <p>Title: SigAPI</p>
+ * <p>Description: 用户签名 API 工具类，基于 HMAC-SHA256 生成和校验用户签名（userSig）。</p>
+ * <p>项目名称: IM-System</p>
  *
- * 10000 xxx 10001 bbbb
  * @author wanqiu
- * @version: 1.0
+ * @since 1.0
+ * @createTime 2025-03-03
+ * @updateTime 2026-07-19
+ *
+ * Copyright © 2026 wanqiu All rights reserved
  */
 public class SigAPI {
     final private long appId;

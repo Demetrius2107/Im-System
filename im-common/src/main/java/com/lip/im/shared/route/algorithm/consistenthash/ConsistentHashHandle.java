@@ -6,9 +6,16 @@ import com.lip.im.shared.route.RouteHandle;
 import java.util.List;
 
 /**
- * @description: 一致性哈希算法路由策略
+ * <p>Title: ConsistentHashHandle</p>
+ * <p>Description: 一致性哈希算法路由策略，基于 TreeMap 实现哈希环。</p>
+ * <p>项目名称: IM-System</p>
+ *
  * @author wanqiu
- * @version: 1.0
+ * @since 1.0
+ * @createTime 2025-03-03
+ * @updateTime 2026-07-19
+ *
+ * Copyright © 2026 wanqiu All rights reserved
  */
 public class ConsistentHashHandle implements RouteHandle {
 
