@@ -18,11 +18,18 @@ import java.util.List;
  * @author wanqiu
  * @since 1.0
  * @createTime 2025-03-03
- * @updateTime 2025-03-06
+ * @updateTime 2026-07-19
  *
  * Copyright © 2026 wanqiu All rights reserved
  */
 public class WebSocketMessageDecoder extends MessageToMessageDecoder<BinaryWebSocketFrame> {
+    /**
+     * 解码 WebSocket 二进制帧为 Message 协议对象。
+     *
+     * @param ctx Netty通道处理器上下文
+     * @param msg WebSocket二进制帧
+     * @param out 解码后的消息对象列表
+     */
     @Override
     protected void decode(ChannelHandlerContext ctx, BinaryWebSocketFrame msg, List<Object> out) throws Exception {
 

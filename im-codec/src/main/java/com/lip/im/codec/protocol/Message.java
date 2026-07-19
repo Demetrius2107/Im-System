@@ -10,15 +10,17 @@ import lombok.Data;
  * @author wanqiu
  * @since 1.0
  * @createTime 2025-03-03
- * @updateTime 2025-03-06
+ * @updateTime 2026-07-19
  *
  * Copyright © 2026 wanqiu All rights reserved
  */
 @Data
 public class Message {
 
+    /** 消息协议头，包含指令/版本/端类型等元数据 */
     private MessageHeader messageHeader;
 
+    /** 消息体，不同类型消息对应不同数据结构（JSON/PB等） */
     private Object messagePack;
 
     @Override

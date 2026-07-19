@@ -15,12 +15,20 @@ import io.netty.handler.codec.MessageToByteEncoder;
  * @author wanqiu
  * @since 1.0
  * @createTime 2025-03-03
- * @updateTime 2025-03-06
+ * @updateTime 2026-07-19
  *
  * Copyright © 2026 wanqiu All rights reserved
  */
 public class MessageEncoder extends MessageToByteEncoder {
 
+    /**
+     * 编码消息包为二进制协议数据。
+     * 协议格式: command(4B) + body长度(4B) + JSON序列化body
+     *
+     * @param ctx Netty通道处理器上下文
+     * @param msg 待编码的消息对象，须为 MessagePack 类型
+     * @param out 输出ByteBuf
+     */
     @Override
     protected void encode(ChannelHandlerContext ctx, Object msg, ByteBuf out) throws Exception {
         if(msg instanceof MessagePack){

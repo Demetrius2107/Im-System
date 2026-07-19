@@ -11,39 +11,34 @@ import lombok.Data;
  * @author wanqiu
  * @since 1.0
  * @createTime 2025-03-03
- * @updateTime 2025-03-06
+ * @updateTime 2026-07-19
  *
  * Copyright © 2026 wanqiu All rights reserved
  */
 @Data
 public class MessageHeader {
 
-    // 消息操作指令 十六进制 一个消息的开始通常以0x开头
-    // 4字节
+    /** 消息操作指令，十六进制，标识消息类型（登录/心跳/P2P/群聊等） */
     private Integer command;
-    // 4字节 版本号
+
+    /** 协议版本号 */
     private Integer version;
-    // 4字节 端类型
+
+    /** 客户端类型：1-iOS，2-Android，3-Windows，4-Mac，5-Web */
     private Integer clientType;
 
-    /**
-     * 应用ID
-     */
-    // 4字节 appId
+    /** 应用ID，多租户隔离 */
     private Integer appId;
 
-    /**
-     * 数据解析类型 和具体业务无关，后续根据解析类型解析data数据 0x0:Json,0x1:ProtoBuf,0x2:Xml,默认:0x0
-     */
-    // 4字节 解析类型
+    /** 数据解析类型：0x0-Json，0x1-Protobuf，0x2-Xml，默认0x0 */
     private Integer messageType = 0x0;
 
-    // 4字节 imel长度
+    /** IMEI设备标识长度 */
     private Integer imeiLength;
 
-    // 4字节 包体长度
+    /** 包体数据长度 */
     private int length;
 
-    // imei号
+    /** 设备唯一标识IMEI号 */
     private String imei;
 }

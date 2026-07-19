@@ -10,16 +10,18 @@ import lombok.Data;
  * @author wanqiu
  * @since 1.0
  * @createTime 2025-03-03
- * @updateTime 2025-03-06
+ * @updateTime 2026-07-19
  *
  * Copyright © 2026 wanqiu All rights reserved
  */@Data
 public class ApproverFriendRequestPack {
 
+    /** 好友请求ID */
     private Long id;
 
-    //1同意 2拒绝
+    /** 审批状态：1-同意，2-拒绝 */
     private Integer status;
 
+    /** 序列号 */
     private Long sequence;
 }

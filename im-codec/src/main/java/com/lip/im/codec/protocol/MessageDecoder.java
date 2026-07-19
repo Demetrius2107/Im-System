@@ -20,7 +20,7 @@ import java.util.List;
  * @author wanqiu
  * @since 1.0
  * @createTime 2025-03-03
- * @updateTime 2025-03-06
+ * @updateTime 2026-07-19
  *
  * Copyright © 2026 wanqiu All rights reserved
  */
@@ -29,14 +29,8 @@ public class MessageDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext ctx,
                           ByteBuf in, List<Object> out) throws Exception {
-    //请求头（指令
-        // 版本
-        // clientType
-        // 消息解析类型
-        // appId
-        // imei长度
-        // bodylen）+ imei号 + 请求体
-
+        /** 请求头格式：指令(4B) + 版本(4B) + clientType(4B) + 消息解析类型(4B) + appId(4B) + imei长度(4B) + body长度(4B) + imei号 + 请求体 */
+        // 最小可读长度：28字节 = 7个int字段 * 4字节
         if(in.readableBytes() < 28){
             return;
         }

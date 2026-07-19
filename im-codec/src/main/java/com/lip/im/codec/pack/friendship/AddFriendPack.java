@@ -10,26 +10,26 @@ import lombok.Data;
  * @author wanqiu
  * @since 1.0
  * @createTime 2025-03-03
- * @updateTime 2025-03-06
+ * @updateTime 2026-07-19
  *
  * Copyright © 2026 wanqiu All rights reserved
  */@Data
 public class AddFriendPack {
+    /** 发起方用户ID */
     private String fromId;
 
-    /**
-     * 备注
-     */
+    /** 备注 */
     private String remark;
+
+    /** 接收方用户ID */
     private String toId;
-    /**
-     * 好友来源
-     */
+
+    /** 好友来源 */
     private String addSource;
-    /**
-     * 添加好友时的描述信息（用于打招呼）
-     */
+
+    /** 添加好友时的描述信息 */
     private String addWording;
 
+    /** 序列号 */
     private Long sequence;
 }

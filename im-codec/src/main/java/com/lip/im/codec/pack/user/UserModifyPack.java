@@ -10,30 +10,31 @@ import lombok.Data;
  * @author wanqiu
  * @since 1.0
  * @createTime 2025-03-03
- * @updateTime 2025-03-06
+ * @updateTime 2026-07-19
  *
  * Copyright © 2026 wanqiu All rights reserved
  */
 @Data
 public class UserModifyPack {
-    // 用户id
+    /** 用户ID */
     private String userId;
 
-    // 用户名称
+    /** 用户昵称 */
     private String nickName;
 
+    /** 密码 */
     private String password;
 
-    // 头像
+    /** 头像URL */
     private String photo;
 
-    // 性别
+    /** 性别 */
     private String userSex;
 
-    // 个性签名
+    /** 个性签名 */
     private String selfSignature;
 
-    // 加好友验证类型（Friend_AllowType） 1需要验证
+    /** 加好友验证类型：1-需要验证 */
     private Integer friendAllowType;
 
 }

@@ -10,27 +10,36 @@ import lombok.Data;
  * @author wanqiu
  * @since 1.0
  * @createTime 2025-03-03
- * @updateTime 2025-03-06
+ * @updateTime 2026-07-19
  *
  * Copyright © 2026 wanqiu All rights reserved
  */@Data
 public class UpdateGroupInfoPack {
 
+    /** 群组ID */
     private String groupId;
 
+    /** 群名称 */
     private String groupName;
 
-    private Integer mute;// 是否全员禁言，0 不禁言；1 全员禁言。
+    /** 是否全员禁言：0-不禁言，1-全员禁言 */
+    private Integer mute;
 
-    private Integer joinType;//加入群权限，0 所有人可以加入；1 群成员可以拉人；2 群管理员或群组可以拉人。
+    /** 加入群权限：0-所有人可加入，1-群成员可拉人，2-管理员可拉人 */
+    private Integer joinType;
 
-    private String introduction;//群简介
+    /** 群简介 */
+    private String introduction;
 
-    private String notification;//群公告
+    /** 群公告 */
+    private String notification;
 
-    private String photo;//群头像
+    /** 群头像URL */
+    private String photo;
 
-    private Integer maxMemberCount;//群成员上限
+    /** 群成员上限 */
+    private Integer maxMemberCount;
 
+    /** 序列号 */
     private Long sequence;
 }

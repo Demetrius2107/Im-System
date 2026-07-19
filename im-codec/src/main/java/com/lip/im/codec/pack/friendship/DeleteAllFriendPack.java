@@ -10,12 +10,13 @@ import lombok.Data;
  * @author wanqiu
  * @since 1.0
  * @createTime 2025-03-03
- * @updateTime 2025-03-06
+ * @updateTime 2026-07-19
  *
  * Copyright © 2026 wanqiu All rights reserved
  */@Data
 public class DeleteAllFriendPack {
 
+    /** 发起方用户ID */
     private String fromId;
 
 }

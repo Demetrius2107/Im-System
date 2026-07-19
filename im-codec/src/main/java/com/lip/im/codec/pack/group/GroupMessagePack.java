@@ -10,35 +10,43 @@ import lombok.Data;
  * @author wanqiu
  * @since 1.0
  * @createTime 2025-03-03
- * @updateTime 2025-03-06
+ * @updateTime 2026-07-19
  *
  * Copyright © 2026 wanqiu All rights reserved
  */@Data
 public class GroupMessagePack {
 
-    //客户端传的messageId
+    /** 客户端传的消息ID，用于去重 */
     private String messageId;
 
+    /** 消息唯一标识Key */
     private String messageKey;
 
+    /** 发送方用户ID */
     private String fromId;
 
+    /** 群组ID */
     private String groupId;
 
+    /** 消息随机码，用于去重 */
     private int messageRandom;
 
+    /** 消息发送时间戳 */
     private long messageTime;
 
+    /** 消息序列号 */
     private long messageSequence;
 
+    /** 消息体内容 */
     private String messageBody;
-    /**
-     * 这个字段缺省或者为 0 表示需要计数，为 1 表示本条消息不需要计数，即右上角图标数字不增加
-     */
+
+    /** 角标模式：0-需要计数，1-不增加计数 */
     private int badgeMode;
 
+    /** 消息有效期（毫秒） */
     private Long messageLifeTime;
 
+    /** 应用ID */
     private Integer appId;
 
 }

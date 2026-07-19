@@ -10,46 +10,55 @@ import lombok.Data;
  * @author wanqiu
  * @since 1.0
  * @createTime 2025-03-03
- * @updateTime 2025-03-06
+ * @updateTime 2026-07-19
  *
  * Copyright © 2026 wanqiu All rights reserved
  */@Data
 public class CreateGroupPack {
 
+    /** 群组ID */
     private String groupId;
 
+    /** 应用ID */
     private Integer appId;
 
-    //群主id
+    /** 群主ID */
     private String ownerId;
 
-    //群类型 1私有群（类似微信） 2公开群(类似qq）
+    /** 群类型：1-私有群（类似微信），2-公开群（类似QQ） */
     private Integer groupType;
 
+    /** 群名称 */
     private String groupName;
 
-    private Integer mute;// 是否全员禁言，0 不禁言；1 全员禁言。
+    /** 是否全员禁言：0-不禁言，1-全员禁言 */
+    private Integer mute;
 
-    //    申请加群选项包括如下几种：
-//    0 表示禁止任何人申请加入
-//    1 表示需要群主或管理员审批
-//    2 表示允许无需审批自由加入群组
+    /** 申请加群选项：0-禁止任何人申请，1-需要审批，2-允许自由加入 */
     private Integer applyJoinType;
 
-    private Integer privateChat; //是否禁止私聊，0 允许群成员发起私聊；1 不允许群成员发起私聊。
+    /** 是否禁止私聊：0-允许私聊，1-禁止私聊 */
+    private Integer privateChat;
 
-    private String introduction;//群简介
+    /** 群简介 */
+    private String introduction;
 
-    private String notification;//群公告
+    /** 群公告 */
+    private String notification;
 
-    private String photo;//群头像
+    /** 群头像URL */
+    private String photo;
 
-    private Integer status;//群状态 0正常 1解散
+    /** 群状态：0-正常，1-解散 */
+    private Integer status;
 
+    /** 序列号 */
     private Long sequence;
 
+    /** 创建时间 */
     private Long createTime;
 
+    /** 扩展字段 */
     private String extra;
 
 }

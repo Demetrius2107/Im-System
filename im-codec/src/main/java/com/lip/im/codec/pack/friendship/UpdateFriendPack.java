@@ -11,17 +11,21 @@ import lombok.Data;
  * @author wanqiu
  * @since 1.0
  * @createTime 2025-03-03
- * @updateTime 2025-03-06
+ * @updateTime 2026-07-19
  *
  * Copyright © 2026 wanqiu All rights reserved
  */@Data
 public class UpdateFriendPack {
 
+    /** 发起方用户ID */
     public String fromId;
 
+    /** 被修改的好友用户ID */
     private String toId;
 
+    /** 备注 */
     private String remark;
 
+    /** 序列号 */
     private Long sequence;
 }
