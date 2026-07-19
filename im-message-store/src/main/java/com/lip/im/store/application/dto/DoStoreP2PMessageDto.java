@@ -1,8 +1,8 @@
-package com.lip.message.model;
+package com.lip.im.store.application.dto;
 
 
-import com.lip.message.dao.ImMessageBodyEntity;
-import com.lip.im.model.model.message.MessageContent;
+import com.lip.im.store.domain.entity.ImMessageBodyEntity;
+import com.lip.im.shared.types.message.MessageContent;
 import lombok.Data;
 
 /**

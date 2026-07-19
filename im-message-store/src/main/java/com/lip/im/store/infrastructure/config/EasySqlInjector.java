@@ -1,4 +1,4 @@
-package com.lip.message.config;
+package com.lip.im.store.infrastructure.config;
 
 import com.baomidou.mybatisplus.core.injector.AbstractMethod;
 import com.baomidou.mybatisplus.core.injector.DefaultSqlInjector;

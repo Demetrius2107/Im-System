@@ -1,11 +1,11 @@
-package com.lip.message.mq;
+package com.lip.im.store.interfaces.mq;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.lip.im.model.constants.Constants;
-import com.lip.message.dao.ImMessageBodyEntity;
-import com.lip.message.model.DoStoreGroupMessageDto;
-import com.lip.message.service.StoreMessageService;
+import com.lip.im.shared.constants.Constants;
+import com.lip.im.store.domain.entity.ImMessageBodyEntity;
+import com.lip.im.store.application.dto.DoStoreGroupMessageDto;
+import com.lip.im.store.application.service.StoreMessageService;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

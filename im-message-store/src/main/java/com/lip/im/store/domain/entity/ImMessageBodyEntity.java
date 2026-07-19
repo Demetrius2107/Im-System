@@ -1,4 +1,4 @@
-package com.lip.message.dao;
+package com.lip.im.store.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -8,25 +8,25 @@ import lombok.Data;
  * @description:
  **/
 @Data
-@TableName("im_group_message_history")
-public class ImGroupMessageHistoryEntity {
+@TableName("im_message_body")
+public class ImMessageBodyEntity {
 
     private Integer appId;
 
-    private String fromId;
-
-    private String groupId;
-
     /** messageBodyId*/
     private Long messageKey;
-    /** 序列号*/
-    private Long sequence;
 
-    private String messageRandom;
+    /** messageBody*/
+    private String messageBody;
+
+    private String securityKey;
 
     private Long messageTime;
 
     private Long createTime;
 
+    private String extra;
+
+    private Integer delFlag;
 
 }

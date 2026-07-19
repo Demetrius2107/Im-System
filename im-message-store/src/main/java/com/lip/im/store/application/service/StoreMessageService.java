@@ -1,15 +1,15 @@
-package com.lip.message.service;
+package com.lip.im.store.application.service;
 
-import com.lip.message.dao.ImGroupMessageHistoryEntity;
-import com.lip.message.dao.ImMessageBodyEntity;
-import com.lip.message.dao.ImMessageHistoryEntity;
-import com.lip.message.dao.mapper.ImGroupMessageHistoryMapper;
-import com.lip.message.dao.mapper.ImMessageBodyMapper;
-import com.lip.message.dao.mapper.ImMessageHistoryMapper;
-import com.lip.message.model.DoStoreGroupMessageDto;
-import com.lip.message.model.DoStoreP2PMessageDto;
-import com.lip.im.model.model.message.GroupChatMessageContent;
-import com.lip.im.model.model.message.MessageContent;
+import com.lip.im.store.domain.entity.ImGroupMessageHistoryEntity;
+import com.lip.im.store.domain.entity.ImMessageBodyEntity;
+import com.lip.im.store.domain.entity.ImMessageHistoryEntity;
+import com.lip.im.store.infrastructure.persistence.mapper.ImGroupMessageHistoryMapper;
+import com.lip.im.store.infrastructure.persistence.mapper.ImMessageBodyMapper;
+import com.lip.im.store.infrastructure.persistence.mapper.ImMessageHistoryMapper;
+import com.lip.im.store.application.dto.DoStoreGroupMessageDto;
+import com.lip.im.store.application.dto.DoStoreP2PMessageDto;
+import com.lip.im.shared.types.message.GroupChatMessageContent;
+import com.lip.im.shared.types.message.MessageContent;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

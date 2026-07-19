@@ -1,7 +1,7 @@
-package com.lip.message.dao.mapper;
+package com.lip.im.store.infrastructure.persistence.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.lip.message.dao.ImMessageBodyEntity;
+import com.lip.im.store.domain.entity.ImMessageBodyEntity;
 import org.springframework.stereotype.Repository;
 
 /**

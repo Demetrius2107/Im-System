@@ -1,4 +1,4 @@
-package com.lip.message.config;
+package com.lip.im.store.infrastructure.config;
 
 import com.baomidou.mybatisplus.extension.plugins.PaginationInterceptor;
 import org.springframework.context.annotation.Bean;
