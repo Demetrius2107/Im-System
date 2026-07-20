@@ -14,7 +14,7 @@ import com.vela.im.service.infrastructure.seq.RedisSeq;
 import com.vela.im.service.user.domain.service.ImUserService;
 import com.vela.im.service.application.utils.MessageProducer;
 import com.vela.im.service.application.utils.WriteUserSeq;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 import com.vela.im.shared.constants.Constants;
 import com.vela.im.shared.types.enums.DelFlagEnum;
 import com.vela.im.shared.types.enums.FriendShipErrorCode;
@@ -28,32 +28,45 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * <p>Title: ImFriendShipGroupServiceImpl</p>
+ * <p>Description: 好友分组管理实现，处理好友分组的创建、删除、查询及序列更新。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @Service
 public class ImFriendShipGroupServiceImpl implements ImFriendShipGroupService {
 
-    @Autowired
-    ImFriendShipGroupMapper imFriendShipGroupMapper;
+    private final ImFriendShipGroupMapper imFriendShipGroupMapper;
+    private final ImFriendShipGroupMemberService imFriendShipGroupMemberService;
+    private final ImUserService imUserService;
+    private final RedisSeq redisSeq;
+    private final MessageProducer messageProducer;
+    private final WriteUserSeq writeUserSeq;
 
-    @Autowired
-    ImFriendShipGroupMemberService imFriendShipGroupMemberService;
-
-    @Autowired
-    ImUserService imUserService;
-
-    @Autowired
-    RedisSeq redisSeq;
-
-    @Autowired
-    MessageProducer messageProducer;
-
-    @Autowired
-    WriteUserSeq writeUserSeq;
+    public ImFriendShipGroupServiceImpl(ImFriendShipGroupMapper imFriendShipGroupMapper,
+                                        ImFriendShipGroupMemberService imFriendShipGroupMemberService,
+                                        ImUserService imUserService,
+                                        RedisSeq redisSeq,
+                                        MessageProducer messageProducer,
+                                        WriteUserSeq writeUserSeq) {
+        this.imFriendShipGroupMapper = imFriendShipGroupMapper;
+        this.imFriendShipGroupMemberService = imFriendShipGroupMemberService;
+        this.imUserService = imUserService;
+        this.redisSeq = redisSeq;
+        this.messageProducer = messageProducer;
+        this.writeUserSeq = writeUserSeq;
+    }
 
     @Override
     @Transactional
-    public ResponseVO addGroup(AddFriendShipGroupReq req) {
+    public Result addGroup(AddFriendShipGroupReq req) {
 
         QueryWrapper<ImFriendShipGroupEntity> query = new QueryWrapper<>();
         query.eq("group_name", req.getGroupName());
@@ -64,7 +77,7 @@ public class ImFriendShipGroupServiceImpl implements ImFriendShipGroupService {
         ImFriendShipGroupEntity entity = imFriendShipGroupMapper.selectOne(query);
 
         if (entity != null) {
-            return ResponseVO.errorResponse(FriendShipErrorCode.FRIEND_SHIP_GROUP_IS_EXIST);
+            return Result.fail(FriendShipErrorCode.FRIEND_SHIP_GROUP_IS_EXIST);
         }
 
         //写入db
@@ -80,7 +93,7 @@ public class ImFriendShipGroupServiceImpl implements ImFriendShipGroupService {
             int insert1 = imFriendShipGroupMapper.insert(insert);
 
             if (insert1 != 1) {
-                return ResponseVO.errorResponse(FriendShipErrorCode.FRIEND_SHIP_GROUP_CREATE_ERROR);
+                return Result.fail(FriendShipErrorCode.FRIEND_SHIP_GROUP_CREATE_ERROR);
             }
             if (insert1 == 1 && CollectionUtil.isNotEmpty(req.getToIds())) {
                 AddFriendShipGroupMemberReq addFriendShipGroupMemberReq = new AddFriendShipGroupMemberReq();
@@ -89,11 +102,11 @@ public class ImFriendShipGroupServiceImpl implements ImFriendShipGroupService {
                 addFriendShipGroupMemberReq.setToIds(req.getToIds());
                 addFriendShipGroupMemberReq.setAppId(req.getAppId());
                 imFriendShipGroupMemberService.addGroupMember(addFriendShipGroupMemberReq);
-                return ResponseVO.successResponse();
+                return Result.ok();
             }
         } catch (DuplicateKeyException e) {
             e.getStackTrace();
-            return ResponseVO.errorResponse(FriendShipErrorCode.FRIEND_SHIP_GROUP_IS_EXIST);
+            return Result.fail(FriendShipErrorCode.FRIEND_SHIP_GROUP_IS_EXIST);
         }
 
         AddFriendGroupPack addFriendGropPack = new AddFriendGroupPack();
@@ -105,12 +118,12 @@ public class ImFriendShipGroupServiceImpl implements ImFriendShipGroupService {
         //写入seq
         writeUserSeq.writeUserSeq(req.getAppId(), req.getFromId(), Constants.SeqConstants.FriendshipGroup, seq);
 
-        return ResponseVO.successResponse();
+        return Result.ok();
     }
 
     @Override
     @Transactional
-    public ResponseVO deleteGroup(DeleteFriendShipGroupReq req) {
+    public Result deleteGroup(DeleteFriendShipGroupReq req) {
 
         for (String groupName : req.getGroupName()) {
             QueryWrapper<ImFriendShipGroupEntity> query = new QueryWrapper<>();
@@ -140,11 +153,11 @@ public class ImFriendShipGroupServiceImpl implements ImFriendShipGroupService {
                 writeUserSeq.writeUserSeq(req.getAppId(), req.getFromId(), Constants.SeqConstants.FriendshipGroup, seq);
             }
         }
-        return ResponseVO.successResponse();
+        return Result.ok();
     }
 
     @Override
-    public ResponseVO getGroup(String fromId, String groupName, Integer appId) {
+    public Result getGroup(String fromId, String groupName, Integer appId) {
         QueryWrapper<ImFriendShipGroupEntity> query = new QueryWrapper<>();
         query.eq("group_name", groupName);
         query.eq("app_id", appId);
@@ -153,9 +166,9 @@ public class ImFriendShipGroupServiceImpl implements ImFriendShipGroupService {
 
         ImFriendShipGroupEntity entity = imFriendShipGroupMapper.selectOne(query);
         if (entity == null) {
-            return ResponseVO.errorResponse(FriendShipErrorCode.FRIEND_SHIP_GROUP_IS_NOT_EXIST);
+            return Result.fail(FriendShipErrorCode.FRIEND_SHIP_GROUP_IS_NOT_EXIST);
         }
-        return ResponseVO.successResponse(entity);
+        return Result.ok(entity);
     }
 
     @Override

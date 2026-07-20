@@ -13,7 +13,8 @@ import com.vela.im.service.application.utils.ConversationIdGenerate;
 import com.vela.im.service.application.utils.GroupMessageProducer;
 import com.vela.im.service.application.utils.MessageProducer;
 import com.vela.im.service.application.utils.SnowflakeIdWorker;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
+import com.vela.im.shared.config.AppConfig;
 import com.vela.im.shared.constants.Constants;
 import com.vela.im.shared.types.enums.ConversationTypeEnum;
 import com.vela.im.shared.types.enums.DelFlagEnum;
@@ -30,9 +31,10 @@ import com.vela.im.shared.types.message.OfflineMessageContent;
 import com.vela.im.shared.types.message.RecallMessageContent;
 import com.vela.im.codec.pack.message.MessageReadedPack;
 import com.vela.im.codec.pack.message.RecallMessageNotifyPack;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.DefaultTypedTuple;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
@@ -40,70 +42,106 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @description:
+ * <p>Title: MessageSyncService</p>
+ * <p>Description: 消息同步与已读回执服务，处理多端消息同步、已读回执、离线消息拉取、消息撤回等核心同步逻辑。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
- * @version: 1.0
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @Service
 public class MessageSyncService {
 
-    @Autowired
-    MessageProducer messageProducer;
+    private final MessageProducer messageProducer;
+    private final ConversationService conversationService;
+    private final RedisTemplate<String, String> redisTemplate;
+    private final ImMessageBodyMapper imMessageBodyMapper;
+    private final RedisSeq redisSeq;
+    private final ImGroupMemberService imGroupMemberService;
+    private final GroupMessageProducer groupMessageProducer;
+    private final AppConfig appConfig;
 
-    @Autowired
-    ConversationService conversationService;
+    private static final Logger logger = LoggerFactory.getLogger(MessageSyncService.class);
 
-    @Autowired
-    RedisTemplate redisTemplate;
+    /** Concurrent lock per messageKey to prevent concurrent recall operations */
+    private final ConcurrentHashMap<Long, Object> recallLocks = new ConcurrentHashMap<>();
 
-    @Autowired
-    ImMessageBodyMapper imMessageBodyMapper;
+    public MessageSyncService(MessageProducer messageProducer,
+                              ConversationService conversationService,
+                              RedisTemplate<String, String> redisTemplate,
+                              ImMessageBodyMapper imMessageBodyMapper,
+                              RedisSeq redisSeq,
+                              ImGroupMemberService imGroupMemberService,
+                              GroupMessageProducer groupMessageProducer,
+                              AppConfig appConfig) {
+        this.messageProducer = messageProducer;
+        this.conversationService = conversationService;
+        this.redisTemplate = redisTemplate;
+        this.imMessageBodyMapper = imMessageBodyMapper;
+        this.redisSeq = redisSeq;
+        this.imGroupMemberService = imGroupMemberService;
+        this.groupMessageProducer = groupMessageProducer;
+        this.appConfig = appConfig;
+    }
 
-    @Autowired
-    RedisSeq redisSeq;
-
-    @Autowired
-    SnowflakeIdWorker snowflakeIdWorker;
-
-    @Autowired
-    ImGroupMemberService imGroupMemberService;
-
-    @Autowired
-    GroupMessageProducer groupMessageProducer;
-
-
+    /**
+     * Forward receive ACK from receiver to sender.
+     *
+     * @param messageReceiveAckContent receive ACK content
+     */
     public void receiveMark(MessageReceiveAckContent messageReceiveAckContent){
+        if (messageReceiveAckContent == null || StringUtils.isBlank(messageReceiveAckContent.getToId())) {
+            logger.warn("receiveMark skipped: invalid content");
+            return;
+        }
         messageProducer.sendToUser(messageReceiveAckContent.getToId(),
                 MessageCommand.MSG_RECIVE_ACK,messageReceiveAckContent,messageReceiveAckContent.getAppId());
     }
 
     /**
-     * @description: 消息已读。更新会话的seq，通知在线的同步端发送指定command ，发送已读回执通知对方（消息发起方）我已读
-     * @param
-     * @return void
-     * @author wanqiu
+     * Handle P2P message read receipt.
+     * <p>Updates conversation read sequence → notifies sender's other devices → sends read receipt to the message originator.</p>
+     *
+     * @param messageContent read receipt content
      */
     public void readMark(MessageReadedContent messageContent) {
         conversationService.messageMarkRead(messageContent);
         MessageReadedPack messageReadedPack = new MessageReadedPack();
         BeanUtils.copyProperties(messageContent,messageReadedPack);
         syncToSender(messageReadedPack,messageContent,MessageCommand.MSG_READED_NOTIFY);
-        //发送给对方
+        // Send read receipt to the message originator
         messageProducer.sendToUser(messageContent.getToId(),
                 MessageCommand.MSG_READED_RECEIPT,messageReadedPack,messageContent.getAppId());
     }
 
+    /**
+     * Sync read receipt to sender's other online devices.
+     *
+     * @param pack    read receipt notification pack
+     * @param content read receipt content
+     * @param command command type
+     */
     private void syncToSender(MessageReadedPack pack, MessageReadedContent content, Command command){
-        MessageReadedPack messageReadedPack = new MessageReadedPack();
-//        BeanUtils.copyProperties(messageReadedContent,messageReadedPack);
-        //发送给自己的其他端
+        // Send to sender's other devices (excluding current)
         messageProducer.sendToUserExceptClient(pack.getFromId(),
                 command,pack,
                 content);
     }
 
+    /**
+     * Handle group message read receipt.
+     * <p>Updates conversation read sequence → syncs to sender's other devices → sends receipt to the message originator.</p>
+     *
+     * @param messageReaded read receipt content
+     */
     public void groupReadMark(MessageReadedContent messageReaded) {
         conversationService.messageMarkRead(messageReaded);
         MessageReadedPack messageReadedPack = new MessageReadedPack();
@@ -116,47 +154,109 @@ public class MessageSyncService {
         }
     }
 
-    public ResponseVO syncOfflineMessage(SyncReq req) {
+    /**
+     * Sync offline messages (incremental pull).
+     * <p>Fetches offline messages from Redis ZSet by sequence range. Falls back to empty list if Redis is unavailable.</p>
+     *
+     * @param req sync request (with lastSequence / maxLimit)
+     * @return sync response (with offline message list and max sequence)
+     */
+    public Result syncOfflineMessage(SyncReq req) {
 
         SyncResp<OfflineMessageContent> resp = new SyncResp<>();
 
+        // Boundary check: validate request parameters
+        if (req == null || req.getAppId() == null || StringUtils.isBlank(req.getOperater())) {
+            logger.warn("syncOfflineMessage skipped: invalid request (appId or operater is empty)");
+            resp.setMaxSequence(0L);
+            resp.setDataList(new ArrayList<>());
+            resp.setCompleted(true);
+            return Result.ok(resp);
+        }
+
+        // Clamp maxLimit to safe bounds [1, 500]
+        if (req.getMaxLimit() == null || req.getMaxLimit() <= 0) {
+            req.setMaxLimit(100);
+        } else if (req.getMaxLimit() > 500) {
+            req.setMaxLimit(500);
+        }
+
+        // Clamp lastSequence to non-negative
+        if (req.getLastSequence() == null || req.getLastSequence() < 0) {
+            req.setLastSequence(0L);
+        }
+
         String key = req.getAppId() + ":" + Constants.RedisConstants.OfflineMessage + ":" + req.getOperater();
-        //获取最大的seq
-        Long maxSeq = 0L;
-        ZSetOperations zSetOperations = redisTemplate.opsForZSet();
-        Set set = zSetOperations.reverseRangeWithScores(key, 0, 0);
-        if(!CollectionUtils.isEmpty(set)){
-            List list = new ArrayList(set);
-            DefaultTypedTuple o = (DefaultTypedTuple) list.get(0);
-            maxSeq = o.getScore().longValue();
+
+        try {
+            // Fetch the max sequence from the ZSet
+            long maxSeq = 0L;
+            ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
+            Set<ZSetOperations.TypedTuple<String>> set = zSetOperations.reverseRangeWithScores(key, 0, 0);
+            if (!CollectionUtils.isEmpty(set)) {
+                ZSetOperations.TypedTuple<String> typedTuple = set.iterator().next();
+                Double score = typedTuple.getScore();
+                if (score != null) {
+                    maxSeq = score.longValue();
+                }
+            }
+
+            List<OfflineMessageContent> respList = new ArrayList<>();
+            resp.setMaxSequence(maxSeq);
+
+            // Query messages by score range (lastSequence, maxSeq]
+            Set<ZSetOperations.TypedTuple<String>> querySet = zSetOperations.rangeByScoreWithScores(key,
+                    req.getLastSequence(), maxSeq, 0, req.getMaxLimit());
+            if (querySet != null) {
+                for (ZSetOperations.TypedTuple<String> typedTuple : querySet) {
+                    String value = typedTuple.getValue();
+                    OfflineMessageContent offlineMessageContent = JSONObject.parseObject(value, OfflineMessageContent.class);
+                    respList.add(offlineMessageContent);
+                }
+            }
+            resp.setDataList(respList);
+
+            if (!CollectionUtils.isEmpty(respList)) {
+                OfflineMessageContent offlineMessageContent = respList.get(respList.size() - 1);
+                resp.setCompleted(maxSeq <= offlineMessageContent.getMessageKey());
+            }
+        } catch (Exception e) {
+            logger.error("Redis offline message sync failed, fallback to empty list, userId={}, error={}",
+                    req.getOperater(), e.getMessage());
+            // Fallback: return empty list, client will fetch from HTTP history
+            resp.setMaxSequence(0L);
+            resp.setDataList(new ArrayList<>());
+            resp.setCompleted(true);
         }
 
-        List<OfflineMessageContent> respList = new ArrayList<>();
-        resp.setMaxSequence(maxSeq);
-
-        Set<ZSetOperations.TypedTuple> querySet = zSetOperations.rangeByScoreWithScores(key,
-                req.getLastSequence(), maxSeq, 0, req.getMaxLimit());
-        for (ZSetOperations.TypedTuple<String> typedTuple : querySet) {
-            String value = typedTuple.getValue();
-            OfflineMessageContent offlineMessageContent = JSONObject.parseObject(value, OfflineMessageContent.class);
-            respList.add(offlineMessageContent);
-        }
-        resp.setDataList(respList);
-
-        if(!CollectionUtils.isEmpty(respList)){
-            OfflineMessageContent offlineMessageContent = respList.get(respList.size() - 1);
-            resp.setCompleted(maxSeq <= offlineMessageContent.getMessageKey());
-        }
-
-        return ResponseVO.successResponse(resp);
+        return Result.ok(resp);
     }
 
-    //修改历史消息的状态
-    //修改离线消息的状态
-    //ack给发送方
-    //发送给同步端
-    //分发给消息的接收方
+    /**
+     * Handle message recall request.
+     * <p>Flow: time boundary check (with clock skew tolerance) → concurrent conflict protection → query message body → mark deleted → update offline message status → notify sync targets and receiver.</p>
+     *
+     * @param content recall request content
+     */
     public void recallMessage(RecallMessageContent content) {
+
+        // Boundary check: validate recall request parameters
+        if (content == null) {
+            logger.warn("recallMessage skipped: content is null");
+            return;
+        }
+        if (content.getMessageKey() == null || content.getMessageKey() <= 0) {
+            logger.warn("recallMessage skipped: invalid messageKey");
+            return;
+        }
+        if (content.getMessageTime() == null || content.getMessageTime() <= 0) {
+            logger.warn("recallMessage skipped: invalid messageTime");
+            return;
+        }
+        if (StringUtils.isBlank(content.getFromId()) || StringUtils.isBlank(content.getToId())) {
+            logger.warn("recallMessage skipped: invalid fromId or toId");
+            return;
+        }
 
         Long messageTime = content.getMessageTime();
         Long now = System.currentTimeMillis();
@@ -164,92 +264,123 @@ public class MessageSyncService {
         RecallMessageNotifyPack pack = new RecallMessageNotifyPack();
         BeanUtils.copyProperties(content,pack);
 
-        if(120000L < now - messageTime){
-            recallAck(pack,ResponseVO.errorResponse(MessageErrorCode.MESSAGE_RECALL_TIME_OUT),content);
+        // 1. Time boundary check: use configurable recall timeout + allow ±5s clock skew
+        long recallTimeout = appConfig.getMessageRecallTimeOut() != null
+                ? appConfig.getMessageRecallTimeOut() : 120000L;
+        long clockSkewTolerance = 5000L; // 5s clock skew tolerance
+
+        // Reject if client time is far ahead of server (possible clock desync)
+        if (messageTime > now + clockSkewTolerance) {
+            logger.warn("Client clock skew detected, messageTime={}, serverTime={}",
+                    messageTime, now);
+            recallAck(pack, Result.fail(MessageErrorCode.MESSAGE_CLOCK_SKEW_EXCEEDED), content);
             return;
         }
 
-        QueryWrapper<ImMessageBodyEntity> query = new QueryWrapper<>();
-        query.eq("app_id",content.getAppId());
-        query.eq("message_key",content.getMessageKey());
-        ImMessageBodyEntity body = imMessageBodyMapper.selectOne(query);
-
-        if(body == null){
-            //TODO ack失败 不存在的消息不能撤回
-            recallAck(pack,ResponseVO.errorResponse(MessageErrorCode.MESSAGEBODY_IS_NOT_EXIST),content);
+        // Check recall timeout against server time (authoritative)
+        if (recallTimeout < now - messageTime) {
+            logger.warn("Recall timed out, msgKey={}, messageTime={}, now={}, timeout={}",
+                    content.getMessageKey(), messageTime, now, recallTimeout);
+            recallAck(pack,Result.fail(MessageErrorCode.MESSAGE_RECALL_TIME_OUT),content);
             return;
         }
 
-        if(body.getDelFlag() == DelFlagEnum.DELETE.getCode()){
-            recallAck(pack,ResponseVO.errorResponse(MessageErrorCode.MESSAGE_IS_RECALLED),content);
+        // 2. Concurrent conflict protection: lock per messageKey to prevent double-recall
+        Long messageKey = content.getMessageKey();
+        Object lock = recallLocks.computeIfAbsent(messageKey, k -> new Object());
+        synchronized (lock) {
+            try {
+                QueryWrapper<ImMessageBodyEntity> query = new QueryWrapper<>();
+                query.eq("app_id",content.getAppId());
+                query.eq("message_key", content.getMessageKey());
+                ImMessageBodyEntity body = imMessageBodyMapper.selectOne(query);
 
-            return;
-        }
+                if(body == null){
+                    logger.warn("Recall target not found, msgKey={}", content.getMessageKey());
+                    recallAck(pack,Result.fail(MessageErrorCode.MESSAGEBODY_IS_NOT_EXIST),content);
+                    return;
+                }
 
-        body.setDelFlag(DelFlagEnum.DELETE.getCode());
-        imMessageBodyMapper.update(body,query);
+                if(body.getDelFlag() == DelFlagEnum.DELETE.getCode()){
+                    logger.warn("Message already recalled, msgKey={}", content.getMessageKey());
+                    recallAck(pack,Result.fail(MessageErrorCode.MESSAGE_IS_RECALLED),content);
+                    return;
+                }
 
-        if(content.getConversationType() == ConversationTypeEnum.P2P.getCode()){
+                body.setDelFlag(DelFlagEnum.DELETE.getCode());
+                imMessageBodyMapper.update(body,query);
 
-            // 找到fromId的队列
-            String fromKey = content.getAppId() + ":" + Constants.RedisConstants.OfflineMessage + ":" + content.getFromId();
-            // 找到toId的队列
-            String toKey = content.getAppId() + ":" + Constants.RedisConstants.OfflineMessage + ":" + content.getToId();
+                if(content.getConversationType() == ConversationTypeEnum.P2P.getCode()){
 
-            OfflineMessageContent offlineMessageContent = new OfflineMessageContent();
-            BeanUtils.copyProperties(content,offlineMessageContent);
-            offlineMessageContent.setDelFlag(DelFlagEnum.DELETE.getCode());
-            offlineMessageContent.setMessageKey(content.getMessageKey());
-            offlineMessageContent.setConversationType(ConversationTypeEnum.P2P.getCode());
-            offlineMessageContent.setConversationId(conversationService.convertConversationId(offlineMessageContent.getConversationType()
-                    ,content.getFromId(),content.getToId()));
-            offlineMessageContent.setMessageBody(body.getMessageBody());
+                    // Build Redis keys for sender and receiver offline queues
+                    String fromKey = content.getAppId() + ":" + Constants.RedisConstants.OfflineMessage + ":" + content.getFromId();
+                    String toKey = content.getAppId() + ":" + Constants.RedisConstants.OfflineMessage + ":" + content.getToId();
 
-            long seq = redisSeq.doGetSeq(content.getAppId() + ":" + Constants.SeqConstants.Message + ":" + ConversationIdGenerate.generateP2PId(content.getFromId(),content.getToId()));
-            offlineMessageContent.setMessageSequence(seq);
+                    OfflineMessageContent offlineMessageContent = new OfflineMessageContent();
+                    BeanUtils.copyProperties(content,offlineMessageContent);
+                    offlineMessageContent.setDelFlag(DelFlagEnum.DELETE.getCode());
+                    offlineMessageContent.setMessageKey(content.getMessageKey());
+                    offlineMessageContent.setConversationType(ConversationTypeEnum.P2P.getCode());
+                    offlineMessageContent.setConversationId(conversationService.convertConversationId(offlineMessageContent.getConversationType()
+                            ,content.getFromId(),content.getToId()));
+                    offlineMessageContent.setMessageBody(body.getMessageBody());
 
-            long messageKey = SnowflakeIdWorker.nextId();
+                    long seq = redisSeq.doGetSeq(content.getAppId() + ":" + Constants.SeqConstants.Message + ":" + ConversationIdGenerate.generateP2PId(content.getFromId(),content.getToId()));
+                    offlineMessageContent.setMessageSequence(seq);
 
-            redisTemplate.opsForZSet().add(fromKey,JSONObject.toJSONString(offlineMessageContent),messageKey);
-            redisTemplate.opsForZSet().add(toKey,JSONObject.toJSONString(offlineMessageContent),messageKey);
+                    long newMessageKey = SnowflakeIdWorker.nextId();
 
-            //ack
-            recallAck(pack,ResponseVO.successResponse(),content);
-            //分发给同步端
-            messageProducer.sendToUserExceptClient(content.getFromId(),
-                    MessageCommand.MSG_RECALL_NOTIFY,pack,content);
-            //分发给对方
-            messageProducer.sendToUser(content.getToId(),MessageCommand.MSG_RECALL_NOTIFY,
-                    pack,content.getAppId());
-        }else{
-            List<String> groupMemberId = imGroupMemberService.getGroupMemberId(content.getToId(), content.getAppId());
-            long seq = redisSeq.doGetSeq(content.getAppId() + ":" + Constants.SeqConstants.Message + ":" + ConversationIdGenerate.generateP2PId(content.getFromId(),content.getToId()));
-            //ack
-            recallAck(pack,ResponseVO.successResponse(),content);
-            //发送给同步端
-            messageProducer.sendToUserExceptClient(content.getFromId(), MessageCommand.MSG_RECALL_NOTIFY, pack
-                    , content);
-            for (String memberId : groupMemberId) {
-                String toKey = content.getAppId() + ":" + Constants.SeqConstants.Message + ":" + memberId;
-                OfflineMessageContent offlineMessageContent = new OfflineMessageContent();
-                offlineMessageContent.setDelFlag(DelFlagEnum.DELETE.getCode());
-                BeanUtils.copyProperties(content,offlineMessageContent);
-                offlineMessageContent.setConversationType(ConversationTypeEnum.GROUP.getCode());
-                offlineMessageContent.setConversationId(conversationService.convertConversationId(offlineMessageContent.getConversationType()
-                        ,content.getFromId(),content.getToId()));
-                offlineMessageContent.setMessageBody(body.getMessageBody());
-                offlineMessageContent.setMessageSequence(seq);
-                redisTemplate.opsForZSet().add(toKey,JSONObject.toJSONString(offlineMessageContent),seq);
+                    // Insert recall notification into offline queues
+                    redisTemplate.opsForZSet().add(fromKey,JSONObject.toJSONString(offlineMessageContent),newMessageKey);
+                    redisTemplate.opsForZSet().add(toKey,JSONObject.toJSONString(offlineMessageContent),newMessageKey);
 
-                groupMessageProducer.producer(content.getFromId(), MessageCommand.MSG_RECALL_NOTIFY, pack,content);
+                    // Send ACK to the recall initiator
+                    recallAck(pack,Result.ok(),content);
+                    // Sync to sender's other devices
+                    messageProducer.sendToUserExceptClient(content.getFromId(),
+                            MessageCommand.MSG_RECALL_NOTIFY,pack,content);
+                    // Notify the receiver
+                    messageProducer.sendToUser(content.getToId(),MessageCommand.MSG_RECALL_NOTIFY,
+                            pack,content.getAppId());
+                }else{
+                    List<String> groupMemberId = imGroupMemberService.getGroupMemberId(content.getToId(), content.getAppId());
+                    long seq = redisSeq.doGetSeq(content.getAppId() + ":" + Constants.SeqConstants.Message + ":" + ConversationIdGenerate.generateP2PId(content.getFromId(),content.getToId()));
+                    // Send ACK to the recall initiator
+                    recallAck(pack,Result.ok(),content);
+                    // Sync to sender's other devices
+                    messageProducer.sendToUserExceptClient(content.getFromId(), MessageCommand.MSG_RECALL_NOTIFY, pack
+                            , content);
+                    for (String memberId : groupMemberId) {
+                        String toKey = content.getAppId() + ":" + Constants.SeqConstants.Message + ":" + memberId;
+                        OfflineMessageContent offlineMessageContent = new OfflineMessageContent();
+                        offlineMessageContent.setDelFlag(DelFlagEnum.DELETE.getCode());
+                        BeanUtils.copyProperties(content,offlineMessageContent);
+                        offlineMessageContent.setConversationType(ConversationTypeEnum.GROUP.getCode());
+                        offlineMessageContent.setConversationId(conversationService.convertConversationId(offlineMessageContent.getConversationType()
+                                ,content.getFromId(),content.getToId()));
+                        offlineMessageContent.setMessageBody(body.getMessageBody());
+                        offlineMessageContent.setMessageSequence(seq);
+                        redisTemplate.opsForZSet().add(toKey,JSONObject.toJSONString(offlineMessageContent),seq);
+
+                        groupMessageProducer.producer(content.getFromId(), MessageCommand.MSG_RECALL_NOTIFY, pack,content);
+                    }
+                }
+            } finally {
+                // Clean up lock to prevent memory leak
+                recallLocks.remove(messageKey);
             }
         }
-
     }
-    private void recallAck(RecallMessageNotifyPack recallPack, ResponseVO<Object> success, ClientInfo clientInfo) {
-        ResponseVO<Object> wrappedResp = success;
+    /**
+     * Send recall result ACK to the request initiator.
+     *
+     * @param recallPack recall notification pack
+     * @param success    response result
+     * @param clientInfo client info
+     */
+    private void recallAck(RecallMessageNotifyPack recallPack, Result<Object> success, ClientInfo clientInfo) {
         messageProducer.sendToUser(recallPack.getFromId(),
-                MessageCommand.MSG_RECALL_ACK, wrappedResp, clientInfo);
+                MessageCommand.MSG_RECALL_ACK, success, clientInfo);
     }
 
 }

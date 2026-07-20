@@ -27,19 +27,25 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 /**
- * @description:
+ * <p>Title: GroupChatOperateReceiver</p>
+ * <p>Description: 群聊消息 MQ 消费者，接收并处理群聊消息和群已读回执。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
- * @version: 1.0
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+
  */
 @Component
 public class GroupChatOperateReceiver {
 
-    private static Logger logger = LoggerFactory.getLogger(GroupChatOperateReceiver.class);
+    private static final Logger logger = LoggerFactory.getLogger(GroupChatOperateReceiver.class);
 
-//    @Autowired
-//    P2PMessageService p2PMessageService;
     @Autowired
-GroupMessageService groupMessageService;
+    GroupMessageService groupMessageService;
 
     @Autowired
     MessageSyncService messageSyncService;

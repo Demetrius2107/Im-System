@@ -14,24 +14,45 @@ import org.springframework.context.annotation.Configuration;
 import java.lang.reflect.Method;
 
 /**
+ * <p>Title: BeanConfig</p>
+ * <p>Description: Bean 配置类，初始化 ZkClient、路由策略等基础设施 Bean。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
- * @title: BeanConfig
- * @projectName: IM-System
- * @description: Bean配置类
- * @date: 2025/3/6 19:14
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @Configuration
 public class BeanConfig {
 
-    @Autowired
-    AppConfig appConfig;
+    private final AppConfig appConfig;
 
+    public BeanConfig(AppConfig appConfig) {
+        this.appConfig = appConfig;
+    }
+
+    /**
+     * 构建 ZooKeeper 客户端连接
+     *
+     * @return ZkClient 实例
+     */
     @Bean
     public ZkClient buildZKClient(){
         return new ZkClient(appConfig.getZkAddr(),appConfig.getZkConnectTimeOut());
     }
 
 
+    /**
+     * 构建路由策略处理器
+     * <p>支持轮询、随机、一致性哈希三种路由算法。</p>
+     *
+     * @return RouteHandle 路由处理器实例
+     * @throws Exception 反射创建路由算法实例失败时抛出
+     */
     @Bean
     public RouteHandle routeHandle() throws Exception {
 

@@ -4,7 +4,7 @@ package com.vela.im.service.group.domain.service;
 
 import com.vela.im.service.group.application.dto.req.*;
 import com.vela.im.service.group.application.dto.resp.GetRoleInGroupResp;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 
 import java.util.Collection;
 import java.util.List;
@@ -16,31 +16,31 @@ import java.util.List;
  */
 public interface ImGroupMemberService {
 
-    public ResponseVO importGroupMember(ImportGroupMemberReq req);
+    public Result importGroupMember(ImportGroupMemberReq req);
 
-    public ResponseVO addMember(AddGroupMemberReq req);
+    public Result addMember(AddGroupMemberReq req);
 
-    public ResponseVO removeMember(RemoveGroupMemberReq req);
+    public Result removeMember(RemoveGroupMemberReq req);
 
-    public ResponseVO addGroupMember(String groupId, Integer appId, GroupMemberDto dto);
+    public Result addGroupMember(String groupId, Integer appId, GroupMemberDto dto);
 
-    public ResponseVO removeGroupMember(String groupId, Integer appId, String memberId);
+    public Result removeGroupMember(String groupId, Integer appId, String memberId);
 
-    public ResponseVO<GetRoleInGroupResp> getRoleInGroupOne(String groupId, String memberId, Integer appId);
+    public Result<GetRoleInGroupResp> getRoleInGroupOne(String groupId, String memberId, Integer appId);
 
-    public ResponseVO<Collection<String>> getMemberJoinedGroup(GetJoinedGroupReq req);
+    public Result<Collection<String>> getMemberJoinedGroup(GetJoinedGroupReq req);
 
-    public ResponseVO<List<GroupMemberDto>> getGroupMember(String groupId, Integer appId);
+    public Result<List<GroupMemberDto>> getGroupMember(String groupId, Integer appId);
 
     public List<String> getGroupMemberId(String groupId, Integer appId);
 
     public List<GroupMemberDto> getGroupManager(String groupId, Integer appId);
 
-    public ResponseVO updateGroupMember(UpdateGroupMemberReq req);
+    public Result updateGroupMember(UpdateGroupMemberReq req);
 
-    public ResponseVO transferGroupMember(String owner, String groupId, Integer appId);
+    public Result transferGroupMember(String owner, String groupId, Integer appId);
 
-    public ResponseVO speak(SpeaMemberReq req);
+    public Result speak(SpeaMemberReq req);
 
-    ResponseVO<Collection<String>> syncMemberJoinedGroup(String operater, Integer appId);
+    Result<Collection<String>> syncMemberJoinedGroup(String operater, Integer appId);
 }

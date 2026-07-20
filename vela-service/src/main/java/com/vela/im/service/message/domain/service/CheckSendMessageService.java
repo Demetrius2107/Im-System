@@ -10,39 +10,55 @@ import com.vela.im.service.group.domain.service.ImGroupMemberService;
 import com.vela.im.service.group.domain.service.ImGroupService;
 import com.vela.im.service.user.domain.entity.ImUserDataEntity;
 import com.vela.im.service.user.domain.service.ImUserService;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 import com.vela.im.shared.config.AppConfig;
 import com.vela.im.shared.types.enums.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * @description:
+ * <p>Title: CheckSendMessageService</p>
+ * <p>Description: 消息发送前置校验服务，校验发送方禁言/禁用状态、好友关系、群组权限等。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
- * @version: 1.0
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @Service
 public class CheckSendMessageService {
 
-    @Autowired
-    ImUserService imUserService;
+    private final ImUserService imUserService;
+    private final ImFriendService imFriendService;
+    private final ImGroupService imGroupService;
+    private final ImGroupMemberService imGroupMemberService;
+    private final AppConfig appConfig;
 
-    @Autowired
-    ImFriendService imFriendService;
+    public CheckSendMessageService(ImUserService imUserService,
+                                   ImFriendService imFriendService,
+                                   ImGroupService imGroupService,
+                                   ImGroupMemberService imGroupMemberService,
+                                   AppConfig appConfig) {
+        this.imUserService = imUserService;
+        this.imFriendService = imFriendService;
+        this.imGroupService = imGroupService;
+        this.imGroupMemberService = imGroupMemberService;
+        this.appConfig = appConfig;
+    }
 
-    @Autowired
-    ImGroupService imGroupService;
+    /**
+     * Check if sender is muted or banned.
+     *
+     * @param fromId sender user ID
+     * @param appId  application ID
+     * @return success if allowed, error code if muted/banned
+     */
+    public Result checkSenderForvidAndMute(String fromId, Integer appId){
 
-    @Autowired
-    ImGroupMemberService imGroupMemberService;
-
-    @Autowired
-    AppConfig appConfig;
-
-
-    public ResponseVO checkSenderForvidAndMute(String fromId, Integer appId){
-
-        ResponseVO<ImUserDataEntity> singleUserInfo
+        Result<ImUserDataEntity> singleUserInfo
                 = imUserService.getSingleUserInfo(fromId, appId);
         if(!singleUserInfo.isOk()){
             return singleUserInfo;
@@ -50,93 +66,129 @@ public class CheckSendMessageService {
 
         ImUserDataEntity user = singleUserInfo.getData();
         if(user.getForbiddenFlag() == UserForbiddenFlagEnum.FORBIBBEN.getCode()){
-            return ResponseVO.errorResponse(MessageErrorCode.FROMER_IS_FORBIBBEN);
+            return Result.fail(MessageErrorCode.FROMER_IS_FORBIBBEN);
         }else if (user.getSilentFlag() == UserSilentFlagEnum.MUTE.getCode()){
-            return ResponseVO.errorResponse(MessageErrorCode.FROMER_IS_MUTE);
+            return Result.fail(MessageErrorCode.FROMER_IS_MUTE);
         }
 
-        return ResponseVO.successResponse();
+        return Result.ok();
     }
 
-    public ResponseVO checkFriendShip(String fromId,String toId,Integer appId){
+    /**
+     * Check friendship between sender and receiver.
+     * <p>Validates friend status and blacklist, depending on configuration.</p>
+     *
+     * @param fromId sender user ID
+     * @param toId   receiver user ID
+     * @param appId  application ID
+     * @return success if allowed, error code if not friends / blacklisted
+     */
+    public Result checkFriendShip(String fromId, String toId, Integer appId){
 
         if(appConfig.isSendMessageCheckFriend()){
-            GetRelationReq fromReq = new GetRelationReq();
-            fromReq.setFromId(fromId);
-            fromReq.setToId(toId);
-            fromReq.setAppId(appId);
-            ResponseVO<ImFriendShipEntity> fromRelation = imFriendService.getRelation(fromReq);
+            // Check from → to friendship
+            GetRelationReq fromReq = buildRelationReq(fromId, toId, appId);
+            Result<ImFriendShipEntity> fromRelation = imFriendService.getRelation(fromReq);
             if(!fromRelation.isOk()){
                 return fromRelation;
             }
-            GetRelationReq toReq = new GetRelationReq();
-            fromReq.setFromId(toId);
-            fromReq.setToId(fromId);
-            fromReq.setAppId(appId);
-            ResponseVO<ImFriendShipEntity> toRelation = imFriendService.getRelation(fromReq);
+
+            // Check to → from friendship (reverse direction)
+            GetRelationReq toReq = buildRelationReq(toId, fromId, appId);
+            Result<ImFriendShipEntity> toRelation = imFriendService.getRelation(toReq);
             if(!toRelation.isOk()){
                 return toRelation;
             }
 
-            if(FriendShipStatusEnum.FRIEND_STATUS_NORMAL.getCode()
-            != fromRelation.getData().getStatus()){
-                return ResponseVO.errorResponse(FriendShipErrorCode.FRIEND_IS_DELETED);
-            }
-
-            if(FriendShipStatusEnum.FRIEND_STATUS_NORMAL.getCode()
-                    != toRelation.getData().getStatus()){
-                return ResponseVO.errorResponse(FriendShipErrorCode.FRIEND_IS_DELETED);
-            }
-
-            if(appConfig.isSendMessageCheckBlack()){
-                if(FriendShipStatusEnum.BLACK_STATUS_NORMAL.getCode()
-                        != fromRelation.getData().getBlack()){
-                    return ResponseVO.errorResponse(FriendShipErrorCode.FRIEND_IS_BLACK);
-                }
-
-                if(FriendShipStatusEnum.BLACK_STATUS_NORMAL.getCode()
-                        != toRelation.getData().getBlack()){
-                    return ResponseVO.errorResponse(FriendShipErrorCode.TARGET_IS_BLACK_YOU);
-                }
+            // Validate friend status (both directions must be normal)
+            Result check = checkFriendStatus(fromRelation.getData(), toRelation.getData());
+            if(!check.isOk()){
+                return check;
             }
         }
 
-        return ResponseVO.successResponse();
+        return Result.ok();
     }
-    public ResponseVO checkGroupMessage(String fromId,String groupId,Integer appId){
 
-        ResponseVO responseVO = checkSenderForvidAndMute(fromId, appId);
+    /**
+     * Build a GetRelationReq for the given user pair.
+     */
+    private GetRelationReq buildRelationReq(String fromId, String toId, Integer appId) {
+        GetRelationReq req = new GetRelationReq();
+        req.setFromId(fromId);
+        req.setToId(toId);
+        req.setAppId(appId);
+        return req;
+    }
+
+    /**
+     * Validate friend status and blacklist for both directions.
+     */
+    private Result checkFriendStatus(ImFriendShipEntity fromRelation, ImFriendShipEntity toRelation) {
+        if(FriendShipStatusEnum.FRIEND_STATUS_NORMAL.getCode() != fromRelation.getStatus()){
+            return Result.fail(FriendShipErrorCode.FRIEND_IS_DELETED);
+        }
+
+        if(FriendShipStatusEnum.FRIEND_STATUS_NORMAL.getCode() != toRelation.getStatus()){
+            return Result.fail(FriendShipErrorCode.FRIEND_IS_DELETED);
+        }
+
+        if(appConfig.isSendMessageCheckBlack()){
+            if(FriendShipStatusEnum.BLACK_STATUS_NORMAL.getCode() != fromRelation.getBlack()){
+                return Result.fail(FriendShipErrorCode.FRIEND_IS_BLACK);
+            }
+
+            if(FriendShipStatusEnum.BLACK_STATUS_NORMAL.getCode() != toRelation.getBlack()){
+                return Result.fail(FriendShipErrorCode.TARGET_IS_BLACK_YOU);
+            }
+        }
+
+        return Result.ok();
+    }
+
+    /**
+     * Check group message sending permissions.
+     * <p>Validates: sender mute/ban → group exists → member in group → group mute (admin/owner exempt) → member mute.</p>
+     *
+     * @param fromId  sender user ID
+     * @param groupId group ID
+     * @param appId   application ID
+     * @return success if allowed, error code otherwise
+     */
+    public Result checkGroupMessage(String fromId, String groupId, Integer appId){
+
+        Result responseVO = checkSenderForvidAndMute(fromId, appId);
         if(!responseVO.isOk()){
             return responseVO;
         }
 
-        //判断群逻辑
-        ResponseVO<ImGroupEntity> group = imGroupService.getGroup(groupId, appId);
+        // Check if group exists
+        Result<ImGroupEntity> group = imGroupService.getGroup(groupId, appId);
         if(!group.isOk()){
             return group;
         }
 
-        //判断群成员是否在群内
-        ResponseVO<GetRoleInGroupResp> roleInGroupOne = imGroupMemberService.getRoleInGroupOne(groupId, fromId, appId);
+        // Check if sender is a group member
+        Result<GetRoleInGroupResp> roleInGroupOne = imGroupMemberService.getRoleInGroupOne(groupId, fromId, appId);
         if(!roleInGroupOne.isOk()){
             return roleInGroupOne;
         }
         GetRoleInGroupResp data = roleInGroupOne.getData();
 
-        //判断群是否被禁言
-        //如果禁言 只有裙管理和群主可以发言
+        // Check group-wide mute: only admin/owner can speak when muted
         ImGroupEntity groupData = group.getData();
         if(groupData.getMute() == GroupMuteTypeEnum.MUTE.getCode()
          && (data.getRole() == GroupMemberRoleEnum.MAMAGER.getCode() ||
                 data.getRole() == GroupMemberRoleEnum.OWNER.getCode()  )){
-            return ResponseVO.errorResponse(GroupErrorCode.THIS_GROUP_IS_MUTE);
+            return Result.fail(GroupErrorCode.THIS_GROUP_IS_MUTE);
         }
 
+        // Check individual member mute
         if(data.getSpeakDate() != null && data.getSpeakDate() > System.currentTimeMillis()){
-            return ResponseVO.errorResponse(GroupErrorCode.GROUP_MEMBER_IS_SPEAK);
+            return Result.fail(GroupErrorCode.GROUP_MEMBER_IS_SPEAK);
         }
 
-        return ResponseVO.successResponse();
+        return Result.ok();
     }
 
 

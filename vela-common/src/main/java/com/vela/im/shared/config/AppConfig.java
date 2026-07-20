@@ -114,4 +114,13 @@ public class AppConfig {
     /** 离线消息最大存储条数 */
     private Integer offlineMessageCount;
 
+    /** 消息体最大字节数，默认 65536 (64KB) */
+    private Integer messageMaxSize = 65536;
+
+    /** 每秒最大消息发送条数，默认 20 */
+    private Integer messageRateLimit = 20;
+
+    /** 消息时间最大偏差（毫秒），默认 5 分钟 */
+    private Long messageTimeMaxDeviation = 300000L;
+
 }

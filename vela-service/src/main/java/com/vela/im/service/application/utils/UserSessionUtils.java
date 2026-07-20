@@ -14,14 +14,20 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @description:
+ * <p>Title: UserSessionUtils</p>
+ * <p>Description: 用户 Session 工具类，从 Redis 中查询用户在线 Session 信息。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
- * @version: 1.0
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @Component
 public class UserSessionUtils {
-
-    public Object get;
 
     @Autowired
     StringRedisTemplate stringRedisTemplate;

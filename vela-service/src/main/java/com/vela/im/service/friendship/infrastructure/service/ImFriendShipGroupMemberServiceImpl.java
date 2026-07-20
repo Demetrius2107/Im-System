@@ -12,7 +12,7 @@ import com.vela.im.service.friendship.domain.service.ImFriendShipGroupService;
 import com.vela.im.service.user.domain.entity.ImUserDataEntity;
 import com.vela.im.service.user.domain.service.ImUserService;
 import com.vela.im.service.application.utils.MessageProducer;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 import com.vela.im.shared.types.enums.command.FriendshipEventCommand;
 import com.vela.im.shared.types.ClientInfo;
 import com.vela.im.codec.pack.friendship.AddFriendGroupMemberPack;
@@ -25,32 +25,45 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * <p>Title: ImFriendShipGroupMemberServiceImpl</p>
+ * <p>Description: 好友分组成员管理实现，处理分组内成员的添加和删除。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @Service
 public class ImFriendShipGroupMemberServiceImpl
         implements ImFriendShipGroupMemberService {
 
-    @Autowired
-    ImFriendShipGroupMemberMapper imFriendShipGroupMemberMapper;
+    private final ImFriendShipGroupMemberMapper imFriendShipGroupMemberMapper;
+    private final ImFriendShipGroupService imFriendShipGroupService;
+    private final ImUserService imUserService;
+    private final ImFriendShipGroupMemberService thisService;
+    private final MessageProducer messageProducer;
 
-    @Autowired
-    ImFriendShipGroupService imFriendShipGroupService;
-
-    @Autowired
-    ImUserService imUserService;
-
-    @Autowired
-    ImFriendShipGroupMemberService thisService;
-
-    @Autowired
-    MessageProducer messageProducer;
+    public ImFriendShipGroupMemberServiceImpl(ImFriendShipGroupMemberMapper imFriendShipGroupMemberMapper,
+                                              ImFriendShipGroupService imFriendShipGroupService,
+                                              ImUserService imUserService,
+                                              ImFriendShipGroupMemberService thisService,
+                                              MessageProducer messageProducer) {
+        this.imFriendShipGroupMemberMapper = imFriendShipGroupMemberMapper;
+        this.imFriendShipGroupService = imFriendShipGroupService;
+        this.imUserService = imUserService;
+        this.thisService = thisService;
+        this.messageProducer = messageProducer;
+    }
 
     @Override
     @Transactional
-    public ResponseVO addGroupMember(AddFriendShipGroupMemberReq req) {
+    public Result addGroupMember(AddFriendShipGroupMemberReq req) {
 
-        ResponseVO<ImFriendShipGroupEntity> group = imFriendShipGroupService
+        Result<ImFriendShipGroupEntity> group = imFriendShipGroupService
                 .getGroup(req.getFromId(),req.getGroupName(),req.getAppId());
         if(!group.isOk()){
             return group;
@@ -58,7 +71,7 @@ public class ImFriendShipGroupMemberServiceImpl
 
         List<String> successId = new ArrayList<>();
         for (String toId : req.getToIds()) {
-            ResponseVO<ImUserDataEntity> singleUserInfo = imUserService.getSingleUserInfo(toId, req.getAppId());
+            Result<ImUserDataEntity> singleUserInfo = imUserService.getSingleUserInfo(toId, req.getAppId());
             if(singleUserInfo.isOk()){
                 int i = thisService.doAddGroupMember(group.getData().getGroupId(), toId);
                 if(i == 1){
@@ -76,12 +89,12 @@ public class ImFriendShipGroupMemberServiceImpl
         messageProducer.sendToUserExceptClient(req.getFromId(), FriendshipEventCommand.FRIEND_GROUP_MEMBER_ADD,
                 pack,new ClientInfo(req.getAppId(),req.getClientType(),req.getImei()));
 
-        return ResponseVO.successResponse(successId);
+        return Result.ok(successId);
     }
 
     @Override
-    public ResponseVO delGroupMember(DeleteFriendShipGroupMemberReq req) {
-        ResponseVO<ImFriendShipGroupEntity> group = imFriendShipGroupService
+    public Result delGroupMember(DeleteFriendShipGroupMemberReq req) {
+        Result<ImFriendShipGroupEntity> group = imFriendShipGroupService
                 .getGroup(req.getFromId(),req.getGroupName(),req.getAppId());
         if(!group.isOk()){
             return group;
@@ -89,7 +102,7 @@ public class ImFriendShipGroupMemberServiceImpl
 
         List<String> successId = new ArrayList<>();
         for (String toId : req.getToIds()) {
-            ResponseVO<ImUserDataEntity> singleUserInfo = imUserService.getSingleUserInfo(toId, req.getAppId());
+            Result<ImUserDataEntity> singleUserInfo = imUserService.getSingleUserInfo(toId, req.getAppId());
             if(singleUserInfo.isOk()){
                 int i = deleteGroupMember(group.getData().getGroupId(), toId);
                 if(i == 1){
@@ -106,7 +119,7 @@ public class ImFriendShipGroupMemberServiceImpl
         pack.setSequence(seq);
         messageProducer.sendToUserExceptClient(req.getFromId(), FriendshipEventCommand.FRIEND_GROUP_MEMBER_DELETE,
                 pack,new ClientInfo(req.getAppId(),req.getClientType(),req.getImei()));
-        return ResponseVO.successResponse(successId);
+        return Result.ok(successId);
     }
 
     @Override

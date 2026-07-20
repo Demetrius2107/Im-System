@@ -5,17 +5,18 @@ import cn.hutool.core.date.SystemClock;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * <p>Title: </p>
- * <p>Description: </p>
- * <p>项目名称: IM-System</p>
+ * <p>Title: SnowflakeIdWorker</p>
+ * <p>Description: 雪花算法分布式 ID 生成器，支持主备双机器序列，秒内 65536 并发，时钟回拨自动切换到备份机器。</p>
+ * <p>项目名称: Vela</p>
  *
  * @author wanqiu
- * @since 1.0
  * @createTime 2025-03-06
- * @updateTime 2026-07-19
- *
+ * @updateTime 2026-07-20
+ * <p>
  * Copyright © 2026 wanqiu All rights reserved
- */@Slf4j
+ * @since 1.1
+ */
+@Slf4j
 public class SnowflakeIdWorker {
 
     /**
@@ -83,7 +84,7 @@ public class SnowflakeIdWorker {
     /**
      * 构造函数
      *
-     * @param workerId     工作ID (0~31)
+     * @param workerId 工作ID (0~31)
      */
     public SnowflakeIdWorker(long workerId) {
         if (workerId < 0 || workerId > WORKER_ID_MAX) {
@@ -93,15 +94,24 @@ public class SnowflakeIdWorker {
     }
 
     // ==============================Methods=================================
+
+    /**
+     * 生成下一个全局唯一 ID（线程安全）
+     * <p>使用雪花算法生成 64 位 long 型 ID，自动处理时钟回拨和秒内序列溢出。</p>
+     *
+     * @return 全局唯一 ID
+     */
     public static long nextId() {
         return nextId(SystemClock.now() / 1000);
     }
 
     /**
-     * 主机器自增序列
+     * 主机器自增序列生成，处理时钟回拨和秒内序列溢出
+     * <p>分布式环境下首次调用时初始化主机器序列。如果发生时钟回拨（当前时间 < 上次时间），
+     * 自动切换到备份机器序列继续生成。</p>
      *
-     * @param timestamp 当前Unix时间戳
-     * @return long
+     * @param timestamp 当前Unix时间戳（秒）
+     * @return 全局唯一 ID
      */
     private static synchronized long nextId(long timestamp) {
         // 时钟回拨检查
@@ -118,7 +128,7 @@ public class SnowflakeIdWorker {
         }
         if (0L == (++sequence & SEQUENCE_MAX)) {
             // 秒内序列用尽
-//            log.warn("秒内[{}]序列用尽, 启用备份机器ID序列", timestamp);
+            log.warn("秒内[{}]序列用尽, 启用备份机器ID序列", timestamp);
             sequence--;
             return nextIdBackup(timestamp);
         }
@@ -128,9 +138,10 @@ public class SnowflakeIdWorker {
 
     /**
      * 阻塞到下一个毫秒，直到获得新的时间戳
+     * <p>当发生时钟回拨时，自旋等待直到系统时间追上上次生成ID的时间戳。</p>
      *
-     * @param lastTimestamp 上次生成ID的时间截
-     * @return 当前时间戳
+     * @param lastTimestamp 上次生成ID的时间戳（毫秒）
+     * @return 当前时间戳（毫秒）
      */
     protected long tilNextMillis(long lastTimestamp) {
         long timestamp = timeGen();
@@ -141,9 +152,12 @@ public class SnowflakeIdWorker {
     }
 
     /**
-     * 备份机器自增序列
-     * @param timestamp timestamp 当前Unix时间戳
-     * @return long
+     * 备份机器自增序列，主机器时钟回拨或序列用尽时降级使用
+     * <p>使用备份机器ID（主机器ID ^ 16）继续生成，确保 ID 全局唯一不冲突。</p>
+     *
+     * @param timestamp 当前Unix时间戳（秒）
+     * @return 全局唯一 ID
+     * @throws RuntimeException 时钟回拨超过容忍上限时抛出
      */
     private static long nextIdBackup(long timestamp) {
         if (timestamp < lastTimestampBak) {
@@ -170,9 +184,9 @@ public class SnowflakeIdWorker {
 
 
     /**
-     * 返回以毫秒为单位的当前时间
+     * 返回当前系统时间戳
      *
-     * @return 当前时间(毫秒)
+     * @return 当前时间（毫秒）
      */
     protected long timeGen() {
         return System.currentTimeMillis();

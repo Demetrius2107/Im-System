@@ -4,6 +4,12 @@
 - 项目采用 DDD 四层六边形架构
 - 5个Maven模块: im-common(共享内核)、im-codec(基础设施编解码)、im-tcp(接口适配器)、im-service(核心业务)、im-message-store(持久化适配器)
 
+## 可用技能 (Skills)
+- `comment-style`: 注释规范 (Javadoc 模板)
+- `code-review`: 代码审查检查清单
+- `commit-message`: Git 提交信息规范
+- `im-architecture-deep-dive`: **IM 架构深度设计自检清单** — 对任意核心模块进行五层深度设计（主流程 → 异常边界 → 高并发 → 容灾降级 → 决策论证）。调用方式：`use_skill("im-architecture-deep-dive", "module=消息可靠投递")`
+
 ## 包命名规范
 - 基础包: `com.lip.im.{module}`
 - 共享内核: `com.lip.im.shared.{base|exception|types|constants|config|route|utils}`

@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.vela.im.service.user.domain.entity.ImUserDataEntity;
 import com.vela.im.service.user.domain.service.ImUserService;
 import com.vela.im.shared.exception.BaseErrorCode;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 import com.vela.im.shared.config.AppConfig;
 import com.vela.im.shared.constants.Constants;
 import com.vela.im.shared.types.enums.GateWayErrorCode;
@@ -23,25 +23,44 @@ import sun.rmi.runtime.Log;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @description: 标识检查
+ * <p>Title: IdentityCheck</p>
+ * <p>Description: 用户签名校验工具，校验 userSign 的合法性及有效期，防止签名伪造。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
- * @version: 1.0
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @Component
 public class IdentityCheck {
 
-    private static Logger logger = LoggerFactory.getLogger(IdentityCheck.class);
+    private static final Logger logger = LoggerFactory.getLogger(IdentityCheck.class);
 
-    @Autowired
-    ImUserService imUserService;
+    private final ImUserService imUserService;
+    private final AppConfig appConfig;
+    private final StringRedisTemplate stringRedisTemplate;
 
-    //10000 123456 10001 123456789
-    @Autowired
-    AppConfig appConfig;
+    public IdentityCheck(ImUserService imUserService,
+                         AppConfig appConfig,
+                         StringRedisTemplate stringRedisTemplate) {
+        this.imUserService = imUserService;
+        this.appConfig = appConfig;
+        this.stringRedisTemplate = stringRedisTemplate;
+    }
 
-    @Autowired
-    StringRedisTemplate stringRedisTemplate;
-
+    /**
+     * 校验 userSign 签名
+     * <p>检查缓存签名 → 解密 userSig → 验证 appId/identifier/过期时间 → 缓存结果。</p>
+     *
+     * @param identifier 用户标识
+     * @param appId      应用ID
+     * @param userSig    用户签名
+     * @return 校验结果（SUCCESS 或 具体错误码）
+     */
     // 用户鉴权
     public ApplicationExceptionEnum checkUserSig(String identifier,
                                                  String appId, String userSig){
@@ -127,7 +146,7 @@ public class IdentityCheck {
      */
     public void setIsAdmin(String identifier, Integer appId) {
         //去DB或Redis中查找, 后面写
-        ResponseVO<ImUserDataEntity> singleUserInfo = imUserService.getSingleUserInfo(identifier, appId);
+        Result<ImUserDataEntity> singleUserInfo = imUserService.getSingleUserInfo(identifier, appId);
         if(singleUserInfo.isOk()){
             RequestHolder.set(singleUserInfo.getData().getUserType() == ImUserTypeEnum.APP_ADMIN.getCode());
         }else{

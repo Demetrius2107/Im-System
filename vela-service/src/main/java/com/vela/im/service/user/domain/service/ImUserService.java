@@ -1,7 +1,7 @@
 package com.vela.im.service.user.domain.service;
 
 
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 import com.vela.im.service.user.domain.entity.ImUserDataEntity;
 import com.vela.im.service.user.application.dto.req.*;
 import com.vela.im.service.user.application.dto.resp.GetUserInfoResp;
@@ -12,44 +12,44 @@ public interface ImUserService {
      * 导入用户
      *
      * @param req 导入用户请求体
-     * @return ResponseVO
+     * @return Result
      */
-    public ResponseVO importUser(ImportUserReq req);
+    public Result importUser(ImportUserReq req);
 
     /**
      * 获取用户信息
      *
      * @param req 获取用户信息请求体
-     * @return ResponseVO
+     * @return Result
      */
-    public ResponseVO<GetUserInfoResp> getUserInfo(GetUserInfoReq req);
+    public Result<GetUserInfoResp> getUserInfo(GetUserInfoReq req);
 
     /**
      * 获取单个用户信息
      *
      * @param userId 用户id
      * @param appId  appId
-     * @return ResponseVO
+     * @return Result
      */
-    public ResponseVO<ImUserDataEntity> getSingleUserInfo(String userId, Integer appId);
+    public Result<ImUserDataEntity> getSingleUserInfo(String userId, Integer appId);
 
     /**
      * 删除用户
      *
      * @param req 删除用户信息请求体
-     * @return ResponseVO
+     * @return Result
      */
-    public ResponseVO deleteUser(DeleteUserReq req);
+    public Result deleteUser(DeleteUserReq req);
 
     /**
      * 修改用户信息
      *
      * @param req 修改用户信息请求体
-     * @return ResponseVO
+     * @return Result
      */
-    public ResponseVO modifyUserInfo(ModifyUserInfoReq req);
+    public Result modifyUserInfo(ModifyUserInfoReq req);
 
-    public ResponseVO login(LoginReq req);
+    public Result login(LoginReq req);
 
-    ResponseVO getUserSequence(GetUserSequenceReq req);
+    Result getUserSequence(GetUserSequenceReq req);
 }

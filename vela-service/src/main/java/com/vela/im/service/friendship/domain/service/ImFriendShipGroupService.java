@@ -4,7 +4,7 @@ package com.vela.im.service.friendship.domain.service;
 import com.vela.im.service.friendship.domain.entity.ImFriendShipGroupEntity;
 import com.vela.im.service.friendship.application.dto.req.AddFriendShipGroupReq;
 import com.vela.im.service.friendship.application.dto.req.DeleteFriendShipGroupReq;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 
 /**
  * @author wanqiu
@@ -18,7 +18,7 @@ public interface ImFriendShipGroupService {
      * @param req request
      * @return response
      */
-    public ResponseVO addGroup(AddFriendShipGroupReq req);
+    public Result addGroup(AddFriendShipGroupReq req);
 
     /**
      * 删除好友组
@@ -26,7 +26,7 @@ public interface ImFriendShipGroupService {
      * @param req request
      * @return response
      */
-    public ResponseVO deleteGroup(DeleteFriendShipGroupReq req);
+    public Result deleteGroup(DeleteFriendShipGroupReq req);
 
     /**
      * 获取好友组
@@ -36,7 +36,7 @@ public interface ImFriendShipGroupService {
      * @param appId
      * @return
      */
-    public ResponseVO<ImFriendShipGroupEntity> getGroup(String fromId, String groupName, Integer appId);
+    public Result<ImFriendShipGroupEntity> getGroup(String fromId, String groupName, Integer appId);
 
     public Long updateSeq(String fromId, String groupName, Integer appId);
 
