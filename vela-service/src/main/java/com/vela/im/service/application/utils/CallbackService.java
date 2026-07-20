@@ -5,32 +5,40 @@ import com.vela.im.shared.config.AppConfig;
 import com.vela.im.shared.utils.HttpRequestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * <p>Title: CallbackService</p>
+ * <p>Description: HTTP 回调服务，异步调用外部回调接口，支持前置和后置回调。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
- * @title: CallbackService
- * @projectName: IM-System
- * @description: 回调函数
- * @date: 2025/3/6 19:40
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @Component
 public class CallbackService {
 
-    private Logger logger = LoggerFactory.getLogger(CallbackService.class);
+    private static final Logger logger = LoggerFactory.getLogger(CallbackService.class);
 
-    @Autowired
-    HttpRequestUtils httpRequestUtils;
+    private final HttpRequestUtils httpRequestUtils;
+    private final AppConfig appConfig;
+    private final ShareThreadPool shareThreadPool;
 
-    @Autowired
-    AppConfig appConfig;
-
-    @Autowired
-    ShareThreadPool shareThreadPool;
+    public CallbackService(HttpRequestUtils httpRequestUtils,
+                           AppConfig appConfig,
+                           ShareThreadPool shareThreadPool) {
+        this.httpRequestUtils = httpRequestUtils;
+        this.appConfig = appConfig;
+        this.shareThreadPool = shareThreadPool;
+    }
 
     /**
      * 之后回调

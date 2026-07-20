@@ -18,20 +18,33 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * 获取指定Session IM服务器订阅发送给用户
+ * <p>Title: MessageProducer</p>
+ * <p>Description: 消息生产者，通过 RabbitMQ 将消息推送到指定用户的 IM 网关节点。</p>
+ * <p>项目名称: Vela</p>
+ *
+ * @author wanqiu
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @Service
 public class MessageProducer {
 
-    private static Logger logger = LoggerFactory.getLogger(MessageProducer.class);
+    private static final Logger logger = LoggerFactory.getLogger(MessageProducer.class);
 
-    @Autowired
-    RabbitTemplate rabbitTemplate;
+    private final RabbitTemplate rabbitTemplate;
+    private final UserSessionUtils userSessionUtils;
 
-    @Autowired
-    UserSessionUtils userSessionUtils;
+    private final String queueName = Constants.RabbitConstants.MessageService2Im;
 
-    private String queueName = Constants.RabbitConstants.MessageService2Im;
+    public MessageProducer(RabbitTemplate rabbitTemplate,
+                           UserSessionUtils userSessionUtils) {
+        this.rabbitTemplate = rabbitTemplate;
+        this.userSessionUtils = userSessionUtils;
+    }
 
     public boolean sendMessage(UserSession session, Object msg){
         try {

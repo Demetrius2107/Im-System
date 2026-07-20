@@ -9,19 +9,34 @@ import com.vela.im.shared.types.ClientInfo;
 import com.vela.im.codec.pack.group.AddGroupMemberPack;
 import com.vela.im.codec.pack.group.RemoveGroupMemberPack;
 import com.vela.im.codec.pack.group.UpdateGroupMemberPack;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * <p>Title: GroupMessageProducer</p>
+ * <p>Description: 群聊消息生产者，按事件类型分发群成员变更通知（加群/退群/更新）到各成员。</p>
+ * <p>项目名称: Vela</p>
+ *
+ * @author wanqiu
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
+ */
 @Component
 public class GroupMessageProducer {
 
-    @Autowired
-    MessageProducer messageProducer;
+    private final MessageProducer messageProducer;
+    private final ImGroupMemberService imGroupMemberService;
 
-    @Autowired
-    ImGroupMemberService imGroupMemberService;
+    public GroupMessageProducer(MessageProducer messageProducer,
+                                ImGroupMemberService imGroupMemberService) {
+        this.messageProducer = messageProducer;
+        this.imGroupMemberService = imGroupMemberService;
+    }
 
     public void producer(String userId, Command command, Object data,
                          ClientInfo clientInfo){
