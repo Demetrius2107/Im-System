@@ -11,12 +11,28 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * <p>Title: ConversationController</p>
+ * <p>Description: 会话管理 REST 接口，处理会话删除、更新（置顶/免打扰）、增量同步等请求。</p>
+ * <p>项目名称: Vela</p>
+ *
+ * @author wanqiu
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
+ */
 @RestController
 @RequestMapping("v1/conversation")
 public class ConversationController {
 
-    @Autowired
-    ConversationService conversationService;
+    private final ConversationService conversationService;
+
+    public ConversationController(ConversationService conversationService) {
+        this.conversationService = conversationService;
+    }
 
     @RequestMapping("/deleteConversation")
     public ResponseVO deleteConversation(@RequestBody @Validated DeleteConversationReq

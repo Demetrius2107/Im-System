@@ -29,27 +29,38 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * @description:
+ * <p>Title: ConversationService</p>
+ * <p>Description: 会话管理服务，处理会话已读标记、删除、更新（置顶/免打扰）、增量同步等。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
- * @version: 1.0
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @Service
 public class ConversationService {
 
-    @Autowired
-    ImConversationSetMapper imConversationSetMapper;
+    private final ImConversationSetMapper imConversationSetMapper;
+    private final MessageProducer messageProducer;
+    private final AppConfig appConfig;
+    private final RedisSeq redisSeq;
+    private final WriteUserSeq writeUserSeq;
 
-    @Autowired
-    MessageProducer messageProducer;
-
-    @Autowired
-    AppConfig appConfig;
-
-    @Autowired
-    RedisSeq redisSeq;
-
-    @Autowired
-    WriteUserSeq writeUserSeq;
+    public ConversationService(ImConversationSetMapper imConversationSetMapper,
+                               MessageProducer messageProducer,
+                               AppConfig appConfig,
+                               RedisSeq redisSeq,
+                               WriteUserSeq writeUserSeq) {
+        this.imConversationSetMapper = imConversationSetMapper;
+        this.messageProducer = messageProducer;
+        this.appConfig = appConfig;
+        this.redisSeq = redisSeq;
+        this.writeUserSeq = writeUserSeq;
+    }
 
     public String convertConversationId(Integer type,String fromId,String toId){
         return type + "_" + fromId + "_" + toId;
