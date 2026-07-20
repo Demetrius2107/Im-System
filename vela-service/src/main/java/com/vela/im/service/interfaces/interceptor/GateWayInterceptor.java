@@ -15,20 +15,37 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
 
 /**
- * @description: 网关拦截器
+ * <p>Title: GateWayInterceptor</p>
+ * <p>Description: 网关拦截器，校验请求中的 userSign 签名，确保请求合法性。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
- * @version: 1.0
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @Component
 public class GateWayInterceptor implements HandlerInterceptor {
 
-    @Autowired
-    IdentityCheck identityCheck;
+    private final IdentityCheck identityCheck;
+
+    public GateWayInterceptor(IdentityCheck identityCheck) {
+        this.identityCheck = identityCheck;
+    }
 
 
     //appService -》im接口 -》 userSign
     //appService（gen userSig）
 
+    /**
+     * 请求前置拦截：校验 userSign 签名是否合法
+     *
+     * @return true 放行，false 拒绝并返回错误
+     * @throws Exception 校验异常时抛出
+     */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 

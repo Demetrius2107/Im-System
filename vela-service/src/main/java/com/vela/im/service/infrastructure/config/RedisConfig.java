@@ -11,17 +11,31 @@ import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
+ * <p>Title: RedisConfig</p>
+ * <p>Description: Redis 配置类，配置 RedisTemplate 序列化方式（Jackson2JsonRedisSerializer）。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
- * @title: RedisConfig
- * @projectName: IM-System
- * @description: TODO
- * @date: 2025/3/6 19:14
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 public class RedisConfig {
 
-    @Autowired
-    RedisConnectionFactory redisConnectionFactory;
+    private final RedisConnectionFactory redisConnectionFactory;
 
+    public RedisConfig(RedisConnectionFactory redisConnectionFactory) {
+        this.redisConnectionFactory = redisConnectionFactory;
+    }
+
+    /**
+     * 配置 RedisTemplate，使用 Jackson2JsonRedisSerializer 序列化 value
+     *
+     * @return RedisTemplate 实例
+     */
     @Bean
     public RedisTemplate<Object, Object> redisTemplate() {
         RedisTemplate<Object, Object> template = new RedisTemplate<>();
