@@ -3,7 +3,7 @@ package com.vela.im.service.group.interfaces.rest;
 
 import com.vela.im.service.group.application.dto.req.*;
 import com.vela.im.service.group.domain.service.ImGroupMemberService;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,35 +34,35 @@ public class ImGroupMemberController {
     }
 
     @RequestMapping("/importGroupMember")
-    public ResponseVO importGroupMember(@RequestBody @Validated ImportGroupMemberReq req, Integer appId, String identifier)  {
+    public Result importGroupMember(@RequestBody @Validated ImportGroupMemberReq req, Integer appId, String identifier)  {
         req.setAppId(appId);
         req.setOperater(identifier);
         return groupMemberService.importGroupMember(req);
     }
 
     @RequestMapping("/add")
-    public ResponseVO addMember(@RequestBody @Validated AddGroupMemberReq req, Integer appId, String identifier)  {
+    public Result addMember(@RequestBody @Validated AddGroupMemberReq req, Integer appId, String identifier)  {
         req.setAppId(appId);
         req.setOperater(identifier);
         return groupMemberService.addMember(req);
     }
 
     @RequestMapping("/remove")
-    public ResponseVO removeMember(@RequestBody @Validated RemoveGroupMemberReq req, Integer appId, String identifier)  {
+    public Result removeMember(@RequestBody @Validated RemoveGroupMemberReq req, Integer appId, String identifier)  {
         req.setAppId(appId);
         req.setOperater(identifier);
         return groupMemberService.removeMember(req);
     }
 
     @RequestMapping("/update")
-    public ResponseVO updateGroupMember(@RequestBody @Validated UpdateGroupMemberReq req, Integer appId, String identifier)  {
+    public Result updateGroupMember(@RequestBody @Validated UpdateGroupMemberReq req, Integer appId, String identifier)  {
         req.setAppId(appId);
         req.setOperater(identifier);
         return groupMemberService.updateGroupMember(req);
     }
 
     @RequestMapping("/speak")
-    public ResponseVO speak(@RequestBody @Validated SpeaMemberReq req, Integer appId, String identifier)  {
+    public Result speak(@RequestBody @Validated SpeaMemberReq req, Integer appId, String identifier)  {
         req.setAppId(appId);
         req.setOperater(identifier);
         return groupMemberService.speak(req);

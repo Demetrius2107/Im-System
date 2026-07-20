@@ -1,6 +1,6 @@
 package com.vela.im.service.application.utils;
 
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 import com.vela.im.shared.config.AppConfig;
 import com.vela.im.shared.utils.HttpRequestUtils;
 import org.slf4j.Logger;
@@ -64,14 +64,14 @@ public class CallbackService {
      * @param jsonBody
      * @return
      */
-    public ResponseVO beforeCallback(Integer appId,String callbackCommand,String jsonBody){
+    public Result beforeCallback(Integer appId,String callbackCommand,String jsonBody){
         try {
-            ResponseVO responseVO = httpRequestUtils.doPost("", ResponseVO.class, builderUrlParams(appId, callbackCommand),
+            Result responseVO = httpRequestUtils.doPost("", Result.class, builderUrlParams(appId, callbackCommand),
                     jsonBody, null);
             return responseVO;
         }catch (Exception e){
             logger.error("callback 之前 回调{} : {}出现异常 ： {} ",callbackCommand , appId, e.getMessage());
-            return ResponseVO.successResponse();
+            return Result.ok();
         }
     }
 

@@ -6,15 +6,17 @@ import lombok.Data;
 /**
  * <p>Title: ResponseVO</p>
  * <p>Description: 统一API响应对象，封装返回码、消息和数据，所有接口统一使用此对象返回。</p>
- * <p>项目名称: IM-System</p>
+ * <p>项目名称: Vela</p>
  *
  * @author wanqiu
- * @since 1.0
+ * @since 1.1
  * @createTime 2025-03-03
- * @updateTime 2026-07-19
+ * @updateTime 2026-07-20
  *
  * Copyright © 2026 wanqiu All rights reserved
+
  */
+@SuppressWarnings("rawtypes")
 @Data
 public class ResponseVO<T> {
 

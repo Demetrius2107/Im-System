@@ -7,7 +7,7 @@ import com.vela.im.service.user.application.dto.req.ModifyUserInfoReq;
 import com.vela.im.service.user.application.dto.req.UserId;
 import com.vela.im.service.user.application.dto.resp.GetUserInfoResp;
 import com.vela.im.service.user.domain.service.ImUserService;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,19 +42,19 @@ public class ImUserDataController {
     }
 
     @RequestMapping("/getUserInfo")
-    public ResponseVO<GetUserInfoResp> getUserInfo(@RequestBody GetUserInfoReq req, Integer appId) {
+    public Result<GetUserInfoResp> getUserInfo(@RequestBody GetUserInfoReq req, Integer appId) {
         req.setAppId(appId);
         return imUserService.getUserInfo(req);
     }
 
     @RequestMapping("/getSingleUserInfo")
-    public ResponseVO<ImUserDataEntity> getSingleUserInfo(@RequestBody @Validated UserId req, Integer appId) {
+    public Result<ImUserDataEntity> getSingleUserInfo(@RequestBody @Validated UserId req, Integer appId) {
         req.setAppId(appId);
         return imUserService.getSingleUserInfo(req.getUserId(), req.getAppId());
     }
 
     @RequestMapping("/modifyUserInfo")
-    public ResponseVO modifyUserInfo(@RequestBody @Validated ModifyUserInfoReq req, Integer appId){
+    public Result modifyUserInfo(@RequestBody @Validated ModifyUserInfoReq req, Integer appId){
         req.setAppId(appId);
         return imUserService.modifyUserInfo(req);
     }

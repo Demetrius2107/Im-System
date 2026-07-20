@@ -4,7 +4,7 @@ package com.vela.im.service.message.interfaces.rest;
 import com.vela.im.service.message.application.dto.req.SendMessageReq;
 import com.vela.im.service.message.domain.service.MessageSyncService;
 import com.vela.im.service.message.domain.service.P2PMessageService;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 import com.vela.im.shared.types.SyncReq;
 import com.vela.im.shared.types.message.CheckSendMessageReq;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,19 +37,19 @@ public class MessageController {
     MessageSyncService messageSyncService;
 
     @RequestMapping("/send")
-    public ResponseVO send(@RequestBody @Validated SendMessageReq req, Integer appId)  {
+    public Result send(@RequestBody @Validated SendMessageReq req, Integer appId)  {
         req.setAppId(appId);
-        return ResponseVO.successResponse(p2PMessageService.send(req));
+        return Result.ok(p2PMessageService.send(req));
     }
 
     @RequestMapping("/checkSend")
-    public ResponseVO checkSend(@RequestBody @Validated CheckSendMessageReq req)  {
+    public Result checkSend(@RequestBody @Validated CheckSendMessageReq req)  {
         return p2PMessageService.imServerPermissionCheck(req.getFromId(),req.getToId()
                 ,req.getAppId());
     }
 
     @RequestMapping("/syncOfflineMessage")
-    public ResponseVO syncOfflineMessage(@RequestBody
+    public Result syncOfflineMessage(@RequestBody
                                              @Validated SyncReq req, Integer appId)  {
         req.setAppId(appId);
         return messageSyncService.syncOfflineMessage(req);

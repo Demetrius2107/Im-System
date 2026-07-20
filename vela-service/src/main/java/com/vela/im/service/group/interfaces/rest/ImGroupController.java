@@ -4,7 +4,7 @@ package com.vela.im.service.group.interfaces.rest;
 import com.vela.im.service.group.application.dto.req.*;
 import com.vela.im.service.group.domain.service.GroupMessageService;
 import com.vela.im.service.group.domain.service.ImGroupService;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 import com.vela.im.shared.types.SyncReq;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -39,34 +39,34 @@ public class ImGroupController {
     }
 
     @RequestMapping("/importGroup")
-    public ResponseVO importGroup(@RequestBody @Validated ImportGroupReq req, Integer appId, String identifier)  {
+    public Result importGroup(@RequestBody @Validated ImportGroupReq req, Integer appId, String identifier)  {
         req.setAppId(appId);
         req.setOperater(identifier);
         return groupService.importGroup(req);
     }
 
     @RequestMapping("/createGroup")
-    public ResponseVO createGroup(@RequestBody @Validated CreateGroupReq req, Integer appId, String identifier)  {
+    public Result createGroup(@RequestBody @Validated CreateGroupReq req, Integer appId, String identifier)  {
         req.setAppId(appId);
         req.setOperater(identifier);
         return groupService.createGroup(req);
     }
 
     @RequestMapping("/getGroupInfo")
-    public ResponseVO getGroupInfo(@RequestBody @Validated GetGroupReq req, Integer appId)  {
+    public Result getGroupInfo(@RequestBody @Validated GetGroupReq req, Integer appId)  {
         req.setAppId(appId);
         return groupService.getGroup(req);
     }
 
     @RequestMapping("/update")
-    public ResponseVO update(@RequestBody @Validated UpdateGroupReq req, Integer appId, String identifier)  {
+    public Result update(@RequestBody @Validated UpdateGroupReq req, Integer appId, String identifier)  {
         req.setAppId(appId);
         req.setOperater(identifier);
         return groupService.updateBaseGroupInfo(req);
     }
 
     @RequestMapping("/getJoinedGroup")
-    public ResponseVO getJoinedGroup(@RequestBody @Validated GetJoinedGroupReq req, Integer appId, String identifier)  {
+    public Result getJoinedGroup(@RequestBody @Validated GetJoinedGroupReq req, Integer appId, String identifier)  {
         req.setAppId(appId);
         req.setOperater(identifier);
         return groupService.getJoinedGroup(req);
@@ -74,37 +74,37 @@ public class ImGroupController {
 
 
     @RequestMapping("/destroyGroup")
-    public ResponseVO destroyGroup(@RequestBody @Validated DestroyGroupReq req, Integer appId, String identifier)  {
+    public Result destroyGroup(@RequestBody @Validated DestroyGroupReq req, Integer appId, String identifier)  {
         req.setAppId(appId);
         req.setOperater(identifier);
         return groupService.destroyGroup(req);
     }
 
     @RequestMapping("/transferGroup")
-    public ResponseVO transferGroup(@RequestBody @Validated TransferGroupReq req, Integer appId, String identifier)  {
+    public Result transferGroup(@RequestBody @Validated TransferGroupReq req, Integer appId, String identifier)  {
         req.setAppId(appId);
         req.setOperater(identifier);
         return groupService.transferGroup(req);
     }
 
     @RequestMapping("/forbidSendMessage")
-    public ResponseVO forbidSendMessage(@RequestBody @Validated MuteGroupReq req, Integer appId, String identifier)  {
+    public Result forbidSendMessage(@RequestBody @Validated MuteGroupReq req, Integer appId, String identifier)  {
         req.setAppId(appId);
         req.setOperater(identifier);
         return groupService.muteGroup(req);
     }
 
     @RequestMapping("/sendMessage")
-    public ResponseVO sendMessage(@RequestBody @Validated SendGroupMessageReq
+    public Result sendMessage(@RequestBody @Validated SendGroupMessageReq
                                               req, Integer appId,
                                   String identifier)  {
         req.setAppId(appId);
         req.setOperater(identifier);
-        return ResponseVO.successResponse(groupMessageService.send(req));
+        return Result.ok(groupMessageService.send(req));
     }
 
     @RequestMapping("/syncJoinedGroup")
-    public ResponseVO syncJoinedGroup(@RequestBody @Validated SyncReq req, Integer appId, String identifier)  {
+    public Result syncJoinedGroup(@RequestBody @Validated SyncReq req, Integer appId, String identifier)  {
         req.setAppId(appId);
         return groupService.syncJoinedGroupList(req);
     }

@@ -3,7 +3,7 @@ package com.vela.im.service.conversation.interfaces.rest;
 import com.vela.im.service.conversation.application.dto.DeleteConversationReq;
 import com.vela.im.service.conversation.application.dto.UpdateConversationReq;
 import com.vela.im.service.conversation.domain.service.ConversationService;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 import com.vela.im.shared.types.SyncReq;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -35,7 +35,7 @@ public class ConversationController {
     }
 
     @RequestMapping("/deleteConversation")
-    public ResponseVO deleteConversation(@RequestBody @Validated DeleteConversationReq
+    public Result deleteConversation(@RequestBody @Validated DeleteConversationReq
                                                      req, Integer appId, String identifier)  {
         req.setAppId(appId);
 //        req.setOperater(identifier);
@@ -43,7 +43,7 @@ public class ConversationController {
     }
 
     @RequestMapping("/updateConversation")
-    public ResponseVO updateConversation(@RequestBody @Validated UpdateConversationReq
+    public Result updateConversation(@RequestBody @Validated UpdateConversationReq
                                                  req, Integer appId, String identifier)  {
         req.setAppId(appId);
 //        req.setOperater(identifier);
@@ -51,7 +51,7 @@ public class ConversationController {
     }
 
     @RequestMapping("/syncConversationList")
-    public ResponseVO syncFriendShipList(@RequestBody @Validated SyncReq req, Integer appId)  {
+    public Result syncFriendShipList(@RequestBody @Validated SyncReq req, Integer appId)  {
         req.setAppId(appId);
         return conversationService.syncConversationSet(req);
     }

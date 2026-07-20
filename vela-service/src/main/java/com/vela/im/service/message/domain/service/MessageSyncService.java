@@ -13,7 +13,7 @@ import com.vela.im.service.application.utils.ConversationIdGenerate;
 import com.vela.im.service.application.utils.GroupMessageProducer;
 import com.vela.im.service.application.utils.MessageProducer;
 import com.vela.im.service.application.utils.SnowflakeIdWorker;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 import com.vela.im.shared.config.AppConfig;
 import com.vela.im.shared.constants.Constants;
 import com.vela.im.shared.types.enums.ConversationTypeEnum;
@@ -161,7 +161,7 @@ public class MessageSyncService {
      * @param req sync request (with lastSequence / maxLimit)
      * @return sync response (with offline message list and max sequence)
      */
-    public ResponseVO syncOfflineMessage(SyncReq req) {
+    public Result syncOfflineMessage(SyncReq req) {
 
         SyncResp<OfflineMessageContent> resp = new SyncResp<>();
 
@@ -171,7 +171,7 @@ public class MessageSyncService {
             resp.setMaxSequence(0L);
             resp.setDataList(new ArrayList<>());
             resp.setCompleted(true);
-            return ResponseVO.successResponse(resp);
+            return Result.ok(resp);
         }
 
         // Clamp maxLimit to safe bounds [1, 500]
@@ -229,7 +229,7 @@ public class MessageSyncService {
             resp.setCompleted(true);
         }
 
-        return ResponseVO.successResponse(resp);
+        return Result.ok(resp);
     }
 
     /**
@@ -273,7 +273,7 @@ public class MessageSyncService {
         if (messageTime > now + clockSkewTolerance) {
             logger.warn("Client clock skew detected, messageTime={}, serverTime={}",
                     messageTime, now);
-            recallAck(pack, ResponseVO.errorResponse(MessageErrorCode.MESSAGE_CLOCK_SKEW_EXCEEDED), content);
+            recallAck(pack, Result.fail(MessageErrorCode.MESSAGE_CLOCK_SKEW_EXCEEDED), content);
             return;
         }
 
@@ -281,7 +281,7 @@ public class MessageSyncService {
         if (recallTimeout < now - messageTime) {
             logger.warn("Recall timed out, msgKey={}, messageTime={}, now={}, timeout={}",
                     content.getMessageKey(), messageTime, now, recallTimeout);
-            recallAck(pack,ResponseVO.errorResponse(MessageErrorCode.MESSAGE_RECALL_TIME_OUT),content);
+            recallAck(pack,Result.fail(MessageErrorCode.MESSAGE_RECALL_TIME_OUT),content);
             return;
         }
 
@@ -297,13 +297,13 @@ public class MessageSyncService {
 
                 if(body == null){
                     logger.warn("Recall target not found, msgKey={}", content.getMessageKey());
-                    recallAck(pack,ResponseVO.errorResponse(MessageErrorCode.MESSAGEBODY_IS_NOT_EXIST),content);
+                    recallAck(pack,Result.fail(MessageErrorCode.MESSAGEBODY_IS_NOT_EXIST),content);
                     return;
                 }
 
                 if(body.getDelFlag() == DelFlagEnum.DELETE.getCode()){
                     logger.warn("Message already recalled, msgKey={}", content.getMessageKey());
-                    recallAck(pack,ResponseVO.errorResponse(MessageErrorCode.MESSAGE_IS_RECALLED),content);
+                    recallAck(pack,Result.fail(MessageErrorCode.MESSAGE_IS_RECALLED),content);
                     return;
                 }
 
@@ -335,7 +335,7 @@ public class MessageSyncService {
                     redisTemplate.opsForZSet().add(toKey,JSONObject.toJSONString(offlineMessageContent),newMessageKey);
 
                     // Send ACK to the recall initiator
-                    recallAck(pack,ResponseVO.successResponse(),content);
+                    recallAck(pack,Result.ok(),content);
                     // Sync to sender's other devices
                     messageProducer.sendToUserExceptClient(content.getFromId(),
                             MessageCommand.MSG_RECALL_NOTIFY,pack,content);
@@ -346,7 +346,7 @@ public class MessageSyncService {
                     List<String> groupMemberId = imGroupMemberService.getGroupMemberId(content.getToId(), content.getAppId());
                     long seq = redisSeq.doGetSeq(content.getAppId() + ":" + Constants.SeqConstants.Message + ":" + ConversationIdGenerate.generateP2PId(content.getFromId(),content.getToId()));
                     // Send ACK to the recall initiator
-                    recallAck(pack,ResponseVO.successResponse(),content);
+                    recallAck(pack,Result.ok(),content);
                     // Sync to sender's other devices
                     messageProducer.sendToUserExceptClient(content.getFromId(), MessageCommand.MSG_RECALL_NOTIFY, pack
                             , content);
@@ -378,7 +378,7 @@ public class MessageSyncService {
      * @param success    response result
      * @param clientInfo client info
      */
-    private void recallAck(RecallMessageNotifyPack recallPack, ResponseVO<Object> success, ClientInfo clientInfo) {
+    private void recallAck(RecallMessageNotifyPack recallPack, Result<Object> success, ClientInfo clientInfo) {
         messageProducer.sendToUser(recallPack.getFromId(),
                 MessageCommand.MSG_RECALL_ACK, success, clientInfo);
     }

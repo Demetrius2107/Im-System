@@ -8,7 +8,7 @@ import com.vela.im.service.infrastructure.seq.RedisSeq;
 import com.vela.im.service.application.utils.CallbackService;
 import com.vela.im.service.application.utils.ConversationIdGenerate;
 import com.vela.im.service.application.utils.MessageProducer;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 import com.vela.im.shared.config.AppConfig;
 import com.vela.im.shared.constants.Constants;
 import com.vela.im.shared.types.enums.ConversationTypeEnum;
@@ -107,7 +107,7 @@ public class P2PMessageService {
         Integer appId = messageContent.getAppId();
 
         // Boundary condition checks: validate message before processing
-        ResponseVO boundaryCheck = validateMessageBoundaries(messageContent);
+        Result boundaryCheck = validateMessageBoundaries(messageContent);
         if (!boundaryCheck.isOk()) {
             ack(messageContent, boundaryCheck);
             logger.warn("Message rejected by boundary check, msgId={}, reason={}",
@@ -116,7 +116,7 @@ public class P2PMessageService {
         }
 
         // Rate limiting check per user
-        ResponseVO rateCheck = checkRateLimit(fromId);
+        Result rateCheck = checkRateLimit(fromId);
         if (!rateCheck.isOk()) {
             ack(messageContent, rateCheck);
             logger.warn("Message rate limited, fromId={}, msgId={}", fromId, messageContent.getMessageId());
@@ -128,7 +128,7 @@ public class P2PMessageService {
                 (messageContent.getAppId(), messageContent.getMessageId(), MessageContent.class);
         if (messageFromMessageIdCache != null){
             threadPoolExecutor.execute(() ->{
-                ack(messageContent, ResponseVO.successResponse());
+                ack(messageContent, Result.ok());
                 // Sync to sender's other online devices
                 syncToSender(messageFromMessageIdCache, messageFromMessageIdCache);
                 // Dispatch to receiver's online devices
@@ -142,7 +142,7 @@ public class P2PMessageService {
         }
 
         // Pre-send callback (if configured)
-        ResponseVO responseVO = ResponseVO.successResponse();
+        Result responseVO = Result.ok();
         if(appConfig.isSendMessageAfterCallback()){
             responseVO = callbackService.beforeCallback(messageContent.getAppId(), Constants.CallbackCommand.SendMessageBefore
                     , JSONObject.toJSONString(messageContent));
@@ -172,7 +172,7 @@ public class P2PMessageService {
                 messageStoreService.storeOfflineMessage(offlineMessageContent);
 
                 // 1. Send ACK to sender
-                ack(messageContent,ResponseVO.successResponse());
+                ack(messageContent,Result.ok());
                 // 2. Sync to sender's other devices
                 syncToSender(messageContent,messageContent);
                 // 3. Dispatch to receiver's online devices
@@ -257,7 +257,7 @@ public class P2PMessageService {
      * @param messageContent the acknowledged message
      * @param responseVO     ACK result
      */
-    private void ack(MessageContent messageContent, ResponseVO responseVO){
+    private void ack(MessageContent messageContent, Result responseVO){
         logger.info("msg ack,msgId={},checkResult={}", messageContent.getMessageId(), responseVO.getCode());
 
         ChatMessageAck chatMessageAck = new
@@ -328,9 +328,9 @@ public class P2PMessageService {
      * @param appId  application ID
      * @return check result
      */
-    public ResponseVO imServerPermissionCheck(String fromId, String toId,
+    public Result imServerPermissionCheck(String fromId, String toId,
                                                Integer appId){
-        ResponseVO responseVO = checkSendMessageService.checkSenderForvidAndMute(fromId, appId);
+        Result responseVO = checkSendMessageService.checkSenderForvidAndMute(fromId, appId);
         if(!responseVO.isOk()){
             return responseVO;
         }
@@ -345,27 +345,27 @@ public class P2PMessageService {
      * @param messageContent the message to validate
      * @return success if all checks pass, error code otherwise
      */
-    private ResponseVO validateMessageBoundaries(MessageContent messageContent) {
+    private Result validateMessageBoundaries(MessageContent messageContent) {
         // Check fromId is not empty
         if (StringUtils.isBlank(messageContent.getFromId())) {
-            return ResponseVO.errorResponse(MessageErrorCode.MESSAGE_FROMID_EMPTY);
+            return Result.fail(MessageErrorCode.MESSAGE_FROMID_EMPTY);
         }
         // Check toId is not empty
         if (StringUtils.isBlank(messageContent.getToId())) {
-            return ResponseVO.errorResponse(MessageErrorCode.MESSAGE_TOID_EMPTY);
+            return Result.fail(MessageErrorCode.MESSAGE_TOID_EMPTY);
         }
         // Check message body is not empty
         if (StringUtils.isBlank(messageContent.getMessageBody())) {
-            return ResponseVO.errorResponse(MessageErrorCode.MESSAGE_BODY_EMPTY);
+            return Result.fail(MessageErrorCode.MESSAGE_BODY_EMPTY);
         }
         // Check self-send
         if (messageContent.getFromId().equals(messageContent.getToId())) {
-            return ResponseVO.errorResponse(MessageErrorCode.MESSAGE_SELF_SEND);
+            return Result.fail(MessageErrorCode.MESSAGE_SELF_SEND);
         }
         // Check message body size
         int maxSize = appConfig.getMessageMaxSize() != null ? appConfig.getMessageMaxSize() : 65536;
         if (messageContent.getMessageBody().getBytes().length > maxSize) {
-            return ResponseVO.errorResponse(MessageErrorCode.MESSAGE_BODY_TOO_LARGE);
+            return Result.fail(MessageErrorCode.MESSAGE_BODY_TOO_LARGE);
         }
         // Check message time sanity (not too far in the past or future)
         if (messageContent.getMessageTime() != null) {
@@ -373,10 +373,10 @@ public class P2PMessageService {
             long maxDeviation = appConfig.getMessageTimeMaxDeviation() != null
                     ? appConfig.getMessageTimeMaxDeviation() : 300000L;
             if (Math.abs(now - messageContent.getMessageTime()) > maxDeviation) {
-                return ResponseVO.errorResponse(MessageErrorCode.MESSAGE_TIME_INVALID);
+                return Result.fail(MessageErrorCode.MESSAGE_TIME_INVALID);
             }
         }
-        return ResponseVO.successResponse();
+        return Result.ok();
     }
 
     /**
@@ -386,7 +386,7 @@ public class P2PMessageService {
      * @param userId the sender user ID
      * @return success if within limit, error code if rate exceeded
      */
-    private ResponseVO checkRateLimit(String userId) {
+    private Result checkRateLimit(String userId) {
         int rateLimit = appConfig.getMessageRateLimit() != null ? appConfig.getMessageRateLimit() : 20;
         long now = System.nanoTime();
         long window = 1_000_000_000L; // 1 second in nanoseconds
@@ -396,10 +396,10 @@ public class P2PMessageService {
         if (lastMsg != null && (now - lastMsg) < minInterval) {
             logger.warn("Rate limit exceeded for user={}, interval={}ns < minInterval={}ns",
                     userId, now - lastMsg, minInterval);
-            return ResponseVO.errorResponse(MessageErrorCode.MESSAGE_RATE_LIMITED);
+            return Result.fail(MessageErrorCode.MESSAGE_RATE_LIMITED);
         }
         rateLimiter.put(userId, now);
-        return ResponseVO.successResponse();
+        return Result.ok();
     }
 
     /**

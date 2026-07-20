@@ -7,7 +7,7 @@ import com.vela.im.service.message.domain.service.CheckSendMessageService;
 import com.vela.im.service.message.domain.service.MessageStoreService;
 import com.vela.im.service.infrastructure.seq.RedisSeq;
 import com.vela.im.service.application.utils.MessageProducer;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 import com.vela.im.shared.config.AppConfig;
 import com.vela.im.shared.constants.Constants;
 import com.vela.im.shared.types.enums.command.GroupEventCommand;
@@ -94,7 +94,7 @@ public class GroupMessageService {
         Integer appId = messageContent.getAppId();
 
         // Boundary condition checks
-        ResponseVO boundaryCheck = validateGroupMessage(messageContent);
+        Result boundaryCheck = validateGroupMessage(messageContent);
         if (!boundaryCheck.isOk()) {
             ack(messageContent, boundaryCheck);
             logger.warn("Group message rejected by boundary check, msgId={}, reason={}",
@@ -103,7 +103,7 @@ public class GroupMessageService {
         }
 
         // Rate limiting check per user
-        ResponseVO rateCheck = checkRateLimit(fromId);
+        Result rateCheck = checkRateLimit(fromId);
         if (!rateCheck.isOk()) {
             ack(messageContent, rateCheck);
             logger.warn("Group message rate limited, fromId={}, msgId={}", fromId, messageContent.getMessageId());
@@ -115,7 +115,7 @@ public class GroupMessageService {
         if(messageFromMessageIdCache != null){
             threadPoolExecutor.execute(() ->{
                 //1.回ack成功给自己
-                ack(messageContent, ResponseVO.successResponse());
+                ack(messageContent, Result.ok());
                 //2.发消息给同步在线端
                 syncToSender(messageContent,messageContent);
                 //3.发消息给对方在线端
@@ -138,7 +138,7 @@ public class GroupMessageService {
                 messageStoreService.storeGroupOfflineMessage(offlineMessageContent,groupMemberId);
 
                 //1.回ack成功给自己
-                ack(messageContent,ResponseVO.successResponse());
+                ack(messageContent,Result.ok());
                 //2.发消息给同步在线端
                 syncToSender(messageContent,messageContent);
                 //3.发消息给对方在线端
@@ -189,7 +189,7 @@ public class GroupMessageService {
         }
     }
 
-    private void ack(MessageContent messageContent, ResponseVO responseVO){
+    private void ack(MessageContent messageContent, Result responseVO){
 
         ChatMessageAck chatMessageAck = new ChatMessageAck(messageContent.getMessageId());
         responseVO.setData(chatMessageAck);
@@ -205,8 +205,8 @@ public class GroupMessageService {
                 GroupEventCommand.MSG_GROUP,messageContent,messageContent);
     }
 
-    private ResponseVO imServerPermissionCheck(String fromId, String toId,Integer appId){
-        ResponseVO responseVO = checkSendMessageService
+    private Result imServerPermissionCheck(String fromId, String toId,Integer appId){
+        Result responseVO = checkSendMessageService
                 .checkGroupMessage(fromId, toId,appId);
         return responseVO;
     }
@@ -218,24 +218,24 @@ public class GroupMessageService {
      * @param messageContent the group message to validate
      * @return success if all checks pass, error code otherwise
      */
-    private ResponseVO validateGroupMessage(GroupChatMessageContent messageContent) {
+    private Result validateGroupMessage(GroupChatMessageContent messageContent) {
         // Check fromId is not empty
         if (StringUtils.isBlank(messageContent.getFromId())) {
-            return ResponseVO.errorResponse(MessageErrorCode.MESSAGE_FROMID_EMPTY);
+            return Result.fail(MessageErrorCode.MESSAGE_FROMID_EMPTY);
         }
         // Check groupId is not empty
         if (StringUtils.isBlank(messageContent.getGroupId())) {
-            return ResponseVO.errorResponse(MessageErrorCode.MESSAGE_TOID_EMPTY);
+            return Result.fail(MessageErrorCode.MESSAGE_TOID_EMPTY);
         }
         // Check message body is not empty
         if (StringUtils.isBlank(messageContent.getMessageBody())) {
-            return ResponseVO.errorResponse(MessageErrorCode.MESSAGE_BODY_EMPTY);
+            return Result.fail(MessageErrorCode.MESSAGE_BODY_EMPTY);
         }
         // Check message body size
         int maxSize = appConfig != null && appConfig.getMessageMaxSize() != null
                 ? appConfig.getMessageMaxSize() : 65536;
         if (messageContent.getMessageBody().getBytes().length > maxSize) {
-            return ResponseVO.errorResponse(MessageErrorCode.MESSAGE_BODY_TOO_LARGE);
+            return Result.fail(MessageErrorCode.MESSAGE_BODY_TOO_LARGE);
         }
         // Check message time sanity
         if (messageContent.getMessageTime() != null) {
@@ -243,10 +243,10 @@ public class GroupMessageService {
             long maxDeviation = appConfig != null && appConfig.getMessageTimeMaxDeviation() != null
                     ? appConfig.getMessageTimeMaxDeviation() : 300000L;
             if (Math.abs(now - messageContent.getMessageTime()) > maxDeviation) {
-                return ResponseVO.errorResponse(MessageErrorCode.MESSAGE_TIME_INVALID);
+                return Result.fail(MessageErrorCode.MESSAGE_TIME_INVALID);
             }
         }
-        return ResponseVO.successResponse();
+        return Result.ok();
     }
 
     /**
@@ -255,7 +255,7 @@ public class GroupMessageService {
      * @param userId the sender user ID
      * @return success if within limit, error code if rate exceeded
      */
-    private ResponseVO checkRateLimit(String userId) {
+    private Result checkRateLimit(String userId) {
         int rateLimit = appConfig != null && appConfig.getMessageRateLimit() != null
                 ? appConfig.getMessageRateLimit() : 20;
         long now = System.nanoTime();
@@ -266,10 +266,10 @@ public class GroupMessageService {
         if (lastMsg != null && (now - lastMsg) < minInterval) {
             logger.warn("Rate limit exceeded for user={}, interval={}ns < minInterval={}ns",
                     userId, now - lastMsg, minInterval);
-            return ResponseVO.errorResponse(MessageErrorCode.MESSAGE_RATE_LIMITED);
+            return Result.fail(MessageErrorCode.MESSAGE_RATE_LIMITED);
         }
         rateLimiter.put(userId, now);
-        return ResponseVO.successResponse();
+        return Result.ok();
     }
 
     public SendMessageResp send(SendGroupMessageReq req) {

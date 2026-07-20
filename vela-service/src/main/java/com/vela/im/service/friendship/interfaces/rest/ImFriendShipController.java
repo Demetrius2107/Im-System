@@ -2,7 +2,7 @@ package com.vela.im.service.friendship.interfaces.rest;
 
 import com.vela.im.service.friendship.application.dto.req.*;
 import com.vela.im.service.friendship.domain.service.ImFriendService;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 import com.vela.im.shared.types.SyncReq;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -34,74 +34,74 @@ public class ImFriendShipController {
     }
 
     @RequestMapping("/importFriendShip")
-    public ResponseVO importFriendShip(@RequestBody @Validated ImportFriendShipReq req, Integer appId){
+    public Result importFriendShip(@RequestBody @Validated ImportFriendShipReq req, Integer appId){
         req.setAppId(appId);
         return imFriendShipService.importFriendShip(req);
     }
 
     @RequestMapping("/addFriend")
-    public ResponseVO addFriend(@RequestBody @Validated AddFriendReq req, Integer appId){
+    public Result addFriend(@RequestBody @Validated AddFriendReq req, Integer appId){
         req.setAppId(appId);
         return imFriendShipService.addFriend(req);
     }
 
     @RequestMapping("/updateFriend")
-    public ResponseVO updateFriend(@RequestBody @Validated UpdateFriendReq req, Integer appId){
+    public Result updateFriend(@RequestBody @Validated UpdateFriendReq req, Integer appId){
         req.setAppId(appId);
         return imFriendShipService.updateFriend(req);
     }
 
     @RequestMapping("/deleteFriend")
-    public ResponseVO deleteFriend(@RequestBody @Validated DeleteFriendReq req, Integer appId){
+    public Result deleteFriend(@RequestBody @Validated DeleteFriendReq req, Integer appId){
         req.setAppId(appId);
         return imFriendShipService.deleteFriend(req);
     }
 
     @RequestMapping("/deleteAllFriend")
-    public ResponseVO deleteAllFriend(@RequestBody @Validated DeleteFriendReq req, Integer appId){
+    public Result deleteAllFriend(@RequestBody @Validated DeleteFriendReq req, Integer appId){
         req.setAppId(appId);
         return imFriendShipService.deleteAllFriend(req);
     }
 
     @RequestMapping("/getAllFriendShip")
-    public ResponseVO getAllFriendShip(@RequestBody @Validated GetAllFriendShipReq req, Integer appId){
+    public Result getAllFriendShip(@RequestBody @Validated GetAllFriendShipReq req, Integer appId){
         req.setAppId(appId);
         return imFriendShipService.getAllFriendShip(req);
     }
 
     @RequestMapping("/getRelation")
-    public ResponseVO getRelation(@RequestBody @Validated GetRelationReq req, Integer appId){
+    public Result getRelation(@RequestBody @Validated GetRelationReq req, Integer appId){
         req.setAppId(appId);
         return imFriendShipService.getRelation(req);
     }
 
     @RequestMapping("/checkFriend")
-    public ResponseVO checkFriend(@RequestBody @Validated CheckFriendShipReq req, Integer appId){
+    public Result checkFriend(@RequestBody @Validated CheckFriendShipReq req, Integer appId){
         req.setAppId(appId);
         return imFriendShipService.checkFriendship(req);
     }
 
     @RequestMapping("/addBlack")
-    public ResponseVO addBlack(@RequestBody @Validated AddFriendShipBlackReq req, Integer appId){
+    public Result addBlack(@RequestBody @Validated AddFriendShipBlackReq req, Integer appId){
         req.setAppId(appId);
         return imFriendShipService.addBlack(req);
     }
 
     @RequestMapping("/deleteBlack")
-    public ResponseVO deleteBlack(@RequestBody @Validated DeleteBlackReq req, Integer appId){
+    public Result deleteBlack(@RequestBody @Validated DeleteBlackReq req, Integer appId){
         req.setAppId(appId);
         return imFriendShipService.deleteBlack(req);
     }
 
     @RequestMapping("/checkBlck")
-    public ResponseVO checkBlck(@RequestBody @Validated CheckFriendShipReq req, Integer appId){
+    public Result checkBlck(@RequestBody @Validated CheckFriendShipReq req, Integer appId){
         req.setAppId(appId);
         return imFriendShipService.checkBlck(req);
     }
 
 
     @RequestMapping("/syncFriendshipList")
-    public ResponseVO syncFriendshipList(@RequestBody @Validated
+    public Result syncFriendshipList(@RequestBody @Validated
                                          SyncReq req, Integer appId){
         req.setAppId(appId);
         return imFriendShipService.syncFriendshipList(req);

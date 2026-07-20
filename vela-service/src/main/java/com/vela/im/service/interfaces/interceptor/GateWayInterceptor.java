@@ -2,7 +2,7 @@ package com.vela.im.service.interfaces.interceptor;
 
 import com.alibaba.fastjson.JSONObject;
 import com.vela.im.shared.exception.BaseErrorCode;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 import com.vela.im.shared.types.enums.GateWayErrorCode;
 import com.vela.im.shared.exception.ApplicationExceptionEnum;
 import org.apache.commons.lang3.StringUtils;
@@ -56,7 +56,7 @@ public class GateWayInterceptor implements HandlerInterceptor {
         //获取appId 操作人 userSign
         String appIdStr = request.getParameter("appId");
         if(StringUtils.isBlank(appIdStr)){
-            resp(ResponseVO.errorResponse(GateWayErrorCode
+            resp(Result.fail(GateWayErrorCode
             .APPID_NOT_EXIST),response);
             return false;
         }
@@ -65,7 +65,7 @@ public class GateWayInterceptor implements HandlerInterceptor {
         // 操作人
         String identifier = request.getParameter("identifier");
         if(StringUtils.isBlank(identifier)){
-            resp(ResponseVO.errorResponse(GateWayErrorCode
+            resp(Result.fail(GateWayErrorCode
                     .OPERATER_NOT_EXIST),response);
             return false;
         }
@@ -73,7 +73,7 @@ public class GateWayInterceptor implements HandlerInterceptor {
         // 用户签名数据
         String userSign = request.getParameter("userSign");
         if(StringUtils.isBlank(userSign)){
-            resp(ResponseVO.errorResponse(GateWayErrorCode
+            resp(Result.fail(GateWayErrorCode
                     .USERSIGN_NOT_EXIST),response);
             return false;
         }
@@ -81,7 +81,7 @@ public class GateWayInterceptor implements HandlerInterceptor {
         //签名和操作人和appid是否匹配
         ApplicationExceptionEnum applicationExceptionEnum = identityCheck.checkUserSig(identifier, appIdStr, userSign);
         if(applicationExceptionEnum != BaseErrorCode.SUCCESS){
-            resp(ResponseVO.errorResponse(applicationExceptionEnum),response);
+            resp(Result.fail(applicationExceptionEnum),response);
             return false;
         }
 
@@ -89,7 +89,7 @@ public class GateWayInterceptor implements HandlerInterceptor {
     }
 
 
-    private void resp(ResponseVO respVo ,HttpServletResponse response){
+    private void resp(Result respVo ,HttpServletResponse response){
 
         PrintWriter writer = null;
         response.setCharacterEncoding("UTF-8");

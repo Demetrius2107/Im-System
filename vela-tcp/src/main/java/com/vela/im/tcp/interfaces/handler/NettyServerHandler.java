@@ -3,7 +3,7 @@ package com.vela.im.tcp.interfaces.handler;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 import com.vela.im.shared.constants.Constants;
 import com.vela.im.shared.types.enums.ImConnectStatusEnum;
 import com.vela.im.shared.types.enums.command.GroupEventCommand;
@@ -193,7 +193,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
                 req.setToId(toId);
                 req.setFromId(fromId);
 
-                ResponseVO responseVO = feignMessageService.checkSendMessage(req);
+                Result responseVO = feignMessageService.checkSendMessage(req);
                 if(responseVO.isOk()){
                     MqMessageProducer.sendMessage(msg,command);
                 }else{
@@ -206,7 +206,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
 
                     ChatMessageAck chatMessageAck = new ChatMessageAck(jsonObject.getString("messageId"));
                     responseVO.setData(chatMessageAck);
-                    MessagePack<ResponseVO> ack = new MessagePack<>();
+                    MessagePack<Result> ack = new MessagePack<>();
                     ack.setData(responseVO);
                     ack.setCommand(ackCommand);
                     ctx.channel().writeAndFlush(ack);

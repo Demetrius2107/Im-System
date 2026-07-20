@@ -4,7 +4,7 @@ import com.vela.im.service.user.application.dto.req.*;
 import com.vela.im.service.user.domain.service.ImUserService;
 import com.vela.im.service.user.domain.service.ImUserStatusService;
 import com.vela.im.service.application.utils.ZKit;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 import com.vela.im.shared.route.RouteHandle;
 import com.vela.im.shared.route.RouteInfo;
 import com.vela.im.shared.utils.RouteInfoParseUtil;
@@ -51,29 +51,29 @@ public class ImUserController {
     }
 
     @RequestMapping("importUser")
-    public ResponseVO importUser(@RequestBody ImportUserReq req, Integer appId) {
+    public Result importUser(@RequestBody ImportUserReq req, Integer appId) {
         req.setAppId(appId);
         return imUserService.importUser(req);
     }
 
 
     @RequestMapping("/deleteUser")
-    public ResponseVO deleteUser(@RequestBody @Validated DeleteUserReq req, Integer appId) {
+    public Result deleteUser(@RequestBody @Validated DeleteUserReq req, Integer appId) {
         req.setAppId(appId);
         return imUserService.deleteUser(req);
     }
 
     /**
      * @param req
-     * @return com.lld.im.common.ResponseVO
+     * @return com.lld.im.common.Result
      * @description im的登录接口，返回im地址
      * @author wanqiu
      */
     @RequestMapping("/login")
-    public ResponseVO login(@RequestBody @Validated LoginReq req, Integer appId) {
+    public Result login(@RequestBody @Validated LoginReq req, Integer appId) {
         req.setAppId(appId);
 
-        ResponseVO login = imUserService.login(req);
+        Result login = imUserService.login(req);
         if (login.isOk()) {
             List<String> allNode = new ArrayList<>();
             if (req.getClientType() == com.lld.im.common.ClientType.WEB.getCode()) {
@@ -84,51 +84,51 @@ public class ImUserController {
             String s = routeHandle.routeServer(allNode, req
                     .getUserId());
             RouteInfo parse = RouteInfoParseUtil.parse(s);
-            return ResponseVO.successResponse(parse);
+            return Result.ok(parse);
         }
 
-        return ResponseVO.errorResponse();
+        return Result.fail();
     }
 
     @RequestMapping("/getUserSequence")
-    public ResponseVO getUserSequence(@RequestBody @Validated
+    public Result getUserSequence(@RequestBody @Validated
                                       GetUserSequenceReq req, Integer appId) {
         req.setAppId(appId);
         return imUserService.getUserSequence(req);
     }
 
     @RequestMapping("/subscribeUserOnlineStatus")
-    public ResponseVO subscribeUserOnlineStatus(@RequestBody @Validated
+    public Result subscribeUserOnlineStatus(@RequestBody @Validated
                                                 SubscribeUserOnlineStatusReq req, Integer appId, String identifier) {
         req.setAppId(appId);
         req.setOperater(identifier);
         imUserStatusService.subscribeUserOnlineStatus(req);
-        return ResponseVO.successResponse();
+        return Result.ok();
     }
 
     @RequestMapping("/setUserCustomerStatus")
-    public ResponseVO setUserCustomerStatus(@RequestBody @Validated
+    public Result setUserCustomerStatus(@RequestBody @Validated
                                             SetUserCustomerStatusReq req, Integer appId, String identifier) {
         req.setAppId(appId);
         req.setOperater(identifier);
         imUserStatusService.setUserCustomerStatus(req);
-        return ResponseVO.successResponse();
+        return Result.ok();
     }
 
     @RequestMapping("/queryFriendOnlineStatus")
-    public ResponseVO queryFriendOnlineStatus(@RequestBody @Validated
+    public Result queryFriendOnlineStatus(@RequestBody @Validated
                                               PullFriendOnlineStatusReq req, Integer appId, String identifier) {
         req.setAppId(appId);
         req.setOperater(identifier);
-        return ResponseVO.successResponse(imUserStatusService.queryFriendOnlineStatus(req));
+        return Result.ok(imUserStatusService.queryFriendOnlineStatus(req));
     }
 
     @RequestMapping("/queryUserOnlineStatus")
-    public ResponseVO queryUserOnlineStatus(@RequestBody @Validated
+    public Result queryUserOnlineStatus(@RequestBody @Validated
                                             PullUserOnlineStatusReq req, Integer appId, String identifier) {
         req.setAppId(appId);
         req.setOperater(identifier);
-        return ResponseVO.successResponse(imUserStatusService.queryUserOnlineStatus(req));
+        return Result.ok(imUserStatusService.queryUserOnlineStatus(req));
     }
 
 

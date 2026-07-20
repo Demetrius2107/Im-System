@@ -2,7 +2,7 @@ package com.vela.im.service.exception;
 
 
 import com.vela.im.shared.exception.BaseErrorCode;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 import com.vela.im.shared.exception.ApplicationException;
 import org.hibernate.validator.internal.engine.path.PathImpl;
 import org.springframework.validation.BindException;
@@ -27,9 +27,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value=Exception.class)
     @ResponseBody
-    public ResponseVO unknowException(Exception e){
+    public Result unknowException(Exception e){
         e.printStackTrace();
-        ResponseVO resultBean =new ResponseVO();
+        Result resultBean =new Result();
         resultBean.setCode(BaseErrorCode.SYSTEM_ERROR.getCode());
         resultBean.setMsg(BaseErrorCode.SYSTEM_ERROR.getError());
         /*
@@ -50,7 +50,7 @@ public class GlobalExceptionHandler {
     public Object handleMethodArgumentNotValidException(ConstraintViolationException ex) {
 
         Set<ConstraintViolation<?>> constraintViolations = ex.getConstraintViolations();
-        ResponseVO resultBean =new ResponseVO();
+        Result resultBean =new Result();
         resultBean.setCode(BaseErrorCode.PARAMETER_ERROR.getCode());
         for (ConstraintViolation<?> constraintViolation : constraintViolations) {
             PathImpl pathImpl = (PathImpl) constraintViolation.getPropertyPath();
@@ -68,7 +68,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ApplicationException.class)
     @ResponseBody
     public Object applicationExceptionHandler(ApplicationException e) {
-        ResponseVO resultBean =new ResponseVO();
+        Result resultBean =new Result();
         resultBean.setCode(e.getCode());
         resultBean.setMsg(e.getError());
         return resultBean;
@@ -85,7 +85,7 @@ public class GlobalExceptionHandler {
     public Object  handleException2(BindException ex) {
         FieldError err = ex.getFieldError();
         String message = "参数{".concat(err.getField()).concat("}").concat(err.getDefaultMessage());
-        ResponseVO resultBean =new ResponseVO();
+        Result resultBean =new Result();
         resultBean.setCode(BaseErrorCode.PARAMETER_ERROR.getCode());
         resultBean.setMsg(message);
         return resultBean;
@@ -104,7 +104,7 @@ public class GlobalExceptionHandler {
         }
         errorMsg.delete(errorMsg.length() - 1, errorMsg.length());
 
-        ResponseVO resultBean =new ResponseVO();
+        Result resultBean =new Result();
         resultBean.setCode(BaseErrorCode.PARAMETER_ERROR.getCode());
         resultBean.setMsg(BaseErrorCode.PARAMETER_ERROR.getError() + " : " + errorMsg.toString());
         return resultBean;

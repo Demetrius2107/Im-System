@@ -12,7 +12,7 @@ import com.vela.im.service.user.application.dto.resp.ImportUserResp;
 import com.vela.im.service.user.domain.service.ImUserService;
 import com.vela.im.service.application.utils.CallbackService;
 import com.vela.im.service.application.utils.MessageProducer;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 import com.vela.im.shared.config.AppConfig;
 import com.vela.im.shared.constants.Constants;
 import com.vela.im.shared.types.enums.DelFlagEnum;
@@ -69,10 +69,10 @@ public class ImUserServiceImpl implements ImUserService {
     }
 
     @Override
-    public ResponseVO importUser(ImportUserReq req) {
+    public Result importUser(ImportUserReq req) {
 
         if(req.getUserData().size() > 100){
-            return ResponseVO.errorResponse(UserErrorCode.IMPORT_SIZE_BEYOND);
+            return Result.fail(UserErrorCode.IMPORT_SIZE_BEYOND);
         }
 
         ImportUserResp resp = new ImportUserResp();
@@ -95,11 +95,11 @@ public class ImUserServiceImpl implements ImUserService {
 
         resp.setErrorId(errorId);
         resp.setSuccessId(successId);
-        return ResponseVO.successResponse(resp);
+        return Result.ok(resp);
     }
 
     @Override
-    public ResponseVO<GetUserInfoResp> getUserInfo(GetUserInfoReq req) {
+    public Result<GetUserInfoResp> getUserInfo(GetUserInfoReq req) {
         QueryWrapper<ImUserDataEntity> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("app_id",req.getAppId());
         queryWrapper.in("user_id",req.getUserIds());
@@ -124,11 +124,11 @@ public class ImUserServiceImpl implements ImUserService {
         GetUserInfoResp resp = new GetUserInfoResp();
         resp.setUserDataItem(userDataEntities);
         resp.setFailUser(failUser);
-        return ResponseVO.successResponse(resp);
+        return Result.ok(resp);
     }
 
     @Override
-    public ResponseVO<ImUserDataEntity> getSingleUserInfo(String userId, Integer appId) {
+    public Result<ImUserDataEntity> getSingleUserInfo(String userId, Integer appId) {
         QueryWrapper objectQueryWrapper = new QueryWrapper<>();
         objectQueryWrapper.eq("app_id",appId);
         objectQueryWrapper.eq("user_id",userId);
@@ -136,14 +136,14 @@ public class ImUserServiceImpl implements ImUserService {
 
         ImUserDataEntity ImUserDataEntity = imUserDataMapper.selectOne(objectQueryWrapper);
         if(ImUserDataEntity == null){
-            return ResponseVO.errorResponse(UserErrorCode.USER_IS_NOT_EXIST);
+            return Result.fail(UserErrorCode.USER_IS_NOT_EXIST);
         }
 
-        return ResponseVO.successResponse(ImUserDataEntity);
+        return Result.ok(ImUserDataEntity);
     }
 
     @Override
-    public ResponseVO deleteUser(DeleteUserReq req) {
+    public Result deleteUser(DeleteUserReq req) {
         ImUserDataEntity entity = new ImUserDataEntity();
         entity.setDelFlag(DelFlagEnum.DELETE.getCode());
 
@@ -173,12 +173,12 @@ public class ImUserServiceImpl implements ImUserService {
         ImportUserResp resp = new ImportUserResp();
         resp.setSuccessId(successId);
         resp.setErrorId(errorId);
-        return ResponseVO.successResponse(resp);
+        return Result.ok(resp);
     }
 
     @Override
     @Transactional
-    public ResponseVO modifyUserInfo(ModifyUserInfoReq req) {
+    public Result modifyUserInfo(ModifyUserInfoReq req) {
         QueryWrapper query = new QueryWrapper<>();
         query.eq("app_id",req.getAppId());
         query.eq("user_id",req.getUserId());
@@ -207,21 +207,21 @@ public class ImUserServiceImpl implements ImUserService {
                         Constants.CallbackCommand.ModifyUserAfter,
                         JSONObject.toJSONString(req));
             }
-            return ResponseVO.successResponse();
+            return Result.ok();
         }
         throw new ApplicationException(UserErrorCode.MODIFY_USER_ERROR);
     }
 
     @Override
-    public ResponseVO login(LoginReq req) {
-        return ResponseVO.successResponse();
+    public Result login(LoginReq req) {
+        return Result.ok();
     }
 
     @Override
-    public ResponseVO getUserSequence(GetUserSequenceReq req) {
+    public Result getUserSequence(GetUserSequenceReq req) {
         Map<Object, Object> map = stringRedisTemplate.opsForHash().entries(req.getAppId() + ":" + Constants.RedisConstants.SeqPrefix + ":" + req.getUserId());
         Long groupSeq = imGroupService.getUserGroupMaxSeq(req.getUserId(),req.getAppId());
         map.put(Constants.SeqConstants.Group,groupSeq);
-        return ResponseVO.successResponse(map);
+        return Result.ok(map);
     }
 }

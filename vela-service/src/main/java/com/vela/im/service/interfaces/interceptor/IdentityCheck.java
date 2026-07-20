@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.vela.im.service.user.domain.entity.ImUserDataEntity;
 import com.vela.im.service.user.domain.service.ImUserService;
 import com.vela.im.shared.exception.BaseErrorCode;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 import com.vela.im.shared.config.AppConfig;
 import com.vela.im.shared.constants.Constants;
 import com.vela.im.shared.types.enums.GateWayErrorCode;
@@ -146,7 +146,7 @@ public class IdentityCheck {
      */
     public void setIsAdmin(String identifier, Integer appId) {
         //去DB或Redis中查找, 后面写
-        ResponseVO<ImUserDataEntity> singleUserInfo = imUserService.getSingleUserInfo(identifier, appId);
+        Result<ImUserDataEntity> singleUserInfo = imUserService.getSingleUserInfo(identifier, appId);
         if(singleUserInfo.isOk()){
             RequestHolder.set(singleUserInfo.getData().getUserType() == ImUserTypeEnum.APP_ADMIN.getCode());
         }else{

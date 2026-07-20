@@ -17,7 +17,7 @@ import com.vela.im.service.group.domain.service.ImGroupService;
 import com.vela.im.service.infrastructure.seq.RedisSeq;
 import com.vela.im.service.application.utils.CallbackService;
 import com.vela.im.service.application.utils.GroupMessageProducer;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 import com.vela.im.shared.config.AppConfig;
 import com.vela.im.shared.constants.Constants;
 import com.vela.im.shared.types.enums.GroupErrorCode;
@@ -81,7 +81,7 @@ public class ImGroupServiceImpl implements ImGroupService {
     }
 
     @Override
-    public ResponseVO importGroup(ImportGroupReq req) {
+    public Result importGroup(ImportGroupReq req) {
 
         //1.判断群id是否存在
         QueryWrapper<ImGroupEntity> query = new QueryWrapper<>();
@@ -114,12 +114,12 @@ public class ImGroupServiceImpl implements ImGroupService {
             throw new ApplicationException(GroupErrorCode.IMPORT_GROUP_ERROR);
         }
 
-        return ResponseVO.successResponse();
+        return Result.ok();
     }
 
     @Override
     @Transactional
-    public ResponseVO createGroup(CreateGroupReq req) {
+    public Result createGroup(CreateGroupReq req) {
 
         boolean isAdmin = false;
 
@@ -173,19 +173,19 @@ public class ImGroupServiceImpl implements ImGroupService {
         BeanUtils.copyProperties(imGroupEntity, createGroupPack);
         groupMessageProducer.producer(req.getOperater(), GroupEventCommand.CREATED_GROUP, createGroupPack
                 , new ClientInfo(req.getAppId(), req.getClientType(), req.getImei()));
-        return ResponseVO.successResponse();
+        return Result.ok();
     }
 
     /**
      * @param
-     * @return com.lld.im.common.ResponseVO
+     * @return com.lld.im.common.Result
      * @description 修改群基础信息，如果是后台管理员调用，则不检查权限，如果不是则检查权限，如果是私有群（微信群）任何人都可以修改资料，公开群只有管理员可以修改
      * 如果是群主或者管理员可以修改其他信息。
      * @author wanqiu
      */
     @Override
     @Transactional
-    public ResponseVO updateBaseGroupInfo(UpdateGroupReq req) {
+    public Result updateBaseGroupInfo(UpdateGroupReq req) {
 
         //1.判断群id是否存在
         QueryWrapper<ImGroupEntity> query = new QueryWrapper<>();
@@ -204,7 +204,7 @@ public class ImGroupServiceImpl implements ImGroupService {
 
         if (!isAdmin) {
             //不是后台调用需要检查权限
-            ResponseVO<GetRoleInGroupResp> role = groupMemberService.getRoleInGroupOne(req.getGroupId(), req.getOperater(), req.getAppId());
+            Result<GetRoleInGroupResp> role = groupMemberService.getRoleInGroupOne(req.getGroupId(), req.getOperater(), req.getAppId());
 
             if (!role.isOk()) {
                 return role;
@@ -243,19 +243,19 @@ public class ImGroupServiceImpl implements ImGroupService {
                 pack, new ClientInfo(req.getAppId(), req.getClientType(), req.getImei()));
 
 
-        return ResponseVO.successResponse();
+        return Result.ok();
     }
 
     /**
      * @param
-     * @return com.lld.im.common.ResponseVO
+     * @return com.lld.im.common.Result
      * @description 获取用户加入的群组
      * @author wanqiu
      */
     @Override
-    public ResponseVO getJoinedGroup(GetJoinedGroupReq req) {
+    public Result getJoinedGroup(GetJoinedGroupReq req) {
 
-        ResponseVO<Collection<String>> memberJoinedGroup = groupMemberService.getMemberJoinedGroup(req);
+        Result<Collection<String>> memberJoinedGroup = groupMemberService.getMemberJoinedGroup(req);
         if (memberJoinedGroup.isOk()) {
 
             GetJoinedGroupResp resp = new GetJoinedGroupResp();
@@ -263,7 +263,7 @@ public class ImGroupServiceImpl implements ImGroupService {
             if (CollectionUtils.isEmpty(memberJoinedGroup.getData())) {
                 resp.setTotalCount(0);
                 resp.setGroupList(new ArrayList<>());
-                return ResponseVO.successResponse(resp);
+                return Result.ok(resp);
             }
 
             QueryWrapper<ImGroupEntity> query = new QueryWrapper<>();
@@ -281,7 +281,7 @@ public class ImGroupServiceImpl implements ImGroupService {
             } else {
                 resp.setTotalCount(imGroupDataMapper.selectCount(query));
             }
-            return ResponseVO.successResponse(resp);
+            return Result.ok(resp);
         } else {
             return memberJoinedGroup;
         }
@@ -290,13 +290,13 @@ public class ImGroupServiceImpl implements ImGroupService {
 
     /**
      * @param
-     * @return com.lld.im.common.ResponseVO
+     * @return com.lld.im.common.Result
      * @description 解散群组，只支持后台管理员和群主解散
      * @author wanqiu
      */
     @Override
     @Transactional
-    public ResponseVO destroyGroup(DestroyGroupReq req) {
+    public Result destroyGroup(DestroyGroupReq req) {
 
         boolean isAdmin = false;
 
@@ -347,23 +347,23 @@ public class ImGroupServiceImpl implements ImGroupService {
         groupMessageProducer.producer(req.getOperater(),
                 GroupEventCommand.DESTROY_GROUP, pack, new ClientInfo(req.getAppId(), req.getClientType(), req.getImei()));
 
-        return ResponseVO.successResponse();
+        return Result.ok();
     }
 
     @Override
     @Transactional
-    public ResponseVO transferGroup(TransferGroupReq req) {
+    public Result transferGroup(TransferGroupReq req) {
 
-        ResponseVO<GetRoleInGroupResp> roleInGroupOne = groupMemberService.getRoleInGroupOne(req.getGroupId(), req.getOperater(), req.getAppId());
+        Result<GetRoleInGroupResp> roleInGroupOne = groupMemberService.getRoleInGroupOne(req.getGroupId(), req.getOperater(), req.getAppId());
         if (!roleInGroupOne.isOk()) {
             return roleInGroupOne;
         }
 
         if (roleInGroupOne.getData().getRole() != GroupMemberRoleEnum.OWNER.getCode()) {
-            return ResponseVO.errorResponse(GroupErrorCode.THIS_OPERATE_NEED_OWNER_ROLE);
+            return Result.fail(GroupErrorCode.THIS_OPERATE_NEED_OWNER_ROLE);
         }
 
-        ResponseVO<GetRoleInGroupResp> newOwnerRole = groupMemberService.getRoleInGroupOne(req.getGroupId(), req.getOwnerId(), req.getAppId());
+        Result<GetRoleInGroupResp> newOwnerRole = groupMemberService.getRoleInGroupOne(req.getGroupId(), req.getOwnerId(), req.getAppId());
         if (!newOwnerRole.isOk()) {
             return newOwnerRole;
         }
@@ -384,11 +384,11 @@ public class ImGroupServiceImpl implements ImGroupService {
         imGroupDataMapper.update(updateGroup, updateGroupWrapper);
         groupMemberService.transferGroupMember(req.getOwnerId(), req.getGroupId(), req.getAppId());
 
-        return ResponseVO.successResponse();
+        return Result.ok();
     }
 
     @Override
-    public ResponseVO getGroup(String groupId, Integer appId) {
+    public Result getGroup(String groupId, Integer appId) {
 
         QueryWrapper<ImGroupEntity> query = new QueryWrapper<>();
         query.eq("app_id", appId);
@@ -396,15 +396,15 @@ public class ImGroupServiceImpl implements ImGroupService {
         ImGroupEntity imGroupEntity = imGroupDataMapper.selectOne(query);
 
         if (imGroupEntity == null) {
-            return ResponseVO.errorResponse(GroupErrorCode.GROUP_IS_NOT_EXIST);
+            return Result.fail(GroupErrorCode.GROUP_IS_NOT_EXIST);
         }
-        return ResponseVO.successResponse(imGroupEntity);
+        return Result.ok(imGroupEntity);
     }
 
     @Override
-    public ResponseVO getGroup(GetGroupReq req) {
+    public Result getGroup(GetGroupReq req) {
 
-        ResponseVO group = this.getGroup(req.getGroupId(), req.getAppId());
+        Result group = this.getGroup(req.getGroupId(), req.getAppId());
 
         if(!group.isOk()){
             return group;
@@ -413,20 +413,20 @@ public class ImGroupServiceImpl implements ImGroupService {
         GetGroupResp getGroupResp = new GetGroupResp();
         BeanUtils.copyProperties(group.getData(), getGroupResp);
         try {
-            ResponseVO<List<GroupMemberDto>> groupMember = groupMemberService.getGroupMember(req.getGroupId(), req.getAppId());
+            Result<List<GroupMemberDto>> groupMember = groupMemberService.getGroupMember(req.getGroupId(), req.getAppId());
             if (groupMember.isOk()) {
                 getGroupResp.setMemberList(groupMember.getData());
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return ResponseVO.successResponse(getGroupResp);
+        return Result.ok(getGroupResp);
     }
 
     @Override
-    public ResponseVO muteGroup(MuteGroupReq req) {
+    public Result muteGroup(MuteGroupReq req) {
 
-        ResponseVO<ImGroupEntity> groupResp = getGroup(req.getGroupId(), req.getAppId());
+        Result<ImGroupEntity> groupResp = getGroup(req.getGroupId(), req.getAppId());
         if (!groupResp.isOk()) {
             return groupResp;
         }
@@ -439,7 +439,7 @@ public class ImGroupServiceImpl implements ImGroupService {
 
         if (!isadmin) {
             //不是后台调用需要检查权限
-            ResponseVO<GetRoleInGroupResp> role = groupMemberService.getRoleInGroupOne(req.getGroupId(), req.getOperater(), req.getAppId());
+            Result<GetRoleInGroupResp> role = groupMemberService.getRoleInGroupOne(req.getGroupId(), req.getOperater(), req.getAppId());
 
             if (!role.isOk()) {
                 return role;
@@ -464,18 +464,18 @@ public class ImGroupServiceImpl implements ImGroupService {
         wrapper.eq("app_id",req.getAppId());
         imGroupDataMapper.update(update,wrapper);
 
-        return ResponseVO.successResponse();
+        return Result.ok();
     }
 
     @Override
-    public ResponseVO syncJoinedGroupList(SyncReq req) {
+    public Result syncJoinedGroupList(SyncReq req) {
         if(req.getMaxLimit() > 100){
             req.setMaxLimit(100);
         }
 
         SyncResp<ImGroupEntity> resp = new SyncResp<>();
 
-        ResponseVO<Collection<String>> memberJoinedGroup = groupMemberService.syncMemberJoinedGroup(req.getOperater(), req.getAppId());
+        Result<Collection<String>> memberJoinedGroup = groupMemberService.syncMemberJoinedGroup(req.getOperater(), req.getAppId());
         if(memberJoinedGroup.isOk()){
 
             Collection<String> data = memberJoinedGroup.getData();
@@ -498,18 +498,18 @@ public class ImGroupServiceImpl implements ImGroupService {
                 resp.setMaxSequence(maxSeq);
                 //设置是否拉取完毕
                 resp.setCompleted(maxSeqEntity.getSequence() >= maxSeq);
-                return ResponseVO.successResponse(resp);
+                return Result.ok(resp);
             }
 
         }
         resp.setCompleted(true);
-        return ResponseVO.successResponse(resp);
+        return Result.ok(resp);
     }
 
     @Override
     public Long getUserGroupMaxSeq(String userId, Integer appId) {
 
-        ResponseVO<Collection<String>> memberJoinedGroup = groupMemberService.syncMemberJoinedGroup(userId, appId);
+        Result<Collection<String>> memberJoinedGroup = groupMemberService.syncMemberJoinedGroup(userId, appId);
         if(!memberJoinedGroup.isOk()){
             throw new ApplicationException(500,"");
         }

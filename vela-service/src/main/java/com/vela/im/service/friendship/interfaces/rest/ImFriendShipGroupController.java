@@ -7,7 +7,7 @@ import com.vela.im.service.friendship.application.dto.req.DeleteFriendShipGroupM
 import com.vela.im.service.friendship.application.dto.req.DeleteFriendShipGroupReq;
 import com.vela.im.service.friendship.domain.service.ImFriendShipGroupMemberService;
 import com.vela.im.service.friendship.domain.service.ImFriendShipGroupService;
-import com.vela.im.shared.base.ResponseVO;
+import com.vela.im.shared.base.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -42,25 +42,25 @@ public class ImFriendShipGroupController {
 
 
     @RequestMapping("/add")
-    public ResponseVO add(@RequestBody @Validated AddFriendShipGroupReq req, Integer appId)  {
+    public Result add(@RequestBody @Validated AddFriendShipGroupReq req, Integer appId)  {
         req.setAppId(appId);
         return imFriendShipGroupService.addGroup(req);
     }
 
     @RequestMapping("/del")
-    public ResponseVO del(@RequestBody @Validated DeleteFriendShipGroupReq req, Integer appId)  {
+    public Result del(@RequestBody @Validated DeleteFriendShipGroupReq req, Integer appId)  {
         req.setAppId(appId);
         return imFriendShipGroupService.deleteGroup(req);
     }
 
     @RequestMapping("/member/add")
-    public ResponseVO memberAdd(@RequestBody @Validated AddFriendShipGroupMemberReq req, Integer appId)  {
+    public Result memberAdd(@RequestBody @Validated AddFriendShipGroupMemberReq req, Integer appId)  {
         req.setAppId(appId);
         return imFriendShipGroupMemberService.addGroupMember(req);
     }
 
     @RequestMapping("/member/del")
-    public ResponseVO memberdel(@RequestBody @Validated DeleteFriendShipGroupMemberReq req, Integer appId)  {
+    public Result memberdel(@RequestBody @Validated DeleteFriendShipGroupMemberReq req, Integer appId)  {
         req.setAppId(appId);
         return imFriendShipGroupMemberService.delGroupMember(req);
     }
