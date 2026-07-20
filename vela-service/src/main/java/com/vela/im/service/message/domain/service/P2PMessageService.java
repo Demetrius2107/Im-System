@@ -24,12 +24,14 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 /**
  * @description:
@@ -174,24 +176,79 @@ public class P2PMessageService {
 //        }
     }
 
-    private List<ClientInfo> dispatchMessage(MessageContent messageContent){
-        List<ClientInfo> clientInfos = messageProducer.sendToUser(messageContent.getToId(), MessageCommand.MSG_P2P,
-                messageContent, messageContent.getAppId());
-        return clientInfos;
+    /**
+     * 带指数退避的重试机制
+     * @param operation 执行操作
+     * @param operationName 操作名称（日志用）
+     * @param maxRetries 最大重试次数
+     * @param baseDelayMs 基础延迟毫秒
+     */
+    private <T> T retryWithBackoff(Supplier<T> operation, String operationName, int maxRetries, long baseDelayMs) {
+        for (int i = 0; i < maxRetries; i++) {
+            try {
+                return operation.get();
+            } catch (Exception e) {
+                logger.warn("{} 失败 (第{}/{}次): {}", operationName, i + 1, maxRetries, e.getMessage());
+                if (i == maxRetries - 1) {
+                    logger.error("{} 重试耗尽，已失败 {} 次", operationName, maxRetries);
+                    throw e;
+                }
+                try {
+                    long delay = baseDelayMs * (1L << i); // 指数退避: 100ms, 200ms, 400ms, 800ms...
+                    Thread.sleep(delay);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException(operationName + " 被中断", ie);
+                }
+            }
+        }
+        throw new RuntimeException(operationName + " 重试失败");
     }
 
-    private void ack(MessageContent messageContent,ResponseVO responseVO){
-        logger.info("msg ack,msgId={},checkResut{}",messageContent.getMessageId(),responseVO.getCode());
+    /**
+     * 带重试的分发消息，最多重试3次，指数退避
+     */
+    private List<ClientInfo> dispatchMessage(MessageContent messageContent){
+        try {
+            return retryWithBackoff(() -> {
+                List<ClientInfo> clientInfos = messageProducer.sendToUser(messageContent.getToId(),
+                        MessageCommand.MSG_P2P, messageContent, messageContent.getAppId());
+                if (clientInfos == null) {
+                    throw new RuntimeException("dispatchMessage 返回 null");
+                }
+                return clientInfos;
+            }, "dispatchMessage-" + messageContent.getMessageId(), 3, 100L);
+        } catch (Exception e) {
+            logger.error("消息分发失败，msgId={}, toId={}, error={}",
+                    messageContent.getMessageId(), messageContent.getToId(), e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * 带重试的ACK确认，最多重试3次
+     */
+    private void ack(MessageContent messageContent, ResponseVO responseVO){
+        logger.info("msg ack,msgId={},checkResult={}", messageContent.getMessageId(), responseVO.getCode());
 
         ChatMessageAck chatMessageAck = new
-                ChatMessageAck(messageContent.getMessageId(),messageContent.getMessageSequence());
+                ChatMessageAck(messageContent.getMessageId(), messageContent.getMessageSequence());
         responseVO.setData(chatMessageAck);
-        //發消息
-        messageProducer.sendToUser(messageContent.getFromId(), MessageCommand.MSG_ACK,
-                responseVO,messageContent
-                );
+        try {
+            retryWithBackoff(() -> {
+                messageProducer.sendToUser(messageContent.getFromId(), MessageCommand.MSG_ACK,
+                        responseVO, messageContent);
+                return true;
+            }, "ack-" + messageContent.getMessageId(), 3, 100L);
+        } catch (Exception e) {
+            logger.error("ACK发送失败，msgId={}, fromId={}, error={}",
+                    messageContent.getMessageId(), messageContent.getFromId(), e.getMessage());
+        }
     }
 
+    /**
+     * 带重试的服务端接收确认，最多重试2次
+     */
     public void reciverAck(MessageContent messageContent){
         MessageReciveServerAckPack pack = new MessageReciveServerAckPack();
         pack.setFromId(messageContent.getToId());
@@ -199,17 +256,33 @@ public class P2PMessageService {
         pack.setMessageKey(messageContent.getMessageKey());
         pack.setMessageSequence(messageContent.getMessageSequence());
         pack.setServerSend(true);
-        messageProducer.sendToUser(messageContent.getFromId(),MessageCommand.MSG_RECIVE_ACK,
-                pack,new ClientInfo(messageContent.getAppId(),messageContent.getClientType()
-                ,messageContent.getImei()));
+        try {
+            retryWithBackoff(() -> {
+                messageProducer.sendToUser(messageContent.getFromId(), MessageCommand.MSG_RECIVE_ACK,
+                        pack, new ClientInfo(messageContent.getAppId(), messageContent.getClientType(),
+                                messageContent.getImei()));
+                return true;
+            }, "receiverAck-" + messageContent.getMessageId(), 2, 200L);
+        } catch (Exception e) {
+            logger.error("服务端接收确认发送失败，msgId={}, error={}",
+                    messageContent.getMessageId(), e.getMessage());
+        }
     }
 
     private void syncToSender(MessageContent messageContent, ClientInfo clientInfo){
-            messageProducer.sendToUserExceptClient(messageContent.getFromId(),
-                    MessageCommand.MSG_P2P,messageContent,messageContent);
+        try {
+            retryWithBackoff(() -> {
+                messageProducer.sendToUserExceptClient(messageContent.getFromId(),
+                        MessageCommand.MSG_P2P, messageContent, messageContent);
+                return true;
+            }, "syncToSender-" + messageContent.getMessageId(), 2, 100L);
+        } catch (Exception e) {
+            logger.error("同步给发送方其他端失败，msgId={}, error={}",
+                    messageContent.getMessageId(), e.getMessage());
+        }
     }
 
-    public ResponseVO imServerPermissionCheck(String fromId,String toId,
+    public ResponseVO imServerPermissionCheck(String fromId, String toId,
                                                Integer appId){
         ResponseVO responseVO = checkSendMessageService.checkSenderForvidAndMute(fromId, appId);
         if(!responseVO.isOk()){

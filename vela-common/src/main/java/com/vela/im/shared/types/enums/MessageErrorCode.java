@@ -17,6 +17,16 @@ public enum MessageErrorCode implements ApplicationExceptionEnum {
 
     MESSAGE_IS_RECALLED(50005,"消息已被撤回"),
 
+    MESSAGE_SEND_FAILED(50006,"消息发送失败，请重试"),
+
+    MESSAGE_ACK_FAILED(50007,"消息确认失败"),
+
+    MESSAGE_STORE_FAILED(50008,"消息存储失败"),
+
+    MESSAGE_CONCURRENT_OPERATION(50009,"消息正在被操作，请稍后重试"),
+
+    MESSAGE_CLOCK_SKEW_EXCEEDED(50010,"客户端时间偏差过大"),
+
     ;
 
     private int code;
