@@ -33,15 +33,14 @@ import com.vela.im.codec.pack.message.MessageReadedPack;
 import com.vela.im.codec.pack.message.RecallMessageNotifyPack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.data.redis.core.DefaultTypedTuple;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -63,10 +62,9 @@ public class MessageSyncService {
 
     private final MessageProducer messageProducer;
     private final ConversationService conversationService;
-    private final RedisTemplate redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
     private final ImMessageBodyMapper imMessageBodyMapper;
     private final RedisSeq redisSeq;
-    private final SnowflakeIdWorker snowflakeIdWorker;
     private final ImGroupMemberService imGroupMemberService;
     private final GroupMessageProducer groupMessageProducer;
     private final AppConfig appConfig;
@@ -78,10 +76,9 @@ public class MessageSyncService {
 
     public MessageSyncService(MessageProducer messageProducer,
                               ConversationService conversationService,
-                              RedisTemplate redisTemplate,
+                              RedisTemplate<String, String> redisTemplate,
                               ImMessageBodyMapper imMessageBodyMapper,
                               RedisSeq redisSeq,
-                              SnowflakeIdWorker snowflakeIdWorker,
                               ImGroupMemberService imGroupMemberService,
                               GroupMessageProducer groupMessageProducer,
                               AppConfig appConfig) {
@@ -90,7 +87,6 @@ public class MessageSyncService {
         this.redisTemplate = redisTemplate;
         this.imMessageBodyMapper = imMessageBodyMapper;
         this.redisSeq = redisSeq;
-        this.snowflakeIdWorker = snowflakeIdWorker;
         this.imGroupMemberService = imGroupMemberService;
         this.groupMessageProducer = groupMessageProducer;
         this.appConfig = appConfig;
@@ -102,6 +98,10 @@ public class MessageSyncService {
      * @param messageReceiveAckContent receive ACK content
      */
     public void receiveMark(MessageReceiveAckContent messageReceiveAckContent){
+        if (messageReceiveAckContent == null || StringUtils.isBlank(messageReceiveAckContent.getToId())) {
+            logger.warn("receiveMark skipped: invalid content");
+            return;
+        }
         messageProducer.sendToUser(messageReceiveAckContent.getToId(),
                 MessageCommand.MSG_RECIVE_ACK,messageReceiveAckContent,messageReceiveAckContent.getAppId());
     }
@@ -130,7 +130,6 @@ public class MessageSyncService {
      * @param command command type
      */
     private void syncToSender(MessageReadedPack pack, MessageReadedContent content, Command command){
-        MessageReadedPack messageReadedPack = new MessageReadedPack();
         // Send to sender's other devices (excluding current)
         messageProducer.sendToUserExceptClient(pack.getFromId(),
                 command,pack,
@@ -166,33 +165,58 @@ public class MessageSyncService {
 
         SyncResp<OfflineMessageContent> resp = new SyncResp<>();
 
+        // Boundary check: validate request parameters
+        if (req == null || req.getAppId() == null || StringUtils.isBlank(req.getOperater())) {
+            logger.warn("syncOfflineMessage skipped: invalid request (appId or operater is empty)");
+            resp.setMaxSequence(0L);
+            resp.setDataList(new ArrayList<>());
+            resp.setCompleted(true);
+            return ResponseVO.successResponse(resp);
+        }
+
+        // Clamp maxLimit to safe bounds [1, 500]
+        if (req.getMaxLimit() == null || req.getMaxLimit() <= 0) {
+            req.setMaxLimit(100);
+        } else if (req.getMaxLimit() > 500) {
+            req.setMaxLimit(500);
+        }
+
+        // Clamp lastSequence to non-negative
+        if (req.getLastSequence() == null || req.getLastSequence() < 0) {
+            req.setLastSequence(0L);
+        }
+
         String key = req.getAppId() + ":" + Constants.RedisConstants.OfflineMessage + ":" + req.getOperater();
 
         try {
             // Fetch the max sequence from the ZSet
-            Long maxSeq = 0L;
-            ZSetOperations zSetOperations = redisTemplate.opsForZSet();
-            Set set = zSetOperations.reverseRangeWithScores(key, 0, 0);
-            if(!CollectionUtils.isEmpty(set)){
-                List list = new ArrayList(set);
-                DefaultTypedTuple o = (DefaultTypedTuple) list.get(0);
-                maxSeq = o.getScore().longValue();
+            long maxSeq = 0L;
+            ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
+            Set<ZSetOperations.TypedTuple<String>> set = zSetOperations.reverseRangeWithScores(key, 0, 0);
+            if (!CollectionUtils.isEmpty(set)) {
+                ZSetOperations.TypedTuple<String> typedTuple = set.iterator().next();
+                Double score = typedTuple.getScore();
+                if (score != null) {
+                    maxSeq = score.longValue();
+                }
             }
 
             List<OfflineMessageContent> respList = new ArrayList<>();
             resp.setMaxSequence(maxSeq);
 
             // Query messages by score range (lastSequence, maxSeq]
-            Set<ZSetOperations.TypedTuple> querySet = zSetOperations.rangeByScoreWithScores(key,
+            Set<ZSetOperations.TypedTuple<String>> querySet = zSetOperations.rangeByScoreWithScores(key,
                     req.getLastSequence(), maxSeq, 0, req.getMaxLimit());
-            for (ZSetOperations.TypedTuple<String> typedTuple : querySet) {
-                String value = typedTuple.getValue();
-                OfflineMessageContent offlineMessageContent = JSONObject.parseObject(value, OfflineMessageContent.class);
-                respList.add(offlineMessageContent);
+            if (querySet != null) {
+                for (ZSetOperations.TypedTuple<String> typedTuple : querySet) {
+                    String value = typedTuple.getValue();
+                    OfflineMessageContent offlineMessageContent = JSONObject.parseObject(value, OfflineMessageContent.class);
+                    respList.add(offlineMessageContent);
+                }
             }
             resp.setDataList(respList);
 
-            if(!CollectionUtils.isEmpty(respList)){
+            if (!CollectionUtils.isEmpty(respList)) {
                 OfflineMessageContent offlineMessageContent = respList.get(respList.size() - 1);
                 resp.setCompleted(maxSeq <= offlineMessageContent.getMessageKey());
             }
@@ -215,6 +239,24 @@ public class MessageSyncService {
      * @param content recall request content
      */
     public void recallMessage(RecallMessageContent content) {
+
+        // Boundary check: validate recall request parameters
+        if (content == null) {
+            logger.warn("recallMessage skipped: content is null");
+            return;
+        }
+        if (content.getMessageKey() == null || content.getMessageKey() <= 0) {
+            logger.warn("recallMessage skipped: invalid messageKey");
+            return;
+        }
+        if (content.getMessageTime() == null || content.getMessageTime() <= 0) {
+            logger.warn("recallMessage skipped: invalid messageTime");
+            return;
+        }
+        if (StringUtils.isBlank(content.getFromId()) || StringUtils.isBlank(content.getToId())) {
+            logger.warn("recallMessage skipped: invalid fromId or toId");
+            return;
+        }
 
         Long messageTime = content.getMessageTime();
         Long now = System.currentTimeMillis();
@@ -337,9 +379,8 @@ public class MessageSyncService {
      * @param clientInfo client info
      */
     private void recallAck(RecallMessageNotifyPack recallPack, ResponseVO<Object> success, ClientInfo clientInfo) {
-        ResponseVO<Object> wrappedResp = success;
         messageProducer.sendToUser(recallPack.getFromId(),
-                MessageCommand.MSG_RECALL_ACK, wrappedResp, clientInfo);
+                MessageCommand.MSG_RECALL_ACK, success, clientInfo);
     }
 
 }
