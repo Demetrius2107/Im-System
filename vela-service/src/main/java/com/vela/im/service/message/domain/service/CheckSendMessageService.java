@@ -13,33 +13,49 @@ import com.vela.im.service.user.domain.service.ImUserService;
 import com.vela.im.shared.base.ResponseVO;
 import com.vela.im.shared.config.AppConfig;
 import com.vela.im.shared.types.enums.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * @description:
+ * <p>Title: CheckSendMessageService</p>
+ * <p>Description: 消息发送前置校验服务，校验发送方禁言/禁用状态、好友关系、群组权限等。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
- * @version: 1.0
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @Service
 public class CheckSendMessageService {
 
-    @Autowired
-    ImUserService imUserService;
+    private final ImUserService imUserService;
+    private final ImFriendService imFriendService;
+    private final ImGroupService imGroupService;
+    private final ImGroupMemberService imGroupMemberService;
+    private final AppConfig appConfig;
 
-    @Autowired
-    ImFriendService imFriendService;
+    public CheckSendMessageService(ImUserService imUserService,
+                                   ImFriendService imFriendService,
+                                   ImGroupService imGroupService,
+                                   ImGroupMemberService imGroupMemberService,
+                                   AppConfig appConfig) {
+        this.imUserService = imUserService;
+        this.imFriendService = imFriendService;
+        this.imGroupService = imGroupService;
+        this.imGroupMemberService = imGroupMemberService;
+        this.appConfig = appConfig;
+    }
 
-    @Autowired
-    ImGroupService imGroupService;
-
-    @Autowired
-    ImGroupMemberService imGroupMemberService;
-
-    @Autowired
-    AppConfig appConfig;
-
-
+    /**
+     * Check if sender is muted or banned.
+     *
+     * @param fromId sender user ID
+     * @param appId  application ID
+     * @return success if allowed, error code if muted/banned
+     */
     public ResponseVO checkSenderForvidAndMute(String fromId, Integer appId){
 
         ResponseVO<ImUserDataEntity> singleUserInfo
@@ -58,7 +74,16 @@ public class CheckSendMessageService {
         return ResponseVO.successResponse();
     }
 
-    public ResponseVO checkFriendShip(String fromId,String toId,Integer appId){
+    /**
+     * Check friendship between sender and receiver.
+     * <p>Validates friend status and blacklist, depending on configuration.</p>
+     *
+     * @param fromId sender user ID
+     * @param toId   receiver user ID
+     * @param appId  application ID
+     * @return success if allowed, error code if not friends / blacklisted
+     */
+    public ResponseVO checkFriendShip(String fromId, String toId, Integer appId){
 
         if(appConfig.isSendMessageCheckFriend()){
             GetRelationReq fromReq = new GetRelationReq();
@@ -103,41 +128,50 @@ public class CheckSendMessageService {
 
         return ResponseVO.successResponse();
     }
-    public ResponseVO checkGroupMessage(String fromId,String groupId,Integer appId){
+    /**
+         * Check group message sending permissions.
+         * <p>Validates: sender mute/ban → group exists → member in group → group mute (admin/owner exempt) → member mute.</p>
+         *
+         * @param fromId  sender user ID
+         * @param groupId group ID
+         * @param appId   application ID
+         * @return success if allowed, error code otherwise
+         */
+        public ResponseVO checkGroupMessage(String fromId, String groupId, Integer appId){
 
-        ResponseVO responseVO = checkSenderForvidAndMute(fromId, appId);
-        if(!responseVO.isOk()){
-            return responseVO;
+            ResponseVO responseVO = checkSenderForvidAndMute(fromId, appId);
+            if(!responseVO.isOk()){
+                return responseVO;
+            }
+
+            // Check if group exists
+            ResponseVO<ImGroupEntity> group = imGroupService.getGroup(groupId, appId);
+            if(!group.isOk()){
+                return group;
+            }
+
+            // Check if sender is a group member
+            ResponseVO<GetRoleInGroupResp> roleInGroupOne = imGroupMemberService.getRoleInGroupOne(groupId, fromId, appId);
+            if(!roleInGroupOne.isOk()){
+                return roleInGroupOne;
+            }
+            GetRoleInGroupResp data = roleInGroupOne.getData();
+
+            // Check group-wide mute: only admin/owner can speak when muted
+            ImGroupEntity groupData = group.getData();
+            if(groupData.getMute() == GroupMuteTypeEnum.MUTE.getCode()
+             && (data.getRole() == GroupMemberRoleEnum.MAMAGER.getCode() ||
+                    data.getRole() == GroupMemberRoleEnum.OWNER.getCode()  )){
+                return ResponseVO.errorResponse(GroupErrorCode.THIS_GROUP_IS_MUTE);
+            }
+
+            // Check individual member mute
+            if(data.getSpeakDate() != null && data.getSpeakDate() > System.currentTimeMillis()){
+                return ResponseVO.errorResponse(GroupErrorCode.GROUP_MEMBER_IS_SPEAK);
+            }
+
+            return ResponseVO.successResponse();
         }
-
-        //判断群逻辑
-        ResponseVO<ImGroupEntity> group = imGroupService.getGroup(groupId, appId);
-        if(!group.isOk()){
-            return group;
-        }
-
-        //判断群成员是否在群内
-        ResponseVO<GetRoleInGroupResp> roleInGroupOne = imGroupMemberService.getRoleInGroupOne(groupId, fromId, appId);
-        if(!roleInGroupOne.isOk()){
-            return roleInGroupOne;
-        }
-        GetRoleInGroupResp data = roleInGroupOne.getData();
-
-        //判断群是否被禁言
-        //如果禁言 只有裙管理和群主可以发言
-        ImGroupEntity groupData = group.getData();
-        if(groupData.getMute() == GroupMuteTypeEnum.MUTE.getCode()
-         && (data.getRole() == GroupMemberRoleEnum.MAMAGER.getCode() ||
-                data.getRole() == GroupMemberRoleEnum.OWNER.getCode()  )){
-            return ResponseVO.errorResponse(GroupErrorCode.THIS_GROUP_IS_MUTE);
-        }
-
-        if(data.getSpeakDate() != null && data.getSpeakDate() > System.currentTimeMillis()){
-            return ResponseVO.errorResponse(GroupErrorCode.GROUP_MEMBER_IS_SPEAK);
-        }
-
-        return ResponseVO.successResponse();
-    }
 
 
 }
