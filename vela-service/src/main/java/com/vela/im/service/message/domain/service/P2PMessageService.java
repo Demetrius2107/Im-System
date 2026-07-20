@@ -12,12 +12,14 @@ import com.vela.im.shared.base.ResponseVO;
 import com.vela.im.shared.config.AppConfig;
 import com.vela.im.shared.constants.Constants;
 import com.vela.im.shared.types.enums.ConversationTypeEnum;
+import com.vela.im.shared.types.enums.MessageErrorCode;
 import com.vela.im.shared.types.enums.command.MessageCommand;
 import com.vela.im.shared.types.ClientInfo;
 import com.vela.im.shared.types.message.MessageContent;
 import com.vela.im.shared.types.message.OfflineMessageContent;
 import com.vela.im.codec.pack.message.ChatMessageAck;
 import com.vela.im.codec.pack.message.MessageReciveServerAckPack;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -58,6 +61,9 @@ public class P2PMessageService {
     private final CallbackService callbackService;
 
     private final ThreadPoolExecutor threadPoolExecutor;
+
+    /** Simple in-memory rate limiter: userId → timestamp of last message */
+    private final ConcurrentHashMap<String, Long> rateLimiter = new ConcurrentHashMap<>();
 
     public P2PMessageService(CheckSendMessageService checkSendMessageService,
                              MessageProducer messageProducer,
@@ -99,6 +105,23 @@ public class P2PMessageService {
         String fromId = messageContent.getFromId();
         String toId = messageContent.getToId();
         Integer appId = messageContent.getAppId();
+
+        // Boundary condition checks: validate message before processing
+        ResponseVO boundaryCheck = validateMessageBoundaries(messageContent);
+        if (!boundaryCheck.isOk()) {
+            ack(messageContent, boundaryCheck);
+            logger.warn("Message rejected by boundary check, msgId={}, reason={}",
+                    messageContent.getMessageId(), boundaryCheck.getMsg());
+            return;
+        }
+
+        // Rate limiting check per user
+        ResponseVO rateCheck = checkRateLimit(fromId);
+        if (!rateCheck.isOk()) {
+            ack(messageContent, rateCheck);
+            logger.warn("Message rate limited, fromId={}, msgId={}", fromId, messageContent.getMessageId());
+            return;
+        }
 
         // Idempotent check: skip if already cached (duplicate message)
         MessageContent messageFromMessageIdCache = messageStoreService.getMessageFromMessageIdCache
@@ -313,6 +336,70 @@ public class P2PMessageService {
         }
         responseVO = checkSendMessageService.checkFriendShip(fromId, toId, appId);
         return responseVO;
+    }
+
+    /**
+     * Validate message boundary conditions before processing.
+     * <p>Checks: empty fields, self-send, body size, message time sanity.</p>
+     *
+     * @param messageContent the message to validate
+     * @return success if all checks pass, error code otherwise
+     */
+    private ResponseVO validateMessageBoundaries(MessageContent messageContent) {
+        // Check fromId is not empty
+        if (StringUtils.isBlank(messageContent.getFromId())) {
+            return ResponseVO.errorResponse(MessageErrorCode.MESSAGE_FROMID_EMPTY);
+        }
+        // Check toId is not empty
+        if (StringUtils.isBlank(messageContent.getToId())) {
+            return ResponseVO.errorResponse(MessageErrorCode.MESSAGE_TOID_EMPTY);
+        }
+        // Check message body is not empty
+        if (StringUtils.isBlank(messageContent.getMessageBody())) {
+            return ResponseVO.errorResponse(MessageErrorCode.MESSAGE_BODY_EMPTY);
+        }
+        // Check self-send
+        if (messageContent.getFromId().equals(messageContent.getToId())) {
+            return ResponseVO.errorResponse(MessageErrorCode.MESSAGE_SELF_SEND);
+        }
+        // Check message body size
+        int maxSize = appConfig.getMessageMaxSize() != null ? appConfig.getMessageMaxSize() : 65536;
+        if (messageContent.getMessageBody().getBytes().length > maxSize) {
+            return ResponseVO.errorResponse(MessageErrorCode.MESSAGE_BODY_TOO_LARGE);
+        }
+        // Check message time sanity (not too far in the past or future)
+        if (messageContent.getMessageTime() != null) {
+            long now = System.currentTimeMillis();
+            long maxDeviation = appConfig.getMessageTimeMaxDeviation() != null
+                    ? appConfig.getMessageTimeMaxDeviation() : 300000L;
+            if (Math.abs(now - messageContent.getMessageTime()) > maxDeviation) {
+                return ResponseVO.errorResponse(MessageErrorCode.MESSAGE_TIME_INVALID);
+            }
+        }
+        return ResponseVO.successResponse();
+    }
+
+    /**
+     * Simple rate limiting check per user.
+     * <p>Limits messages to messageRateLimit per second per user.</p>
+     *
+     * @param userId the sender user ID
+     * @return success if within limit, error code if rate exceeded
+     */
+    private ResponseVO checkRateLimit(String userId) {
+        int rateLimit = appConfig.getMessageRateLimit() != null ? appConfig.getMessageRateLimit() : 20;
+        long now = System.nanoTime();
+        long window = 1_000_000_000L; // 1 second in nanoseconds
+        long minInterval = window / rateLimit; // minimum interval between messages
+
+        Long lastMsg = rateLimiter.get(userId);
+        if (lastMsg != null && (now - lastMsg) < minInterval) {
+            logger.warn("Rate limit exceeded for user={}, interval={}ns < minInterval={}ns",
+                    userId, now - lastMsg, minInterval);
+            return ResponseVO.errorResponse(MessageErrorCode.MESSAGE_RATE_LIMITED);
+        }
+        rateLimiter.put(userId, now);
+        return ResponseVO.successResponse();
     }
 
     /**
