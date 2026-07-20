@@ -86,92 +86,110 @@ public class CheckSendMessageService {
     public ResponseVO checkFriendShip(String fromId, String toId, Integer appId){
 
         if(appConfig.isSendMessageCheckFriend()){
-            GetRelationReq fromReq = new GetRelationReq();
-            fromReq.setFromId(fromId);
-            fromReq.setToId(toId);
-            fromReq.setAppId(appId);
+            // Check from → to friendship
+            GetRelationReq fromReq = buildRelationReq(fromId, toId, appId);
             ResponseVO<ImFriendShipEntity> fromRelation = imFriendService.getRelation(fromReq);
             if(!fromRelation.isOk()){
                 return fromRelation;
             }
-            GetRelationReq toReq = new GetRelationReq();
-            fromReq.setFromId(toId);
-            fromReq.setToId(fromId);
-            fromReq.setAppId(appId);
-            ResponseVO<ImFriendShipEntity> toRelation = imFriendService.getRelation(fromReq);
+
+            // Check to → from friendship (reverse direction)
+            GetRelationReq toReq = buildRelationReq(toId, fromId, appId);
+            ResponseVO<ImFriendShipEntity> toRelation = imFriendService.getRelation(toReq);
             if(!toRelation.isOk()){
                 return toRelation;
             }
 
-            if(FriendShipStatusEnum.FRIEND_STATUS_NORMAL.getCode()
-            != fromRelation.getData().getStatus()){
-                return ResponseVO.errorResponse(FriendShipErrorCode.FRIEND_IS_DELETED);
-            }
-
-            if(FriendShipStatusEnum.FRIEND_STATUS_NORMAL.getCode()
-                    != toRelation.getData().getStatus()){
-                return ResponseVO.errorResponse(FriendShipErrorCode.FRIEND_IS_DELETED);
-            }
-
-            if(appConfig.isSendMessageCheckBlack()){
-                if(FriendShipStatusEnum.BLACK_STATUS_NORMAL.getCode()
-                        != fromRelation.getData().getBlack()){
-                    return ResponseVO.errorResponse(FriendShipErrorCode.FRIEND_IS_BLACK);
-                }
-
-                if(FriendShipStatusEnum.BLACK_STATUS_NORMAL.getCode()
-                        != toRelation.getData().getBlack()){
-                    return ResponseVO.errorResponse(FriendShipErrorCode.TARGET_IS_BLACK_YOU);
-                }
+            // Validate friend status (both directions must be normal)
+            ResponseVO check = checkFriendStatus(fromRelation.getData(), toRelation.getData());
+            if(!check.isOk()){
+                return check;
             }
         }
 
         return ResponseVO.successResponse();
     }
+
     /**
-         * Check group message sending permissions.
-         * <p>Validates: sender mute/ban → group exists → member in group → group mute (admin/owner exempt) → member mute.</p>
-         *
-         * @param fromId  sender user ID
-         * @param groupId group ID
-         * @param appId   application ID
-         * @return success if allowed, error code otherwise
-         */
-        public ResponseVO checkGroupMessage(String fromId, String groupId, Integer appId){
+     * Build a GetRelationReq for the given user pair.
+     */
+    private GetRelationReq buildRelationReq(String fromId, String toId, Integer appId) {
+        GetRelationReq req = new GetRelationReq();
+        req.setFromId(fromId);
+        req.setToId(toId);
+        req.setAppId(appId);
+        return req;
+    }
 
-            ResponseVO responseVO = checkSenderForvidAndMute(fromId, appId);
-            if(!responseVO.isOk()){
-                return responseVO;
-            }
-
-            // Check if group exists
-            ResponseVO<ImGroupEntity> group = imGroupService.getGroup(groupId, appId);
-            if(!group.isOk()){
-                return group;
-            }
-
-            // Check if sender is a group member
-            ResponseVO<GetRoleInGroupResp> roleInGroupOne = imGroupMemberService.getRoleInGroupOne(groupId, fromId, appId);
-            if(!roleInGroupOne.isOk()){
-                return roleInGroupOne;
-            }
-            GetRoleInGroupResp data = roleInGroupOne.getData();
-
-            // Check group-wide mute: only admin/owner can speak when muted
-            ImGroupEntity groupData = group.getData();
-            if(groupData.getMute() == GroupMuteTypeEnum.MUTE.getCode()
-             && (data.getRole() == GroupMemberRoleEnum.MAMAGER.getCode() ||
-                    data.getRole() == GroupMemberRoleEnum.OWNER.getCode()  )){
-                return ResponseVO.errorResponse(GroupErrorCode.THIS_GROUP_IS_MUTE);
-            }
-
-            // Check individual member mute
-            if(data.getSpeakDate() != null && data.getSpeakDate() > System.currentTimeMillis()){
-                return ResponseVO.errorResponse(GroupErrorCode.GROUP_MEMBER_IS_SPEAK);
-            }
-
-            return ResponseVO.successResponse();
+    /**
+     * Validate friend status and blacklist for both directions.
+     */
+    private ResponseVO checkFriendStatus(ImFriendShipEntity fromRelation, ImFriendShipEntity toRelation) {
+        if(FriendShipStatusEnum.FRIEND_STATUS_NORMAL.getCode() != fromRelation.getStatus()){
+            return ResponseVO.errorResponse(FriendShipErrorCode.FRIEND_IS_DELETED);
         }
+
+        if(FriendShipStatusEnum.FRIEND_STATUS_NORMAL.getCode() != toRelation.getStatus()){
+            return ResponseVO.errorResponse(FriendShipErrorCode.FRIEND_IS_DELETED);
+        }
+
+        if(appConfig.isSendMessageCheckBlack()){
+            if(FriendShipStatusEnum.BLACK_STATUS_NORMAL.getCode() != fromRelation.getBlack()){
+                return ResponseVO.errorResponse(FriendShipErrorCode.FRIEND_IS_BLACK);
+            }
+
+            if(FriendShipStatusEnum.BLACK_STATUS_NORMAL.getCode() != toRelation.getBlack()){
+                return ResponseVO.errorResponse(FriendShipErrorCode.TARGET_IS_BLACK_YOU);
+            }
+        }
+
+        return ResponseVO.successResponse();
+    }
+
+    /**
+     * Check group message sending permissions.
+     * <p>Validates: sender mute/ban → group exists → member in group → group mute (admin/owner exempt) → member mute.</p>
+     *
+     * @param fromId  sender user ID
+     * @param groupId group ID
+     * @param appId   application ID
+     * @return success if allowed, error code otherwise
+     */
+    public ResponseVO checkGroupMessage(String fromId, String groupId, Integer appId){
+
+        ResponseVO responseVO = checkSenderForvidAndMute(fromId, appId);
+        if(!responseVO.isOk()){
+            return responseVO;
+        }
+
+        // Check if group exists
+        ResponseVO<ImGroupEntity> group = imGroupService.getGroup(groupId, appId);
+        if(!group.isOk()){
+            return group;
+        }
+
+        // Check if sender is a group member
+        ResponseVO<GetRoleInGroupResp> roleInGroupOne = imGroupMemberService.getRoleInGroupOne(groupId, fromId, appId);
+        if(!roleInGroupOne.isOk()){
+            return roleInGroupOne;
+        }
+        GetRoleInGroupResp data = roleInGroupOne.getData();
+
+        // Check group-wide mute: only admin/owner can speak when muted
+        ImGroupEntity groupData = group.getData();
+        if(groupData.getMute() == GroupMuteTypeEnum.MUTE.getCode()
+         && (data.getRole() == GroupMemberRoleEnum.MAMAGER.getCode() ||
+                data.getRole() == GroupMemberRoleEnum.OWNER.getCode()  )){
+            return ResponseVO.errorResponse(GroupErrorCode.THIS_GROUP_IS_MUTE);
+        }
+
+        // Check individual member mute
+        if(data.getSpeakDate() != null && data.getSpeakDate() > System.currentTimeMillis()){
+            return ResponseVO.errorResponse(GroupErrorCode.GROUP_MEMBER_IS_SPEAK);
+        }
+
+        return ResponseVO.successResponse();
+    }
 
 
 }
