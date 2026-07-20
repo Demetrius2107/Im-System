@@ -16,6 +16,8 @@ import com.vela.im.shared.types.enums.DelFlagEnum;
 import com.vela.im.shared.types.message.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -35,6 +38,8 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 public class MessageStoreService {
+
+    private static Logger logger = LoggerFactory.getLogger(MessageStoreService.class);
 
     @Autowired
     ImMessageHistoryMapper imMessageHistoryMapper;
@@ -153,7 +158,7 @@ public class MessageStoreService {
     }
 
     /**
-     * @description: 存储单人离线消息
+     * @description: 存储单人离线消息，ZSet 超限时降级写入 DB
      * @param
      * @return void
      * @author wanqiu 
@@ -166,34 +171,101 @@ public class MessageStoreService {
         String toKey = offlineMessage.getAppId() + ":" + Constants.RedisConstants.OfflineMessage + ":" + offlineMessage.getToId();
 
         ZSetOperations<String, String> operations = stringRedisTemplate.opsForZSet();
-        //判断 队列中的数据是否超过设定值
-        if(operations.zCard(fromKey) > appConfig.getOfflineMessageCount()){
-            operations.removeRange(fromKey,0,0);
+        try {
+            // 判断 from 队列是否超过设定值，超限时降级写入 DB
+            evictIfExceeded(operations, fromKey, offlineMessage);
+            offlineMessage.setConversationId(conversationService.convertConversationId(
+                    ConversationTypeEnum.P2P.getCode(),offlineMessage.getFromId(),offlineMessage.getToId()
+            ));
+            // 插入数据 根据messageKey 作为分值
+            operations.add(fromKey,JSONObject.toJSONString(offlineMessage),
+                    offlineMessage.getMessageKey());
+
+            // 判断 to 队列是否超过设定值，超限时降级写入 DB
+            evictIfExceeded(operations, toKey, offlineMessage);
+
+            offlineMessage.setConversationId(conversationService.convertConversationId(
+                    ConversationTypeEnum.P2P.getCode(),offlineMessage.getToId(),offlineMessage.getFromId()
+            ));
+            // 插入数据 根据messageKey 作为分值
+            operations.add(toKey,JSONObject.toJSONString(offlineMessage),
+                    offlineMessage.getMessageKey());
+        } catch (Exception e) {
+            logger.error("Redis 存储离线消息失败，降级写入 DB，fromId={}, toId={}, msgKey={}, error={}",
+                    offlineMessage.getFromId(), offlineMessage.getToId(),
+                    offlineMessage.getMessageKey(), e.getMessage());
+            // Redis 不可用时，直接写入 DB 作为降级
+            persistToMessageHistory(offlineMessage, offlineMessage.getFromId());
+            persistToMessageHistory(offlineMessage, offlineMessage.getToId());
         }
-        offlineMessage.setConversationId(conversationService.convertConversationId(
-                ConversationTypeEnum.P2P.getCode(),offlineMessage.getFromId(),offlineMessage.getToId()
-        ));
-        // 插入 数据 根据messageKey 作为分值
-        operations.add(fromKey,JSONObject.toJSONString(offlineMessage),
-                offlineMessage.getMessageKey());
+    }
 
-        //判断 队列中的数据是否超过设定值
-        if(operations.zCard(toKey) > appConfig.getOfflineMessageCount()){
-            operations.removeRange(toKey,0,0);
+    /**
+     * ZSet 超限时：将最旧的一条消息持久化到 DB 后再移除
+     */
+    private void evictIfExceeded(ZSetOperations<String, String> operations, String key,
+                                 OfflineMessageContent currentMessage) {
+        Long size = operations.zCard(key);
+        if (size != null && size > appConfig.getOfflineMessageCount()) {
+            // 获取最旧的一条（score 最小）
+            Set<ZSetOperations.TypedTuple<String>> oldestSet = operations.rangeWithScores(key, 0, 0);
+            if (oldestSet != null && !oldestSet.isEmpty()) {
+                ZSetOperations.TypedTuple<String> oldest = oldestSet.iterator().next();
+                String oldestValue = oldest.getValue();
+                if (oldestValue != null) {
+                    try {
+                        OfflineMessageContent evictedMsg = JSONObject.parseObject(oldestValue, OfflineMessageContent.class);
+                        // 降级写入 DB
+                        persistToMessageHistory(evictedMsg, extractOwnerIdFromKey(key));
+                        logger.warn("离线消息 ZSet 超限，降级写入 DB，key={}, evictedMsgKey={}",
+                                key, evictedMsg.getMessageKey());
+                    } catch (Exception e) {
+                        logger.warn("解析被驱逐的离线消息失败，key={}, error={}", key, e.getMessage());
+                    }
+                }
+            }
+            // 移除最旧的一条
+            operations.removeRange(key, 0, 0);
         }
+    }
 
-        offlineMessage.setConversationId(conversationService.convertConversationId(
-                ConversationTypeEnum.P2P.getCode(),offlineMessage.getToId(),offlineMessage.getFromId()
-        ));
-        // 插入 数据 根据messageKey 作为分值
-        operations.add(toKey,JSONObject.toJSONString(offlineMessage),
-                offlineMessage.getMessageKey());
+    /**
+     * 将离线消息持久化到消息历史表
+     */
+    private void persistToMessageHistory(OfflineMessageContent msg, String ownerId) {
+        try {
+            ImMessageHistoryEntity history = new ImMessageHistoryEntity();
+            history.setAppId(msg.getAppId());
+            history.setFromId(msg.getFromId());
+            history.setToId(msg.getToId());
+            history.setOwnerId(ownerId);
+            history.setMessageKey(msg.getMessageKey());
+            history.setSequence(msg.getMessageSequence());
+            history.setMessageRandom(msg.getMessageRandom());
+            history.setMessageTime(msg.getMessageTime());
+            history.setCreateTime(System.currentTimeMillis());
+            imMessageHistoryMapper.insert(history);
+        } catch (Exception e) {
+            logger.error("离线消息持久化到 DB 失败，msgKey={}, ownerId={}, error={}",
+                    msg.getMessageKey(), ownerId, e.getMessage());
+        }
+    }
 
+    /**
+     * 从 Redis key 中提取 ownerId
+     * key 格式: appId:offlineMessage:ownerId
+     */
+    private String extractOwnerIdFromKey(String key) {
+        String[] parts = key.split(":");
+        if (parts.length >= 3) {
+            return parts[2];
+        }
+        return "unknown";
     }
 
 
     /**
-     * @description: 存储单人离线消息
+     * @description: 存储群离线消息，ZSet 超限时降级写入 DB
      * @param
      * @return void
      * @author wanqiu
@@ -202,7 +274,6 @@ public class MessageStoreService {
     ,List<String> memberIds){
 
         ZSetOperations<String, String> operations = stringRedisTemplate.opsForZSet();
-        //判断 队列中的数据是否超过设定值
         offlineMessage.setConversationType(ConversationTypeEnum.GROUP.getCode());
 
         for (String memberId : memberIds) {
@@ -213,15 +284,17 @@ public class MessageStoreService {
             offlineMessage.setConversationId(conversationService.convertConversationId(
                     ConversationTypeEnum.GROUP.getCode(),memberId,offlineMessage.getToId()
             ));
-            if(operations.zCard(toKey) > appConfig.getOfflineMessageCount()){
-                operations.removeRange(toKey,0,0);
+            try {
+                evictIfExceeded(operations, toKey, offlineMessage);
+                // 插入数据 根据messageKey 作为分值
+                operations.add(toKey,JSONObject.toJSONString(offlineMessage),
+                        offlineMessage.getMessageKey());
+            } catch (Exception e) {
+                logger.error("Redis 存储群离线消息失败，降级写入 DB，memberId={}, groupId={}, error={}",
+                        memberId, offlineMessage.getToId(), e.getMessage());
+                persistToMessageHistory(offlineMessage, memberId);
             }
-            // 插入 数据 根据messageKey 作为分值
-            operations.add(toKey,JSONObject.toJSONString(offlineMessage),
-                    offlineMessage.getMessageKey());
         }
-
-
     }
 
 }
