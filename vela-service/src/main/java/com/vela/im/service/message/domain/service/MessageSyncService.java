@@ -134,31 +134,41 @@ public class MessageSyncService {
         SyncResp<OfflineMessageContent> resp = new SyncResp<>();
 
         String key = req.getAppId() + ":" + Constants.RedisConstants.OfflineMessage + ":" + req.getOperater();
-        //获取最大的seq
-        Long maxSeq = 0L;
-        ZSetOperations zSetOperations = redisTemplate.opsForZSet();
-        Set set = zSetOperations.reverseRangeWithScores(key, 0, 0);
-        if(!CollectionUtils.isEmpty(set)){
-            List list = new ArrayList(set);
-            DefaultTypedTuple o = (DefaultTypedTuple) list.get(0);
-            maxSeq = o.getScore().longValue();
-        }
 
-        List<OfflineMessageContent> respList = new ArrayList<>();
-        resp.setMaxSequence(maxSeq);
+        try {
+            //获取最大的seq
+            Long maxSeq = 0L;
+            ZSetOperations zSetOperations = redisTemplate.opsForZSet();
+            Set set = zSetOperations.reverseRangeWithScores(key, 0, 0);
+            if(!CollectionUtils.isEmpty(set)){
+                List list = new ArrayList(set);
+                DefaultTypedTuple o = (DefaultTypedTuple) list.get(0);
+                maxSeq = o.getScore().longValue();
+            }
 
-        Set<ZSetOperations.TypedTuple> querySet = zSetOperations.rangeByScoreWithScores(key,
-                req.getLastSequence(), maxSeq, 0, req.getMaxLimit());
-        for (ZSetOperations.TypedTuple<String> typedTuple : querySet) {
-            String value = typedTuple.getValue();
-            OfflineMessageContent offlineMessageContent = JSONObject.parseObject(value, OfflineMessageContent.class);
-            respList.add(offlineMessageContent);
-        }
-        resp.setDataList(respList);
+            List<OfflineMessageContent> respList = new ArrayList<>();
+            resp.setMaxSequence(maxSeq);
 
-        if(!CollectionUtils.isEmpty(respList)){
-            OfflineMessageContent offlineMessageContent = respList.get(respList.size() - 1);
-            resp.setCompleted(maxSeq <= offlineMessageContent.getMessageKey());
+            Set<ZSetOperations.TypedTuple> querySet = zSetOperations.rangeByScoreWithScores(key,
+                    req.getLastSequence(), maxSeq, 0, req.getMaxLimit());
+            for (ZSetOperations.TypedTuple<String> typedTuple : querySet) {
+                String value = typedTuple.getValue();
+                OfflineMessageContent offlineMessageContent = JSONObject.parseObject(value, OfflineMessageContent.class);
+                respList.add(offlineMessageContent);
+            }
+            resp.setDataList(respList);
+
+            if(!CollectionUtils.isEmpty(respList)){
+                OfflineMessageContent offlineMessageContent = respList.get(respList.size() - 1);
+                resp.setCompleted(maxSeq <= offlineMessageContent.getMessageKey());
+            }
+        } catch (Exception e) {
+            logger.error("Redis 同步离线消息失败，降级返回空列表，userId={}, error={}",
+                    req.getOperater(), e.getMessage());
+            // Redis 不可用时返回空列表，客户端会走 HTTP 拉取历史消息
+            resp.setMaxSequence(0L);
+            resp.setDataList(new ArrayList<>());
+            resp.setCompleted(true);
         }
 
         return ResponseVO.successResponse(resp);

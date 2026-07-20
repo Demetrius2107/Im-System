@@ -67,22 +67,38 @@ public class MessageStoreService {
 
     @Transactional
     public void storeP2PMessage(MessageContent messageContent){
-        //messageContent 转化成 messageBody
-//        ImMessageBody imMessageBodyEntity = extractMessageBody(messageContent);
-        //插入messageBody
-//        imMessageBodyMapper.insert(imMessageBodyEntity);
-//        //转化成MessageHistory
-//        List<ImMessageHistoryEntity> imMessageHistoryEntities = extractToP2PMessageHistory(messageContent, imMessageBodyEntity);
-//        //批量插入
-//        imMessageHistoryMapper.insertBatchSomeColumn(imMessageHistoryEntities);
-//        messageContent.setMessageKey(imMessageBodyEntity.getMessageKey());
         ImMessageBody imMessageBodyEntity = extractMessageBody(messageContent);
         DoStoreP2PMessageDto dto = new DoStoreP2PMessageDto();
         dto.setMessageContent(messageContent);
         dto.setMessageBody(imMessageBodyEntity);
         messageContent.setMessageKey(imMessageBodyEntity.getMessageKey());
-        rabbitTemplate.convertAndSend(Constants.RabbitConstants.StoreP2PMessage,"",
-                JSONObject.toJSONString(dto));
+        try {
+            rabbitTemplate.convertAndSend(Constants.RabbitConstants.StoreP2PMessage, "",
+                    JSONObject.toJSONString(dto));
+        } catch (Exception e) {
+            logger.error("MQ 发送 P2P 消息存储任务失败，降级直接写入 DB，msgKey={}, error={}",
+                    imMessageBodyEntity.getMessageKey(), e.getMessage());
+            // MQ 不可用时，直接同步写入 DB 作为降级
+            storeP2PMessageDirectly(imMessageBodyEntity, messageContent);
+        }
+    }
+
+    /**
+     * MQ 不可用时的降级方案：直接同步写入 DB
+     */
+    @Transactional
+    public void storeP2PMessageDirectly(ImMessageBody messageBody, MessageContent messageContent) {
+        try {
+            ImMessageBodyEntity bodyEntity = new ImMessageBodyEntity();
+            BeanUtils.copyProperties(messageBody, bodyEntity);
+            imMessageBodyMapper.insert(bodyEntity);
+            List<ImMessageHistoryEntity> histories = extractToP2PMessageHistory(messageContent, bodyEntity);
+            imMessageHistoryMapper.insertBatchSomeColumn(histories);
+            logger.warn("P2P 消息已降级写入 DB，msgKey={}", messageBody.getMessageKey());
+        } catch (Exception dbEx) {
+            logger.error("P2P 消息降级写入 DB 也失败，msgKey={}, error={}",
+                    messageBody.getMessageKey(), dbEx.getMessage());
+        }
     }
 
     public ImMessageBody extractMessageBody(MessageContent messageContent){
@@ -124,10 +140,35 @@ public class MessageStoreService {
         DoStoreGroupMessageDto dto = new DoStoreGroupMessageDto();
         dto.setMessageBody(imMessageBody);
         dto.setGroupChatMessageContent(messageContent);
-        rabbitTemplate.convertAndSend(Constants.RabbitConstants.StoreGroupMessage,
-                "",
-                JSONObject.toJSONString(dto));
         messageContent.setMessageKey(imMessageBody.getMessageKey());
+        try {
+            rabbitTemplate.convertAndSend(Constants.RabbitConstants.StoreGroupMessage,
+                    "",
+                    JSONObject.toJSONString(dto));
+        } catch (Exception e) {
+            logger.error("MQ 发送群聊消息存储任务失败，降级直接写入 DB，msgKey={}, error={}",
+                    imMessageBody.getMessageKey(), e.getMessage());
+            // MQ 不可用时，直接同步写入 DB 作为降级
+            storeGroupMessageDirectly(imMessageBody, messageContent);
+        }
+    }
+
+    /**
+     * MQ 不可用时的降级方案：直接同步写入群聊消息 DB
+     */
+    @Transactional
+    public void storeGroupMessageDirectly(ImMessageBody messageBody, GroupChatMessageContent messageContent) {
+        try {
+            ImMessageBodyEntity bodyEntity = new ImMessageBodyEntity();
+            BeanUtils.copyProperties(messageBody, bodyEntity);
+            imMessageBodyMapper.insert(bodyEntity);
+            ImGroupMessageHistoryEntity groupHistory = extractToGroupMessageHistory(messageContent, bodyEntity);
+            imGroupMessageHistoryMapper.insert(groupHistory);
+            logger.warn("群聊消息已降级写入 DB，msgKey={}", messageBody.getMessageKey());
+        } catch (Exception dbEx) {
+            logger.error("群聊消息降级写入 DB 也失败，msgKey={}, error={}",
+                    messageBody.getMessageKey(), dbEx.getMessage());
+        }
     }
 
     private ImGroupMessageHistoryEntity extractToGroupMessageHistory(GroupChatMessageContent
