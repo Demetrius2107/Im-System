@@ -30,14 +30,22 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * @description:
+ * <p>Title: ChatOperateReceiver</p>
+ * <p>Description: 单聊消息 MQ 消费者，接收并处理单聊消息、已读回执、ACK 确认、消息撤回等。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
- * @version: 1.0
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @Component
 public class ChatOperateReceiver {
 
-    private static Logger logger = LoggerFactory.getLogger(ChatOperateReceiver.class);
+    private static final Logger logger = LoggerFactory.getLogger(ChatOperateReceiver.class);
 
     @Autowired
     P2PMessageService p2PMessageService;

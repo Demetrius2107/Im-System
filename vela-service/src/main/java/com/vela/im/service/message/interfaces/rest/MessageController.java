@@ -14,9 +14,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * @description:
+ * <p>Title: MessageController</p>
+ * <p>Description: 消息 REST 接口，处理消息发送、发送校验、离线消息同步等请求。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
- * @version: 1.0
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @RestController
 @RequestMapping("v1/message")
