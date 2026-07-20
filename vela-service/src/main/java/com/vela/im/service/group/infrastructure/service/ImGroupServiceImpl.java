@@ -44,30 +44,41 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * @description:
+ * <p>Title: ImGroupServiceImpl</p>
+ * <p>Description: 群组管理实现，处理群组的创建、解散、更新、转让、禁言等。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
- * @version: 1.0
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @Service
 public class ImGroupServiceImpl implements ImGroupService {
 
-    @Autowired
-    ImGroupMapper imGroupDataMapper;
+    private final ImGroupMapper imGroupDataMapper;
+    private final ImGroupMemberService groupMemberService;
+    private final AppConfig appConfig;
+    private final CallbackService callbackService;
+    private final GroupMessageProducer groupMessageProducer;
+    private final RedisSeq redisSeq;
 
-    @Autowired
-    ImGroupMemberService groupMemberService;
-
-    @Autowired
-    AppConfig appConfig;
-
-    @Autowired
-    CallbackService callbackService;
-
-    @Autowired
-    GroupMessageProducer groupMessageProducer;
-
-    @Autowired
-    RedisSeq redisSeq;
+    public ImGroupServiceImpl(ImGroupMapper imGroupDataMapper,
+                              ImGroupMemberService groupMemberService,
+                              AppConfig appConfig,
+                              CallbackService callbackService,
+                              GroupMessageProducer groupMessageProducer,
+                              RedisSeq redisSeq) {
+        this.imGroupDataMapper = imGroupDataMapper;
+        this.groupMemberService = groupMemberService;
+        this.appConfig = appConfig;
+        this.callbackService = callbackService;
+        this.groupMessageProducer = groupMessageProducer;
+        this.redisSeq = redisSeq;
+    }
 
     @Override
     public ResponseVO importGroup(ImportGroupReq req) {

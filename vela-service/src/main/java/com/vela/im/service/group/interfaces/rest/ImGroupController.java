@@ -13,19 +13,30 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * @description:
+ * <p>Title: ImGroupController</p>
+ * <p>Description: 群组管理 REST 接口，处理群组的创建、导入、更新、解散、禁言等。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
- * @version: 1.0
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @RestController
 @RequestMapping("v1/group")
 public class ImGroupController {
 
-    @Autowired
-    ImGroupService groupService;
+    private final ImGroupService groupService;
+    private final GroupMessageService groupMessageService;
 
-    @Autowired
-    GroupMessageService groupMessageService;
+    public ImGroupController(ImGroupService groupService,
+                             GroupMessageService groupMessageService) {
+        this.groupService = groupService;
+        this.groupMessageService = groupMessageService;
+    }
 
     @RequestMapping("/importGroup")
     public ResponseVO importGroup(@RequestBody @Validated ImportGroupReq req, Integer appId, String identifier)  {

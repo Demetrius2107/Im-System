@@ -44,34 +44,45 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 
 /**
- * @description:
+ * <p>Title: ImGroupMemberServiceImpl</p>
+ * <p>Description: 群组成员管理实现，处理群成员的添加、移除、角色设置、禁言等。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
- * @version: 1.0
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
-@Service
 @Slf4j
+@Service
 public class ImGroupMemberServiceImpl implements ImGroupMemberService {
 
-    @Autowired
-    ImGroupMemberMapper imGroupMemberMapper;
+    private final ImGroupMemberMapper imGroupMemberMapper;
+        private final ImUserService imUserService;
+        private final ImGroupService groupService;
+        private final ImGroupMemberService groupMemberService;
+        private final CallbackService callbackService;
+        private final GroupMessageProducer groupMessageProducer;
+        private final AppConfig appConfig;
 
-    @Autowired
-    ImGroupService groupService;
-
-    @Autowired
-    ImGroupMemberService groupMemberService;
-
-    @Autowired
-    AppConfig appConfig;
-
-    @Autowired
-    CallbackService callbackService;
-
-    @Autowired
-    ImUserService imUserService;
-
-    @Autowired
-    GroupMessageProducer groupMessageProducer;
+        public ImGroupMemberServiceImpl(ImGroupMemberMapper imGroupMemberMapper,
+                                        ImUserService imUserService,
+                                        ImGroupService groupService,
+                                        ImGroupMemberService groupMemberService,
+                                        CallbackService callbackService,
+                                        GroupMessageProducer groupMessageProducer,
+                                        AppConfig appConfig) {
+            this.imGroupMemberMapper = imGroupMemberMapper;
+            this.imUserService = imUserService;
+            this.groupService = groupService;
+            this.groupMemberService = groupMemberService;
+            this.callbackService = callbackService;
+            this.groupMessageProducer = groupMessageProducer;
+            this.appConfig = appConfig;
+        }
 
     @Override
     public ResponseVO importGroupMember(ImportGroupMemberReq req) {
