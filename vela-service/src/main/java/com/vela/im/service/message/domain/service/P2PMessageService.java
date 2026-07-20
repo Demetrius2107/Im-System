@@ -34,9 +34,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 /**
- * @description:
+ * <p>Title: P2PMessageService</p>
+ * <p>Description: 单聊消息处理服务，负责消息发送、ACK确认、多端同步、重试机制等核心逻辑。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
- * @version: 1.0
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @Service
 public class P2PMessageService {
@@ -78,44 +86,38 @@ public class P2PMessageService {
         });
     }
 
-    //离线
-    //存储介质
-    //1.mysql
-    //2.redis
-    //怎么存？
-    //list
-
-
-    //历史消息
-
-    //发送方客户端时间
-    //messageKey
-    //redis 1 2 3
+    /**
+     * 处理单聊消息主流程
+     * <p>消息去重校验 → 前置回调 → 生成 sequence → 异步存储/推送/ACK。</p>
+     *
+     * @param messageContent 消息内容
+     */
     public void process(MessageContent messageContent){
 
-        logger.info("消息开始处理：{}",messageContent.getMessageId());
+        logger.info("开始处理消息: {}", messageContent.getMessageId());
         String fromId = messageContent.getFromId();
         String toId = messageContent.getToId();
         Integer appId = messageContent.getAppId();
 
+        // Idempotent check: skip if already cached (duplicate message)
         MessageContent messageFromMessageIdCache = messageStoreService.getMessageFromMessageIdCache
-                (messageContent.getAppId(), messageContent.getMessageId(),MessageContent.class);
+                (messageContent.getAppId(), messageContent.getMessageId(), MessageContent.class);
         if (messageFromMessageIdCache != null){
             threadPoolExecutor.execute(() ->{
                 ack(messageContent, ResponseVO.successResponse());
-                //2.发消息给同步在线端
-                syncToSender(messageFromMessageIdCache,messageFromMessageIdCache);
-                //3.发消息给对方在线端
+                // Sync to sender's other online devices
+                syncToSender(messageFromMessageIdCache, messageFromMessageIdCache);
+                // Dispatch to receiver's online devices
                 List<ClientInfo> clientInfos = dispatchMessage(messageFromMessageIdCache);
                 if(clientInfos.isEmpty()){
-                    //发送接收确认给发送方，要带上是服务端发送的标识
+                    // Receiver is offline, send server-side ACK to sender
                     reciverAck(messageFromMessageIdCache);
                 }
             });
             return;
         }
 
-        //回调
+        // Pre-send callback (if configured)
         ResponseVO responseVO = ResponseVO.successResponse();
         if(appConfig.isSendMessageAfterCallback()){
             responseVO = callbackService.beforeCallback(messageContent.getAppId(), Constants.CallbackCommand.SendMessageBefore
@@ -127,61 +129,58 @@ public class P2PMessageService {
             return;
         }
 
+        // Generate monotonic sequence for this conversation
         long seq = redisSeq.doGetSeq(messageContent.getAppId() + ":"
                 + Constants.SeqConstants.Message+ ":" + ConversationIdGenerate.generateP2PId(
                 messageContent.getFromId(),messageContent.getToId()
         ));
         messageContent.setMessageSequence(seq);
 
-        //前置校验
-        //这个用户是否被禁言 是否被禁用
-        //发送方和接收方是否是好友
-//        ResponseVO responseVO = imServerPermissionCheck(fromId, toId, appId);
-//        if(responseVO.isOk()){
+        // Async processing: store → offline → ACK → sync → dispatch
             threadPoolExecutor.execute(() ->{
-                //appId + Seq + (from + to) groupId
+                // Persist message body & history via MQ (with fallback)
                 messageStoreService.storeP2PMessage(messageContent);
 
+                // Store offline message for receiver
                 OfflineMessageContent offlineMessageContent = new OfflineMessageContent();
                 BeanUtils.copyProperties(messageContent,offlineMessageContent);
                 offlineMessageContent.setConversationType(ConversationTypeEnum.P2P.getCode());
                 messageStoreService.storeOfflineMessage(offlineMessageContent);
 
-                //插入数据
-                //1.回ack成功给自己
+                // 1. Send ACK to sender
                 ack(messageContent,ResponseVO.successResponse());
-                //2.发消息给同步在线端
+                // 2. Sync to sender's other devices
                 syncToSender(messageContent,messageContent);
-                //3.发消息给对方在线端
+                // 3. Dispatch to receiver's online devices
                 List<ClientInfo> clientInfos = dispatchMessage(messageContent);
 
+                // Cache message for idempotent check
                 messageStoreService.setMessageFromMessageIdCache(messageContent.getAppId(),
                         messageContent.getMessageId(),messageContent);
                 if(clientInfos.isEmpty()){
-                    //发送接收确认给发送方，要带上是服务端发送的标识
+                    // Receiver offline, send server-side ACK
                     reciverAck(messageContent);
                 }
 
+                // Post-send callback (if configured)
                 if(appConfig.isSendMessageAfterCallback()){
                     callbackService.callback(messageContent.getAppId(),Constants.CallbackCommand.SendMessageAfter,
                             JSONObject.toJSONString(messageContent));
                 }
 
-                logger.info("消息处理完成：{}",messageContent.getMessageId());
+                logger.info("消息处理完成: {}", messageContent.getMessageId());
             });
-//        }else{
-//            //告诉客户端失败了
-//            //ack
-//            ack(messageContent,responseVO);
-//        }
     }
 
     /**
-     * 带指数退避的重试机制
-     * @param operation 执行操作
-     * @param operationName 操作名称（日志用）
-     * @param maxRetries 最大重试次数
-     * @param baseDelayMs 基础延迟毫秒
+     * Generic retry with exponential backoff.
+     *
+     * @param operation     the operation to retry
+     * @param operationName name for logging
+     * @param maxRetries    max retry attempts
+     * @param baseDelayMs   initial delay in ms (doubles each attempt)
+     * @param <T>           return type
+     * @return operation result
      */
     private <T> T retryWithBackoff(Supplier<T> operation, String operationName, int maxRetries, long baseDelayMs) {
         for (int i = 0; i < maxRetries; i++) {
@@ -206,7 +205,10 @@ public class P2PMessageService {
     }
 
     /**
-     * 带重试的分发消息，最多重试3次，指数退避
+     * Dispatch message to receiver with retry (max 3 attempts, exponential backoff).
+     *
+     * @param messageContent message to dispatch
+     * @return list of online clients that received the message
      */
     private List<ClientInfo> dispatchMessage(MessageContent messageContent){
         try {
@@ -214,19 +216,22 @@ public class P2PMessageService {
                 List<ClientInfo> clientInfos = messageProducer.sendToUser(messageContent.getToId(),
                         MessageCommand.MSG_P2P, messageContent, messageContent.getAppId());
                 if (clientInfos == null) {
-                    throw new RuntimeException("dispatchMessage 返回 null");
+                    throw new RuntimeException("dispatchMessage returned null");
                 }
                 return clientInfos;
             }, "dispatchMessage-" + messageContent.getMessageId(), 3, 100L);
         } catch (Exception e) {
-            logger.error("消息分发失败，msgId={}, toId={}, error={}",
+            logger.error("Failed to dispatch message, msgId={}, toId={}, error={}",
                     messageContent.getMessageId(), messageContent.getToId(), e.getMessage());
             return new ArrayList<>();
         }
     }
 
     /**
-     * 带重试的ACK确认，最多重试3次
+     * Send ACK to sender with retry (max 3 attempts).
+     *
+     * @param messageContent the acknowledged message
+     * @param responseVO     ACK result
      */
     private void ack(MessageContent messageContent, ResponseVO responseVO){
         logger.info("msg ack,msgId={},checkResult={}", messageContent.getMessageId(), responseVO.getCode());
@@ -241,13 +246,16 @@ public class P2PMessageService {
                 return true;
             }, "ack-" + messageContent.getMessageId(), 3, 100L);
         } catch (Exception e) {
-            logger.error("ACK发送失败，msgId={}, fromId={}, error={}",
+            logger.error("Failed to send ACK, msgId={}, fromId={}, error={}",
                     messageContent.getMessageId(), messageContent.getFromId(), e.getMessage());
         }
     }
 
     /**
-     * 带重试的服务端接收确认，最多重试2次
+     * Send server-side receive confirmation to sender (max 2 retries).
+     * Indicates that the server has stored the message even if the receiver is offline.
+     *
+     * @param messageContent the received message
      */
     public void reciverAck(MessageContent messageContent){
         MessageReciveServerAckPack pack = new MessageReciveServerAckPack();
@@ -264,11 +272,17 @@ public class P2PMessageService {
                 return true;
             }, "receiverAck-" + messageContent.getMessageId(), 2, 200L);
         } catch (Exception e) {
-            logger.error("服务端接收确认发送失败，msgId={}, error={}",
+            logger.error("Failed to send receiver ACK, msgId={}, error={}",
                     messageContent.getMessageId(), e.getMessage());
         }
     }
 
+    /**
+     * Sync message to sender's other online devices (exclude current client).
+     *
+     * @param messageContent message to sync
+     * @param clientInfo     current client info to exclude
+     */
     private void syncToSender(MessageContent messageContent, ClientInfo clientInfo){
         try {
             retryWithBackoff(() -> {
@@ -277,11 +291,19 @@ public class P2PMessageService {
                 return true;
             }, "syncToSender-" + messageContent.getMessageId(), 2, 100L);
         } catch (Exception e) {
-            logger.error("同步给发送方其他端失败，msgId={}, error={}",
+            logger.error("Failed to sync to sender's other devices, msgId={}, error={}",
                     messageContent.getMessageId(), e.getMessage());
         }
     }
 
+    /**
+     * Check sender permissions: mute/ban status and friendship relation.
+     *
+     * @param fromId sender user ID
+     * @param toId   receiver user ID
+     * @param appId  application ID
+     * @return check result
+     */
     public ResponseVO imServerPermissionCheck(String fromId, String toId,
                                                Integer appId){
         ResponseVO responseVO = checkSendMessageService.checkSenderForvidAndMute(fromId, appId);
@@ -292,19 +314,25 @@ public class P2PMessageService {
         return responseVO;
     }
 
+    /**
+     * Send a P2P message directly (synchronous path, used by REST API).
+     *
+     * @param req send message request
+     * @return send message response with messageKey and timestamp
+     */
     public SendMessageResp send(SendMessageReq req) {
 
         SendMessageResp sendMessageResp = new SendMessageResp();
         MessageContent message = new MessageContent();
         BeanUtils.copyProperties(req,message);
-        //插入数据
+        // Persist message via MQ
         messageStoreService.storeP2PMessage(message);
         sendMessageResp.setMessageKey(message.getMessageKey());
         sendMessageResp.setMessageTime(System.currentTimeMillis());
 
-        //2.发消息给同步在线端
+        // Sync to sender's other devices
         syncToSender(message,message);
-        //3.发消息给对方在线端
+        // Dispatch to receiver
         dispatchMessage(message);
         return sendMessageResp;
     }
