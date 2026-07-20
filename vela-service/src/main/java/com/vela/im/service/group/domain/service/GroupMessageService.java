@@ -15,10 +15,13 @@ import com.vela.im.shared.types.message.GroupChatMessageContent;
 import com.vela.im.shared.types.message.MessageContent;
 import com.vela.im.shared.types.message.OfflineMessageContent;
 import com.vela.im.codec.pack.message.ChatMessageAck;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -33,6 +36,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Service
 public class GroupMessageService {
+
+    private static Logger logger = LoggerFactory.getLogger(GroupMessageService.class);
 
     @Autowired
     CheckSendMessageService checkSendMessageService;
@@ -111,13 +116,43 @@ public class GroupMessageService {
             });
     }
 
+    /**
+     * 群聊消息分发，对每个成员发送，失败时重试并记录失败列表
+     */
     private void dispatchMessage(GroupChatMessageContent messageContent){
+        List<String> failedMembers = new ArrayList<>();
         for (String memberId : messageContent.getMemberId()) {
             if(!memberId.equals(messageContent.getFromId())){
-                messageProducer.sendToUser(memberId,
-                        GroupEventCommand.MSG_GROUP,
-                        messageContent,messageContent.getAppId());
+                boolean success = false;
+                for (int retry = 0; retry < 2; retry++) {
+                    try {
+                        messageProducer.sendToUser(memberId,
+                                GroupEventCommand.MSG_GROUP,
+                                messageContent, messageContent.getAppId());
+                        success = true;
+                        break;
+                    } catch (Exception e) {
+                        logger.warn("群聊消息分发失败，memberId={}, msgId={}, 第{}次重试, error={}",
+                                memberId, messageContent.getMessageId(), retry + 1, e.getMessage());
+                        try {
+                            Thread.sleep(100L * (1L << retry)); // 100ms, 200ms
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                    }
+                }
+                if (!success) {
+                    failedMembers.add(memberId);
+                    logger.error("群聊消息分发重试耗尽，memberId={}, msgId={}",
+                            memberId, messageContent.getMessageId());
+                }
             }
+        }
+        if (!failedMembers.isEmpty()) {
+            logger.warn("群聊消息部分成员分发失败，msgId={}, groupId={}, 失败成员数={}/{}",
+                    messageContent.getMessageId(), messageContent.getGroupId(),
+                    failedMembers.size(), messageContent.getMemberId().size() - 1);
         }
     }
 
