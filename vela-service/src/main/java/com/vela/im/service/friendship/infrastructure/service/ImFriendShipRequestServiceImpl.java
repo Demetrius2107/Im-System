@@ -29,25 +29,38 @@ import java.util.List;
 
 
 /**
+ * <p>Title: ImFriendShipRequestServiceImpl</p>
+ * <p>Description: 好友请求管理实现，处理好友申请的添加、审批、查询、已读等。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @Service
 public class ImFriendShipRequestServiceImpl implements ImFriendShipRequestService {
 
-    @Autowired
-    ImFriendShipRequestMapper imFriendShipRequestMapper;
+    private final ImFriendShipRequestMapper imFriendShipRequestMapper;
+    private final ImFriendService imFriendShipService;
+    private final MessageProducer messageProducer;
+    private final RedisSeq redisSeq;
+    private final WriteUserSeq writeUserSeq;
 
-    @Autowired
-    ImFriendService imFriendShipService;
-
-    @Autowired
-    MessageProducer messageProducer;
-
-    @Autowired
-    RedisSeq redisSeq;
-
-    @Autowired
-    WriteUserSeq writeUserSeq;
+    public ImFriendShipRequestServiceImpl(ImFriendShipRequestMapper imFriendShipRequestMapper,
+                                          ImFriendService imFriendShipService,
+                                          MessageProducer messageProducer,
+                                          RedisSeq redisSeq,
+                                          WriteUserSeq writeUserSeq) {
+        this.imFriendShipRequestMapper = imFriendShipRequestMapper;
+        this.imFriendShipService = imFriendShipService;
+        this.messageProducer = messageProducer;
+        this.redisSeq = redisSeq;
+        this.writeUserSeq = writeUserSeq;
+    }
 
     @Override
     public ResponseVO getFriendRequest(String fromId, Integer appId) {

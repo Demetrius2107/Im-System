@@ -25,26 +25,39 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * <p>Title: ImFriendShipGroupMemberServiceImpl</p>
+ * <p>Description: 好友分组成员管理实现，处理分组内成员的添加和删除。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @Service
 public class ImFriendShipGroupMemberServiceImpl
         implements ImFriendShipGroupMemberService {
 
-    @Autowired
-    ImFriendShipGroupMemberMapper imFriendShipGroupMemberMapper;
+    private final ImFriendShipGroupMemberMapper imFriendShipGroupMemberMapper;
+    private final ImFriendShipGroupService imFriendShipGroupService;
+    private final ImUserService imUserService;
+    private final ImFriendShipGroupMemberService thisService;
+    private final MessageProducer messageProducer;
 
-    @Autowired
-    ImFriendShipGroupService imFriendShipGroupService;
-
-    @Autowired
-    ImUserService imUserService;
-
-    @Autowired
-    ImFriendShipGroupMemberService thisService;
-
-    @Autowired
-    MessageProducer messageProducer;
+    public ImFriendShipGroupMemberServiceImpl(ImFriendShipGroupMemberMapper imFriendShipGroupMemberMapper,
+                                              ImFriendShipGroupService imFriendShipGroupService,
+                                              ImUserService imUserService,
+                                              ImFriendShipGroupMemberService thisService,
+                                              MessageProducer messageProducer) {
+        this.imFriendShipGroupMemberMapper = imFriendShipGroupMemberMapper;
+        this.imFriendShipGroupService = imFriendShipGroupService;
+        this.imUserService = imUserService;
+        this.thisService = thisService;
+        this.messageProducer = messageProducer;
+    }
 
     @Override
     @Transactional

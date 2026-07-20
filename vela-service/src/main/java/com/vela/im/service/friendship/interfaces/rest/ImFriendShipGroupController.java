@@ -15,17 +15,30 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
+ * <p>Title: ImFriendShipGroupController</p>
+ * <p>Description: 好友分组 REST 接口，处理好友分组的创建、删除、成员管理等。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @RestController
 @RequestMapping("v1/friendship/group")
 public class ImFriendShipGroupController {
 
-    @Autowired
-    ImFriendShipGroupService imFriendShipGroupService;
+    private final ImFriendShipGroupService imFriendShipGroupService;
+    private final ImFriendShipGroupMemberService imFriendShipGroupMemberService;
 
-    @Autowired
-    ImFriendShipGroupMemberService imFriendShipGroupMemberService;
+    public ImFriendShipGroupController(ImFriendShipGroupService imFriendShipGroupService,
+                                       ImFriendShipGroupMemberService imFriendShipGroupMemberService) {
+        this.imFriendShipGroupService = imFriendShipGroupService;
+        this.imFriendShipGroupMemberService = imFriendShipGroupMemberService;
+    }
 
 
     @RequestMapping("/add")

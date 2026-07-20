@@ -28,28 +28,41 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * <p>Title: ImFriendShipGroupServiceImpl</p>
+ * <p>Description: 好友分组管理实现，处理好友分组的创建、删除、查询及序列更新。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @Service
 public class ImFriendShipGroupServiceImpl implements ImFriendShipGroupService {
 
-    @Autowired
-    ImFriendShipGroupMapper imFriendShipGroupMapper;
+    private final ImFriendShipGroupMapper imFriendShipGroupMapper;
+    private final ImFriendShipGroupMemberService imFriendShipGroupMemberService;
+    private final ImUserService imUserService;
+    private final RedisSeq redisSeq;
+    private final MessageProducer messageProducer;
+    private final WriteUserSeq writeUserSeq;
 
-    @Autowired
-    ImFriendShipGroupMemberService imFriendShipGroupMemberService;
-
-    @Autowired
-    ImUserService imUserService;
-
-    @Autowired
-    RedisSeq redisSeq;
-
-    @Autowired
-    MessageProducer messageProducer;
-
-    @Autowired
-    WriteUserSeq writeUserSeq;
+    public ImFriendShipGroupServiceImpl(ImFriendShipGroupMapper imFriendShipGroupMapper,
+                                        ImFriendShipGroupMemberService imFriendShipGroupMemberService,
+                                        ImUserService imUserService,
+                                        RedisSeq redisSeq,
+                                        MessageProducer messageProducer,
+                                        WriteUserSeq writeUserSeq) {
+        this.imFriendShipGroupMapper = imFriendShipGroupMapper;
+        this.imFriendShipGroupMemberService = imFriendShipGroupMemberService;
+        this.imUserService = imUserService;
+        this.redisSeq = redisSeq;
+        this.messageProducer = messageProducer;
+        this.writeUserSeq = writeUserSeq;
+    }
 
     @Override
     @Transactional

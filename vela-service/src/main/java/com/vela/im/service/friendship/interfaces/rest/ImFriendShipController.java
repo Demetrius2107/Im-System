@@ -10,12 +10,28 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * <p>Title: ImFriendShipController</p>
+ * <p>Description: 好友关系 REST 接口，处理好友导入、添加、删除、更新、黑名单、关系链查询等。</p>
+ * <p>项目名称: Vela</p>
+ *
+ * @author wanqiu
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
+ */
 @RestController
 @RequestMapping("v1/friendship")
 public class ImFriendShipController {
 
-    @Autowired
-    ImFriendService imFriendShipService;
+    private final ImFriendService imFriendShipService;
+
+    public ImFriendShipController(ImFriendService imFriendShipService) {
+        this.imFriendShipService = imFriendShipService;
+    }
 
     @RequestMapping("/importFriendShip")
     public ResponseVO importFriendShip(@RequestBody @Validated ImportFriendShipReq req, Integer appId){

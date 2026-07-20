@@ -49,35 +49,51 @@ import java.util.stream.Collectors;
 /**
  * @author wanqiu
  */
+/**
+ * <p>Title: ImFriendServiceImpl</p>
+ * <p>Description: 好友关系实现服务，处理好友导入、添加、删除、更新、黑名单、关系链同步等。</p>
+ * <p>项目名称: Vela</p>
+ *
+ * @author wanqiu
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
+ */
 @Service
 public class ImFriendServiceImpl implements ImFriendService {
 
-    @Autowired
-    ImFriendShipMapper imFriendShipMapper;
+    private final ImFriendShipMapper imFriendShipMapper;
+    private final ImUserService imUserService;
+    private final AppConfig appConfig;
+    private final CallbackService callbackService;
+    private final MessageProducer messageProducer;
+    private final ImFriendService imFriendService;
+    private final ImFriendShipRequestService imFriendShipRequestService;
+    private final RedisSeq redisSeq;
+    private final WriteUserSeq writeUserSeq;
 
-    @Autowired
-    ImUserService imUserService;
-
-    @Autowired
-    AppConfig appConfig;
-
-    @Autowired
-    CallbackService callbackService;
-
-    @Autowired
-    MessageProducer messageProducer;
-
-    @Autowired
-    ImFriendService imFriendService;
-
-    @Autowired
-    ImFriendShipRequestService imFriendShipRequestService;
-
-    @Autowired
-    RedisSeq redisSeq;
-
-    @Autowired
-    WriteUserSeq writeUserSeq;
+    public ImFriendServiceImpl(ImFriendShipMapper imFriendShipMapper,
+                               ImUserService imUserService,
+                               AppConfig appConfig,
+                               CallbackService callbackService,
+                               MessageProducer messageProducer,
+                               ImFriendService imFriendService,
+                               ImFriendShipRequestService imFriendShipRequestService,
+                               RedisSeq redisSeq,
+                               WriteUserSeq writeUserSeq) {
+        this.imFriendShipMapper = imFriendShipMapper;
+        this.imUserService = imUserService;
+        this.appConfig = appConfig;
+        this.callbackService = callbackService;
+        this.messageProducer = messageProducer;
+        this.imFriendService = imFriendService;
+        this.imFriendShipRequestService = imFriendShipRequestService;
+        this.redisSeq = redisSeq;
+        this.writeUserSeq = writeUserSeq;
+    }
 
     @Override
     public ResponseVO importFriendShip(ImportFriendShipReq req) {
