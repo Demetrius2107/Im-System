@@ -21,7 +21,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -51,31 +50,34 @@ public class GroupMessageService {
 
     private static final Logger logger = LoggerFactory.getLogger(GroupMessageService.class);
 
-    @Autowired
-    CheckSendMessageService checkSendMessageService;
-
-    @Autowired
-    MessageProducer messageProducer;
-
-    @Autowired
-    ImGroupMemberService imGroupMemberService;
-
-    @Autowired
-    MessageStoreService messageStoreService;
-
-    @Autowired
-    RedisSeq redisSeq;
-
-    @Autowired
-    AppConfig appConfig;
+    private final CheckSendMessageService checkSendMessageService;
+    private final MessageProducer messageProducer;
+    private final ImGroupMemberService imGroupMemberService;
+    private final MessageStoreService messageStoreService;
+    private final RedisSeq redisSeq;
+    private final AppConfig appConfig;
 
     private final ThreadPoolExecutor threadPoolExecutor;
 
     /** Simple in-memory rate limiter: userId → timestamp of last message */
     private final ConcurrentHashMap<String, Long> rateLimiter = new ConcurrentHashMap<>();
 
+    public GroupMessageService(CheckSendMessageService checkSendMessageService,
+                               MessageProducer messageProducer,
+                               ImGroupMemberService imGroupMemberService,
+                               MessageStoreService messageStoreService,
+                               RedisSeq redisSeq,
+                               AppConfig appConfig) {
+        this.checkSendMessageService = checkSendMessageService;
+        this.messageProducer = messageProducer;
+        this.imGroupMemberService = imGroupMemberService;
+        this.messageStoreService = messageStoreService;
+        this.redisSeq = redisSeq;
+        this.appConfig = appConfig;
+    }
+
     {
-        AtomicInteger num = new AtomicInteger(0);
+        final AtomicInteger num = new AtomicInteger(0);
         threadPoolExecutor = new ThreadPoolExecutor(8, 8, 60, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>(1000), new ThreadFactory() {
             @Override
@@ -88,6 +90,11 @@ public class GroupMessageService {
         });
     }
 
+    /**
+     * Process group message: validate → rate limit → dedup → persist → notify members.
+     *
+     * @param messageContent the group message to process
+     */
     public void process(GroupChatMessageContent messageContent){
         String fromId = messageContent.getFromId();
         String groupId = messageContent.getGroupId();
@@ -110,47 +117,53 @@ public class GroupMessageService {
             return;
         }
 
+        // Idempotent check: skip if already processed
         GroupChatMessageContent messageFromMessageIdCache = messageStoreService.getMessageFromMessageIdCache(messageContent.getAppId(),
                 messageContent.getMessageId(), GroupChatMessageContent.class);
         if(messageFromMessageIdCache != null){
             threadPoolExecutor.execute(() ->{
-                //1.回ack成功给自己
+                // 1. Send ACK to sender
                 ack(messageContent, Result.ok());
-                //2.发消息给同步在线端
+                // 2. Sync to sender's other devices
                 syncToSender(messageContent,messageContent);
-                //3.发消息给对方在线端
+                // 3. Dispatch to all group members
                 dispatchMessage(messageContent);
             });
         }
+        // Generate monotonic sequence for this group conversation
         long seq = redisSeq.doGetSeq(messageContent.getAppId() + ":" + Constants.SeqConstants.GroupMessage
                 + messageContent.getGroupId());
         messageContent.setMessageSequence(seq);
             threadPoolExecutor.execute(() ->{
+                // Persist message via MQ (with fallback)
                 messageStoreService.storeGroupMessage(messageContent);
 
+                // Fetch all group members for dispatch
                 List<String> groupMemberId = imGroupMemberService.getGroupMemberId(messageContent.getGroupId(),
                         messageContent.getAppId());
                 messageContent.setMemberId(groupMemberId);
 
+                // Store offline message for each group member
                 OfflineMessageContent offlineMessageContent = new OfflineMessageContent();
                 BeanUtils.copyProperties(messageContent,offlineMessageContent);
                 offlineMessageContent.setToId(messageContent.getGroupId());
                 messageStoreService.storeGroupOfflineMessage(offlineMessageContent,groupMemberId);
 
-                //1.回ack成功给自己
+                // 1. Send ACK to sender
                 ack(messageContent,Result.ok());
-                //2.发消息给同步在线端
+                // 2. Sync to sender's other devices
                 syncToSender(messageContent,messageContent);
-                //3.发消息给对方在线端
+                // 3. Dispatch to all group members
                 dispatchMessage(messageContent);
 
+                // Cache message for idempotent check
                 messageStoreService.setMessageFromMessageIdCache(messageContent.getAppId(),
                         messageContent.getMessageId(),messageContent);
             });
     }
 
     /**
-     * 群聊消息分发，对每个成员发送，失败时重试并记录失败列表
+     * Dispatch group message to all members with retry and failure tracking.
      */
     private void dispatchMessage(GroupChatMessageContent messageContent){
         List<String> failedMembers = new ArrayList<>();
@@ -165,10 +178,10 @@ public class GroupMessageService {
                         success = true;
                         break;
                     } catch (Exception e) {
-                        logger.warn("群聊消息分发失败，memberId={}, msgId={}, 第{}次重试, error={}",
+                        logger.warn("Group message dispatch failed, memberId={}, msgId={}, retry={}, error={}",
                                 memberId, messageContent.getMessageId(), retry + 1, e.getMessage());
                         try {
-                            Thread.sleep(100L * (1L << retry)); // 100ms, 200ms
+                            Thread.sleep(100L * (1L << retry)); // Exponential backoff: 100ms, 200ms
                         } catch (InterruptedException ie) {
                             Thread.currentThread().interrupt();
                             break;
@@ -177,38 +190,55 @@ public class GroupMessageService {
                 }
                 if (!success) {
                     failedMembers.add(memberId);
-                    logger.error("群聊消息分发重试耗尽，memberId={}, msgId={}",
+                    logger.error("Group message dispatch exhausted, memberId={}, msgId={}",
                             memberId, messageContent.getMessageId());
                 }
             }
         }
         if (!failedMembers.isEmpty()) {
-            logger.warn("群聊消息部分成员分发失败，msgId={}, groupId={}, 失败成员数={}/{}",
+            logger.warn("Group message partial dispatch failure, msgId={}, groupId={}, failed={}/{}",
                     messageContent.getMessageId(), messageContent.getGroupId(),
                     failedMembers.size(), messageContent.getMemberId().size() - 1);
         }
     }
 
-    private void ack(MessageContent messageContent, Result responseVO){
+    /**
+     * Send ACK to sender.
+     *
+     * @param messageContent the acknowledged message
+     * @param result         ACK result
+     */
+    private void ack(MessageContent messageContent, Result result){
 
         ChatMessageAck chatMessageAck = new ChatMessageAck(messageContent.getMessageId());
-        responseVO.setData(chatMessageAck);
-        //發消息
+        result.setData(chatMessageAck);
+        // Send ACK to sender
         messageProducer.sendToUser(messageContent.getFromId(),
                 GroupEventCommand.GROUP_MSG_ACK,
-                responseVO,messageContent
+                result,messageContent
         );
     }
 
+    /**
+     * Sync message to sender's other online devices.
+     */
     private void syncToSender(GroupChatMessageContent messageContent, ClientInfo clientInfo){
         messageProducer.sendToUserExceptClient(messageContent.getFromId(),
                 GroupEventCommand.MSG_GROUP,messageContent,messageContent);
     }
 
+    /**
+     * Check sender permissions for group message.
+     *
+     * @param fromId  sender user ID
+     * @param toId    group ID
+     * @param appId   application ID
+     * @return check result
+     */
     private Result imServerPermissionCheck(String fromId, String toId,Integer appId){
-        Result responseVO = checkSendMessageService
+        Result result = checkSendMessageService
                 .checkGroupMessage(fromId, toId,appId);
-        return responseVO;
+        return result;
     }
 
     /**
@@ -272,19 +302,26 @@ public class GroupMessageService {
         return Result.ok();
     }
 
+    /**
+     * Send a group message directly (synchronous path, used by REST API).
+     *
+     * @param req send group message request
+     * @return send message response with messageKey and timestamp
+     */
     public SendMessageResp send(SendGroupMessageReq req) {
 
         SendMessageResp sendMessageResp = new SendMessageResp();
         GroupChatMessageContent message = new GroupChatMessageContent();
         BeanUtils.copyProperties(req,message);
 
+        // Persist group message via MQ
         messageStoreService.storeGroupMessage(message);
 
         sendMessageResp.setMessageKey(message.getMessageKey());
         sendMessageResp.setMessageTime(System.currentTimeMillis());
-        //2.发消息给同步在线端
+        // Sync to sender's other devices
         syncToSender(message,message);
-        //3.发消息给对方在线端
+        // Dispatch to all group members
         dispatchMessage(message);
 
         return sendMessageResp;
