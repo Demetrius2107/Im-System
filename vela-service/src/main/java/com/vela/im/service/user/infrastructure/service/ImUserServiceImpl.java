@@ -32,30 +32,41 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @description:
+ * <p>Title: ImUserServiceImpl</p>
+ * <p>Description: 用户管理实现，处理用户的导入、删除、查询、信息修改、登录等。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
- * @version: 1.0
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @Service
 public class ImUserServiceImpl implements ImUserService {
 
-    @Autowired
-    ImUserDataMapper imUserDataMapper;
+    private final ImUserDataMapper imUserDataMapper;
+    private final AppConfig appConfig;
+    private final CallbackService callbackService;
+    private final MessageProducer messageProducer;
+    private final StringRedisTemplate stringRedisTemplate;
+    private final ImGroupService imGroupService;
 
-    @Autowired
-    AppConfig appConfig;
-
-    @Autowired
-    CallbackService callbackService;
-
-    @Autowired
-    MessageProducer messageProducer;
-
-    @Autowired
-    StringRedisTemplate stringRedisTemplate;
-
-    @Autowired
-    ImGroupService imGroupService;
+    public ImUserServiceImpl(ImUserDataMapper imUserDataMapper,
+                             AppConfig appConfig,
+                             CallbackService callbackService,
+                             MessageProducer messageProducer,
+                             StringRedisTemplate stringRedisTemplate,
+                             ImGroupService imGroupService) {
+        this.imUserDataMapper = imUserDataMapper;
+        this.appConfig = appConfig;
+        this.callbackService = callbackService;
+        this.messageProducer = messageProducer;
+        this.stringRedisTemplate = stringRedisTemplate;
+        this.imGroupService = imGroupService;
+    }
 
     @Override
     public ResponseVO importUser(ImportUserReq req) {

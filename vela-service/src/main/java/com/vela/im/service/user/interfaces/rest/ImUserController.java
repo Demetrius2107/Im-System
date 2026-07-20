@@ -19,23 +19,36 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * <p>Title: ImUserController</p>
+ * <p>Description: 用户管理 REST 接口，处理用户导入、删除、登录、在线状态查询等。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @RestController
 @RequestMapping("v1/user")
 public class ImUserController {
 
-    @Autowired
-    ImUserService imUserService;
+    private final ImUserService imUserService;
+    private final RouteHandle routeHandle;
+    private final ImUserStatusService imUserStatusService;
+    private final ZKit zKit;
 
-    @Autowired
-    RouteHandle routeHandle;
-
-    @Autowired
-    ImUserStatusService imUserStatusService;
-
-    @Autowired
-    ZKit zKit;
+    public ImUserController(ImUserService imUserService,
+                            RouteHandle routeHandle,
+                            ImUserStatusService imUserStatusService,
+                            ZKit zKit) {
+        this.imUserService = imUserService;
+        this.routeHandle = routeHandle;
+        this.imUserStatusService = imUserStatusService;
+        this.zKit = zKit;
+    }
 
     @RequestMapping("importUser")
     public ResponseVO importUser(@RequestBody ImportUserReq req, Integer appId) {

@@ -17,7 +17,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
+ * <p>Title: ImUserDataController</p>
+ * <p>Description: 用户数据 REST 接口，处理用户信息查询、修改等请求。</p>
+ * <p>项目名称: Vela</p>
+ *
  * @author wanqiu
+ * @since 1.1
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-20
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ 
  */
 @RestController
 @RequestMapping("v1/user/data")
@@ -25,8 +35,11 @@ public class ImUserDataController {
 
     private static final Logger logger = LoggerFactory.getLogger(ImUserDataController.class);
 
-    @Autowired
-    ImUserService imUserService;
+    private final ImUserService imUserService;
+
+    public ImUserDataController(ImUserService imUserService) {
+        this.imUserService = imUserService;
+    }
 
     @RequestMapping("/getUserInfo")
     public ResponseVO<GetUserInfoResp> getUserInfo(@RequestBody GetUserInfoReq req, Integer appId) {
