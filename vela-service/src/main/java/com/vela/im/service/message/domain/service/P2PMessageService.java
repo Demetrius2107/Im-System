@@ -21,7 +21,6 @@ import com.vela.im.codec.pack.message.MessageReciveServerAckPack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -49,28 +48,30 @@ import java.util.function.Supplier;
 @Service
 public class P2PMessageService {
 
-    private static Logger logger = LoggerFactory.getLogger(P2PMessageService.class);
+    private static final Logger logger = LoggerFactory.getLogger(P2PMessageService.class);
 
-    @Autowired
-    CheckSendMessageService checkSendMessageService;
-
-    @Autowired
-    MessageProducer messageProducer;
-
-    @Autowired
-    MessageStoreService messageStoreService;
-
-    @Autowired
-    RedisSeq redisSeq;
-
-    @Autowired
-    AppConfig appConfig;
-
-    @Autowired
-    CallbackService callbackService;
-
+    private final CheckSendMessageService checkSendMessageService;
+    private final MessageProducer messageProducer;
+    private final MessageStoreService messageStoreService;
+    private final RedisSeq redisSeq;
+    private final AppConfig appConfig;
+    private final CallbackService callbackService;
 
     private final ThreadPoolExecutor threadPoolExecutor;
+
+    public P2PMessageService(CheckSendMessageService checkSendMessageService,
+                             MessageProducer messageProducer,
+                             MessageStoreService messageStoreService,
+                             RedisSeq redisSeq,
+                             AppConfig appConfig,
+                             CallbackService callbackService) {
+        this.checkSendMessageService = checkSendMessageService;
+        this.messageProducer = messageProducer;
+        this.messageStoreService = messageStoreService;
+        this.redisSeq = redisSeq;
+        this.appConfig = appConfig;
+        this.callbackService = callbackService;
+    }
 
     {
         final AtomicInteger num = new AtomicInteger(0);
