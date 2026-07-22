@@ -7,6 +7,8 @@ import com.alibaba.fastjson.TypeReference;
 import com.vela.im.service.message.domain.service.MessageSyncService;
 import com.vela.im.service.message.domain.service.P2PMessageService;
 import com.vela.im.shared.constants.Constants;
+
+import com.vela.im.shared.trace.TraceIdContext;
 import com.vela.im.shared.types.enums.command.MessageCommand;
 import com.vela.im.shared.types.message.MessageContent;
 import com.vela.im.shared.types.message.MessageReadedContent;
@@ -62,6 +64,8 @@ public class ChatOperateReceiver {
     public void onChatMessage(@Payload Message message,
                               @Headers Map<String,Object> headers,
                               Channel channel) throws Exception {
+        // 从 AMQP 消息头中解析 TraceId，绑定到当前线程 MDC
+        TraceIdContext.setFromAmqpHeaders(headers);
         String msg = new String(message.getBody(),"utf-8");
         logger.info("CHAT MSG FORM QUEUE ::: {}", msg);
         Long deliveryTag = (Long) headers.get(AmqpHeaders.DELIVERY_TAG);
@@ -96,6 +100,9 @@ public class ChatOperateReceiver {
             logger.error("NACK_MSG:{}", msg);
             //第一个false 表示不批量拒绝，第二个false表示不重回队列
             channel.basicNack(deliveryTag, false, false);
+        } finally {
+            // 清理 MDC，避免线程池复用导致上下文污染
+            TraceIdContext.clear();
         }
 
     }

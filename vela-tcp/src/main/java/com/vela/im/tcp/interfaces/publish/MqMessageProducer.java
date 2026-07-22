@@ -7,8 +7,13 @@ import com.vela.im.shared.types.enums.command.CommandType;
 import com.vela.im.codec.protocol.Message;
 import com.vela.im.codec.protocol.MessageHeader;
 import com.vela.im.tcp.infrastructure.utils.MqFactory;
+import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
+import com.vela.im.shared.trace.TraceIdContext;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
@@ -60,7 +65,7 @@ public class MqMessageProducer {
             o.put("imei",message.getMessageHeader().getImei());
             o.put("appId",message.getMessageHeader().getAppId());
             channel.basicPublish(channelName,"",
-                    null,o.toJSONString().getBytes());
+                    buildTraceProperties(),o.toJSONString().getBytes());
 
         } catch (IOException e) {
             log.error("发送消息出现异常:{}",e.getMessage());
@@ -104,10 +109,26 @@ public class MqMessageProducer {
             o.put("imei",header.getImei());
             o.put("appId",header.getAppId());
             channel.basicPublish(channelName,"",
-                    null, o.toJSONString().getBytes());
+                    buildTraceProperties(), o.toJSONString().getBytes());
         }catch (Exception e){
             log.error("发送消息出现异常：{}",e.getMessage());
         }
+    }
+
+    /**
+     * 构建携带 TraceId 的 AMQP BasicProperties
+     *
+     * @return AMQP 消息属性
+     */
+    private static AMQP.BasicProperties buildTraceProperties() {
+        Map<String, Object> headers = new HashMap<>(2);
+        String traceId = TraceIdContext.get();
+        if (traceId != null && !traceId.isEmpty()) {
+            headers.put(Constants.TraceId.MQ_HEADER_NAME, traceId);
+        }
+        return new AMQP.BasicProperties.Builder()
+                .headers(headers)
+                .build();
     }
 
 }

@@ -14,6 +14,13 @@ package com.vela.im.shared.constants;
  */
 public class Constants {
 
+    /** 链路追踪 ID 在 MDC、HTTP Header、MQ Header 中的 Key */
+    public static class TraceId {
+        public static final String TRACE_ID_KEY = "traceId";
+        public static final String HTTP_HEADER_NAME = "X-Trace-Id";
+        public static final String MQ_HEADER_NAME = "x-trace-id";
+    }
+
     /** channel绑定的userId Key*/
     public static final String UserId = "userId";
 

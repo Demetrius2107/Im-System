@@ -2,6 +2,7 @@ package com.vela.im.service.application.utils;
 
 import com.alibaba.fastjson.JSONObject;
 import com.vela.im.shared.constants.Constants;
+import com.vela.im.shared.trace.TraceIdContext;
 import com.vela.im.shared.types.enums.command.Command;
 import com.vela.im.shared.types.ClientInfo;
 import com.vela.im.shared.types.UserSession;
@@ -9,6 +10,9 @@ import com.vela.im.codec.protocol.MessagePack;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.AmqpException;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -49,12 +53,30 @@ public class MessageProducer {
     public boolean sendMessage(UserSession session, Object msg){
         try {
             logger.info("send message == " + msg);
-            rabbitTemplate.convertAndSend(queueName,session.getBrokerId()+"",msg);
+            rabbitTemplate.convertAndSend(queueName,session.getBrokerId()+"",msg, buildTracePostProcessor());
             return true;
         }catch (Exception e){
             logger.error("send error :" + e.getMessage());
             return false;
         }
+    }
+
+    /**
+     * 构建 TraceId 透传的 MessagePostProcessor
+     *
+     * @return 消息后置处理器
+     */
+    private MessagePostProcessor buildTracePostProcessor() {
+        return new MessagePostProcessor() {
+            @Override
+            public Message postProcessMessage(Message message) throws AmqpException {
+                String traceId = TraceIdContext.get();
+                if (traceId != null && !traceId.isEmpty()) {
+                    message.getMessageProperties().setHeader(Constants.TraceId.MQ_HEADER_NAME, traceId);
+                }
+                return message;
+            }
+        };
     }
 
     //包装数据，调用sendMessage

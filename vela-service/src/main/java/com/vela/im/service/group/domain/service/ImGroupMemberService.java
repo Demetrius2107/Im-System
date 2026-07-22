@@ -16,11 +16,11 @@ import java.util.List;
  */
 public interface ImGroupMemberService {
 
-    public Result importGroupMember(ImportGroupMemberReq req);
+    public Result importGroupMember(ImportGroupMemberRequest importGroupMemberRequest);
 
-    public Result addMember(AddGroupMemberReq req);
+    public Result addMember(AddGroupMemberRequest addGroupMemberRequest);
 
-    public Result removeMember(RemoveGroupMemberReq req);
+    public Result removeMember(RemoveGroupMemberRequest removeGroupMemberRequest);
 
     public Result addGroupMember(String groupId, Integer appId, GroupMemberDto dto);
 
@@ -28,7 +28,7 @@ public interface ImGroupMemberService {
 
     public Result<GetRoleInGroupResp> getRoleInGroupOne(String groupId, String memberId, Integer appId);
 
-    public Result<Collection<String>> getMemberJoinedGroup(GetJoinedGroupReq req);
+    public Result<Collection<String>> getMemberJoinedGroup(GetJoinedGroupRequest getJoinedGroupRequest);
 
     public Result<List<GroupMemberDto>> getGroupMember(String groupId, Integer appId);
 
@@ -36,11 +36,11 @@ public interface ImGroupMemberService {
 
     public List<GroupMemberDto> getGroupManager(String groupId, Integer appId);
 
-    public Result updateGroupMember(UpdateGroupMemberReq req);
+    public Result updateGroupMember(UpdateGroupMemberRequest updateGroupMemberRequest);
 
     public Result transferGroupMember(String owner, String groupId, Integer appId);
 
-    public Result speak(SpeaMemberReq req);
+    public Result speak(SpeakMemberRequest speakMemberRequest);
 
     Result<Collection<String>> syncMemberJoinedGroup(String operater, Integer appId);
 }

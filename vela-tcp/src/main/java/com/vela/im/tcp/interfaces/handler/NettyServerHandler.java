@@ -22,6 +22,7 @@ import com.vela.im.codec.protocol.Message;
 import com.vela.im.codec.protocol.MessagePack;
 import com.vela.im.tcp.interfaces.publish.MqMessageProducer;
 import com.vela.im.tcp.infrastructure.redis.RedisManager;
+import com.vela.im.shared.trace.TraceIdContext;
 import com.vela.im.tcp.infrastructure.utils.SessionSocketHolder;
 import feign.Feign;
 import feign.Request;
@@ -76,6 +77,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
                 .encoder(new JacksonEncoder())
                 .decoder(new JacksonDecoder())
                 .options(new Request.Options(1000, 3500))
+                .requestInterceptor(new TraceIdFeignInterceptor())
                 .target(FeignMessageService.class, logicUrl);
     }
 
@@ -88,6 +90,17 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
      */
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Message msg) throws Exception {
+        // 每个请求进入网关时生成/复用 TraceId，并绑定到当前线程 MDC
+        TraceIdContext.set(null);
+        try {
+            doChannelRead0(ctx, msg);
+        } finally {
+            // 请求处理完成后清理 MDC，防止线程复用时上下文污染
+            TraceIdContext.clear();
+        }
+    }
+
+    private void doChannelRead0(ChannelHandlerContext ctx, Message msg) throws Exception {
         Integer command = msg.getMessageHeader().getCommand();
 
         // 登录command

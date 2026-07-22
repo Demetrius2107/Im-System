@@ -11,11 +11,15 @@ import com.vela.im.service.message.infrastructure.persistence.mapper.ImMessageHi
 import com.vela.im.service.application.utils.SnowflakeIdWorker;
 import com.vela.im.shared.config.AppConfig;
 import com.vela.im.shared.constants.Constants;
+import com.vela.im.shared.trace.TraceIdContext;
 import com.vela.im.shared.types.enums.ConversationTypeEnum;
 import com.vela.im.shared.types.enums.DelFlagEnum;
 import com.vela.im.shared.types.message.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.amqp.AmqpException;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessagePostProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -57,6 +61,24 @@ public class MessageStoreService {
     private final ConversationService conversationService;
     private final AppConfig appConfig;
 
+    /**
+     * 构建 TraceId 透传的 MessagePostProcessor
+     *
+     * @return 消息后置处理器
+     */
+    private MessagePostProcessor buildTracePostProcessor() {
+        return new MessagePostProcessor() {
+            @Override
+            public Message postProcessMessage(Message message) throws AmqpException {
+                String traceId = TraceIdContext.get();
+                if (traceId != null && !traceId.isEmpty()) {
+                    message.getMessageProperties().setHeader(Constants.TraceId.MQ_HEADER_NAME, traceId);
+                }
+                return message;
+            }
+        };
+    }
+
     public MessageStoreService(ImMessageHistoryMapper imMessageHistoryMapper,
                                ImMessageBodyMapper imMessageBodyMapper,
                                SnowflakeIdWorker snowflakeIdWorker,
@@ -91,7 +113,7 @@ public class MessageStoreService {
         try {
             // Send to MQ for async persistence
             rabbitTemplate.convertAndSend(Constants.RabbitConstants.StoreP2PMessage, "",
-                    JSONObject.toJSONString(dto));
+                    JSONObject.toJSONString(dto), buildTracePostProcessor());
         } catch (Exception e) {
             logger.error("MQ send failed for P2P message, fallback to direct DB write, msgKey={}, error={}",
                     imMessageBodyEntity.getMessageKey(), e.getMessage());
@@ -184,7 +206,7 @@ public class MessageStoreService {
         try {
             rabbitTemplate.convertAndSend(Constants.RabbitConstants.StoreGroupMessage,
                     "",
-                    JSONObject.toJSONString(dto));
+                    JSONObject.toJSONString(dto), buildTracePostProcessor());
         } catch (Exception e) {
             logger.error("MQ 发送群聊消息存储任务失败，降级直接写入 DB，msgKey={}, error={}",
                     imMessageBody.getMessageKey(), e.getMessage());

@@ -3,6 +3,7 @@ package com.vela.im.store.interfaces.mq;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.vela.im.shared.constants.Constants;
+import com.vela.im.shared.trace.TraceIdContext;
 import com.vela.im.store.domain.entity.ImMessageBodyEntity;
 import com.vela.im.store.application.dto.DoStoreP2PMessageDto;
 import com.vela.im.store.application.service.StoreMessageService;
@@ -48,6 +49,8 @@ public class StoreP2PMessageReceiver {
     public void onChatMessage(@Payload Message message,
                               @Header Map<String, Object> headers,
                               Channel channel) throws IOException {
+        // 从 AMQP 消息头中解析 TraceId，绑定到当前线程 MDC
+        TraceIdContext.setFromAmqpHeaders(headers);
         String msg = new String(message.getBody(), "utf-8");
         logger.info("CHAT MSG FROM QUEUE ::: {}", msg);
         Long deliveryTag = (Long) headers.get(AmqpHeaders.DELIVERY_TAG);
@@ -65,6 +68,9 @@ public class StoreP2PMessageReceiver {
             logger.error("NACK_MSG:{}", msg);
             // 第一个false 标识不批量拒绝 第二个false标识不重回队列
             channel.basicNack(deliveryTag, false, false);
+        } finally {
+            // 清理 MDC，避免线程池复用导致上下文污染
+            TraceIdContext.clear();
         }
 
     }

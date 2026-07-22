@@ -1,7 +1,7 @@
 package com.vela.im.service.group.domain.service;
 
 
-import com.vela.im.service.group.application.dto.req.SendGroupMessageReq;
+import com.vela.im.service.group.application.dto.req.SendGroupMessageRequest;
 import com.vela.im.service.message.application.dto.resp.SendMessageResp;
 import com.vela.im.service.message.domain.service.CheckSendMessageService;
 import com.vela.im.service.message.domain.service.MessageStoreService;
@@ -308,7 +308,7 @@ public class GroupMessageService {
      * @param req send group message request
      * @return send message response with messageKey and timestamp
      */
-    public SendMessageResp send(SendGroupMessageReq req) {
+    public SendMessageResp send(SendGroupMessageRequest req) {
 
         SendMessageResp sendMessageResp = new SendMessageResp();
         GroupChatMessageContent message = new GroupChatMessageContent();
