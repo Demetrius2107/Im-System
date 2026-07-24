@@ -71,7 +71,7 @@ public class ByteBufToMessageUtils {
         if(messageType == 0x0){
             String body = new String(bodyData);
             JSONObject parse = (JSONObject) JSONObject.parse(body);
-            message.setMessagePack(parse);
+            message.setMessagePackage(parse);
         }
 
         in.markReaderIndex();
