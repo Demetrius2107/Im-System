@@ -36,13 +36,13 @@ public class ByteBufToMessageUtils {
     public static Message decode(ByteBuf in) {
 
         // 读取定长包头（7个int = 28字节）
-        int command     = in.readInt(); // 指令类型
-        int version     = in.readInt(); // 协议版本号
-        int clientType  = in.readInt(); // 客户端类型
-        int messageType = in.readInt(); // 消息解析类型（0x0 = JSON）
-        int appId       = in.readInt(); // 应用ID
-        int imeiLength  = in.readInt(); // IMEI 长度
-        int bodyLength  = in.readInt(); // 消息体长度
+        int command     = in.readInt();
+        int version     = in.readInt();
+        int clientType  = in.readInt();
+        int messageType = in.readInt();
+        int appId       = in.readInt();
+        int imeiLength  = in.readInt();
+        int bodyLength  = in.readInt();
 
         // 边界校验：IMEI/body 长度必须为正数，且缓冲区余量充足
         if (imeiLength < 0 || bodyLength < 0
