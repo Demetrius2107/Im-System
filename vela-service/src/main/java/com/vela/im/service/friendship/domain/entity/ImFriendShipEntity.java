@@ -18,7 +18,7 @@ import lombok.Data;
  * Copyright © 2025 Shukun.Li All rights reserved
  */
 @Data
-@TableName("im_friendship")
+@TableName("vela_friendship")
 @AutoMap
 public class ImFriendShipEntity {
 

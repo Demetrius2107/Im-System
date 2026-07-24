@@ -17,7 +17,7 @@ import lombok.Data;
  * Copyright © 2026 wanqiu All rights reserved
  */
 @Data
-@TableName("im_group")
+@TableName("vela_group")
 public class ImGroupEntity {
 
     /**

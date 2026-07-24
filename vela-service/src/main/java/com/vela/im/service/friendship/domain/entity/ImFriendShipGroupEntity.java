@@ -9,7 +9,7 @@ import lombok.Data;
  * @author wanqiu
  */
 @Data
-@TableName("im_friendship_group")
+@TableName("vela_friendship_group")
 public class ImFriendShipGroupEntity {
 
     @TableId(value = "group_id", type = IdType.AUTO)

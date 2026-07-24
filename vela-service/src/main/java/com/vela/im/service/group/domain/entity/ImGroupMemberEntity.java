@@ -18,7 +18,7 @@ import lombok.Data;
  * Copyright © 2026 wanqiu All rights reserved
  */
 @Data
-@TableName("im_group_member")
+@TableName("vela_group_member")
 public class ImGroupMemberEntity {
 
     @TableId(type = IdType.AUTO)

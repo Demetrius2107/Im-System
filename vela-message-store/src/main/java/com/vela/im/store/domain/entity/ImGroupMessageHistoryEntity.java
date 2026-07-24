@@ -27,7 +27,7 @@ import lombok.Data;
  * Copyright © 2026 wanqiu All rights reserved
  */
 @Data
-@TableName("im_group_message_history")
+@TableName("vela_group_message_history")
 public class ImGroupMessageHistoryEntity {
 
     private Integer appId;
