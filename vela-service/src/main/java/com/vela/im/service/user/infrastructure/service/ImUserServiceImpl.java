@@ -21,7 +21,6 @@ import com.vela.im.shared.types.enums.command.UserEventCommand;
 import com.vela.im.shared.exception.ApplicationException;
 import com.vela.im.codec.pack.user.UserModifyPack;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

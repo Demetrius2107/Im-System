@@ -17,7 +17,6 @@ import com.vela.im.shared.types.enums.command.FriendshipEventCommand;
 import com.vela.im.shared.types.ClientInfo;
 import com.vela.im.codec.pack.friendship.AddFriendGroupMemberPack;
 import com.vela.im.codec.pack.friendship.DeleteFriendGroupMemberPack;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
