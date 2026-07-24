@@ -1,4 +1,4 @@
-lim:
+serverConfig:
   tcpPort: 9001
   webSocketPort: 19001
   bossThreadSize: 1
