@@ -1,9 +1,9 @@
 package com.vela.im.service.group.domain.service;
 
 
+
 import com.vela.im.service.group.application.dto.req.SendGroupMessageRequest;
 import com.vela.im.service.message.application.dto.resp.SendMessageResp;
-import com.vela.im.service.message.domain.service.CheckSendMessageService;
 import com.vela.im.service.message.domain.service.MessageStoreService;
 import com.vela.im.service.infrastructure.seq.RedisSeq;
 import com.vela.im.service.application.utils.MessageProducer;
@@ -27,10 +27,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 /**
  * <p>Title: GroupMessageService</p>
@@ -43,14 +43,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @updateTime 2026-07-20
  *
  * Copyright © 2026 wanqiu All rights reserved
- 
  */
 @Service
 public class GroupMessageService {
 
     private static final Logger logger = LoggerFactory.getLogger(GroupMessageService.class);
 
-    private final CheckSendMessageService checkSendMessageService;
     private final MessageProducer messageProducer;
     private final ImGroupMemberService imGroupMemberService;
     private final MessageStoreService messageStoreService;
@@ -62,13 +60,43 @@ public class GroupMessageService {
     /** Simple in-memory rate limiter: userId → timestamp of last message */
     private final ConcurrentHashMap<String, Long> rateLimiter = new ConcurrentHashMap<>();
 
-    public GroupMessageService(CheckSendMessageService checkSendMessageService,
-                               MessageProducer messageProducer,
+    /**
+     * Generic retry with exponential backoff.
+     *
+     * @param operation     the operation to retry
+     * @param operationName name for logging
+     * @param maxRetries    max retry attempts
+     * @param baseDelayMs   initial delay in ms (doubles each attempt)
+     * @param <T>           return type
+     * @return operation result
+     */
+    private <T> T retryWithBackoff(Supplier<T> operation, String operationName, int maxRetries, long baseDelayMs) {
+        for (int i = 0; i < maxRetries; i++) {
+            try {
+                return operation.get();
+            } catch (Exception e) {
+                logger.warn("{} failed (attempt {}/{}): {}", operationName, i + 1, maxRetries, e.getMessage());
+                if (i == maxRetries - 1) {
+                    logger.error("{} retries exhausted after {} attempts", operationName, maxRetries);
+                    throw e;
+                }
+                try {
+                    long delay = baseDelayMs * (1L << i); // Exponential backoff: 100ms, 200ms, 400ms...
+                    Thread.sleep(delay);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException(operationName + " interrupted", ie);
+                }
+            }
+        }
+        throw new RuntimeException(operationName + " retry failed");
+    }
+
+    public GroupMessageService(MessageProducer messageProducer,
                                ImGroupMemberService imGroupMemberService,
                                MessageStoreService messageStoreService,
                                RedisSeq redisSeq,
                                AppConfig appConfig) {
-        this.checkSendMessageService = checkSendMessageService;
         this.messageProducer = messageProducer;
         this.imGroupMemberService = imGroupMemberService;
         this.messageStoreService = messageStoreService;
@@ -79,14 +107,11 @@ public class GroupMessageService {
     {
         final AtomicInteger num = new AtomicInteger(0);
         threadPoolExecutor = new ThreadPoolExecutor(8, 8, 60, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(1000), new ThreadFactory() {
-            @Override
-            public Thread newThread(Runnable r) {
-                Thread thread = new Thread(r);
-                thread.setDaemon(true);
-                thread.setName("message-group-thread-" + num.getAndIncrement());
-                return thread;
-            }
+                new LinkedBlockingQueue<>(1000), r -> {
+            Thread thread = new Thread(r);
+            thread.setDaemon(true);
+            thread.setName("message-group-thread-" + num.getAndIncrement());
+            return thread;
         });
     }
 
@@ -97,11 +122,9 @@ public class GroupMessageService {
      */
     public void process(GroupChatMessageContent messageContent){
         String fromId = messageContent.getFromId();
-        String groupId = messageContent.getGroupId();
-        Integer appId = messageContent.getAppId();
 
         // Boundary condition checks
-        Result boundaryCheck = validateGroupMessage(messageContent);
+        Result<Void> boundaryCheck = validateGroupMessage(messageContent);
         if (!boundaryCheck.isOk()) {
             ack(messageContent, boundaryCheck);
             logger.warn("Group message rejected by boundary check, msgId={}, reason={}",
@@ -110,62 +133,55 @@ public class GroupMessageService {
         }
 
         // Rate limiting check per user
-        Result rateCheck = checkRateLimit(fromId);
+        Result<Void> rateCheck = checkRateLimit(fromId);
         if (!rateCheck.isOk()) {
             ack(messageContent, rateCheck);
             logger.warn("Group message rate limited, fromId={}, msgId={}", fromId, messageContent.getMessageId());
             return;
         }
 
-        // Idempotent check: skip if already processed
+        // Idempotent check: skip if already processed (duplicate message)
         GroupChatMessageContent messageFromMessageIdCache = messageStoreService.getMessageFromMessageIdCache(messageContent.getAppId(),
                 messageContent.getMessageId(), GroupChatMessageContent.class);
         if(messageFromMessageIdCache != null){
-            threadPoolExecutor.execute(() ->{
-                // 1. Send ACK to sender
-                ack(messageContent, Result.ok());
-                // 2. Sync to sender's other devices
-                syncToSender(messageContent,messageContent);
-                // 3. Dispatch to all group members
-                dispatchMessage(messageContent);
-            });
+            threadPoolExecutor.execute(() -> ackAndDispatch(messageContent));
+            return;
         }
         // Generate monotonic sequence for this group conversation
         long seq = redisSeq.doGetSeq(messageContent.getAppId() + ":" + Constants.SeqConstants.GroupMessage
                 + messageContent.getGroupId());
         messageContent.setMessageSequence(seq);
-            threadPoolExecutor.execute(() ->{
-                // Persist message via MQ (with fallback)
-                messageStoreService.storeGroupMessage(messageContent);
+        threadPoolExecutor.execute(() -> {
+            // Persist message via MQ (with fallback)
+            messageStoreService.storeGroupMessage(messageContent);
 
-                // Fetch all group members for dispatch
-                List<String> groupMemberId = imGroupMemberService.getGroupMemberId(messageContent.getGroupId(),
-                        messageContent.getAppId());
-                messageContent.setMemberId(groupMemberId);
+            // Fetch all group members for dispatch
+            List<String> groupMemberId = imGroupMemberService.getGroupMemberId(messageContent.getGroupId(),
+                    messageContent.getAppId());
+            messageContent.setMemberId(groupMemberId);
 
-                // Store offline message for each group member
-                OfflineMessageContent offlineMessageContent = new OfflineMessageContent();
-                BeanUtils.copyProperties(messageContent,offlineMessageContent);
-                offlineMessageContent.setToId(messageContent.getGroupId());
-                messageStoreService.storeGroupOfflineMessage(offlineMessageContent,groupMemberId);
+            // Store offline message for each group member
+            OfflineMessageContent offlineMessageContent = new OfflineMessageContent();
+            BeanUtils.copyProperties(messageContent, offlineMessageContent);
+            offlineMessageContent.setToId(messageContent.getGroupId());
+            messageStoreService.storeGroupOfflineMessage(offlineMessageContent, groupMemberId);
 
-                // 1. Send ACK to sender
-                ack(messageContent,Result.ok());
-                // 2. Sync to sender's other devices
-                syncToSender(messageContent,messageContent);
-                // 3. Dispatch to all group members
-                dispatchMessage(messageContent);
+            ackAndDispatch(messageContent);
 
-                // Cache message for idempotent check
-                messageStoreService.setMessageFromMessageIdCache(messageContent.getAppId(),
-                        messageContent.getMessageId(),messageContent);
-            });
+            // Cache message for idempotent check
+            messageStoreService.setMessageFromMessageIdCache(messageContent.getAppId(),
+                    messageContent.getMessageId(), messageContent);
+        });
     }
 
     /**
      * Dispatch group message to all members with retry and failure tracking.
      */
     private void dispatchMessage(GroupChatMessageContent messageContent){
+        if (messageContent.getMemberId() == null) {
+            logger.warn("dispatchMessage skipped: memberId is null, groupId={}", messageContent.getGroupId());
+            return;
+        }
         List<String> failedMembers = new ArrayList<>();
         for (String memberId : messageContent.getMemberId()) {
             if(!memberId.equals(messageContent.getFromId())){
@@ -203,42 +219,55 @@ public class GroupMessageService {
     }
 
     /**
-     * Send ACK to sender.
+     * Send ACK to sender with retry (max 3 attempts, exponential backoff).
      *
      * @param messageContent the acknowledged message
      * @param result         ACK result
      */
-    private void ack(MessageContent messageContent, Result result){
-
+    private void ack(MessageContent messageContent, Result<?> result){
         ChatMessageAck chatMessageAck = new ChatMessageAck(messageContent.getMessageId());
-        result.setData(chatMessageAck);
-        // Send ACK to sender
-        messageProducer.sendToUser(messageContent.getFromId(),
-                GroupEventCommand.GROUP_MSG_ACK,
-                result,messageContent
-        );
+        Result<ChatMessageAck> ackResult = result.isOk()
+                ? Result.ok(chatMessageAck)
+                : Result.fail(result.getCode(), result.getMsg());
+        ackResult.setData(chatMessageAck);
+        try {
+            retryWithBackoff(() -> {
+                messageProducer.sendToUser(messageContent.getFromId(),
+                        GroupEventCommand.GROUP_MSG_ACK,
+                        ackResult, messageContent);
+                return true;
+            }, "group-ack-" + messageContent.getMessageId(), 3, 100L);
+        } catch (Exception e) {
+            logger.error("Failed to send group ACK, msgId={}, fromId={}, error={}",
+                    messageContent.getMessageId(), messageContent.getFromId(), e.getMessage());
+        }
     }
 
     /**
-     * Sync message to sender's other online devices.
+     * Sync message to sender's other online devices with retry (max 2 attempts).
      */
     private void syncToSender(GroupChatMessageContent messageContent, ClientInfo clientInfo){
-        messageProducer.sendToUserExceptClient(messageContent.getFromId(),
-                GroupEventCommand.MSG_GROUP,messageContent,messageContent);
+        try {
+            retryWithBackoff(() -> {
+                messageProducer.sendToUserExceptClient(messageContent.getFromId(),
+                        GroupEventCommand.MSG_GROUP, messageContent, clientInfo);
+                return true;
+            }, "group-sync-" + messageContent.getMessageId(), 2, 100L);
+        } catch (Exception e) {
+            logger.error("Failed to sync group message to sender, msgId={}, error={}",
+                    messageContent.getMessageId(), e.getMessage());
+        }
     }
 
     /**
-     * Check sender permissions for group message.
+     * Send ACK, sync to sender's other devices and dispatch to all group members.
      *
-     * @param fromId  sender user ID
-     * @param toId    group ID
-     * @param appId   application ID
-     * @return check result
+     * @param messageContent the group message to handle
      */
-    private Result imServerPermissionCheck(String fromId, String toId,Integer appId){
-        Result result = checkSendMessageService
-                .checkGroupMessage(fromId, toId,appId);
-        return result;
+    private void ackAndDispatch(GroupChatMessageContent messageContent) {
+        ack(messageContent, Result.ok());
+        syncToSender(messageContent, messageContent);
+        dispatchMessage(messageContent);
     }
 
     /**
@@ -248,7 +277,7 @@ public class GroupMessageService {
      * @param messageContent the group message to validate
      * @return success if all checks pass, error code otherwise
      */
-    private Result validateGroupMessage(GroupChatMessageContent messageContent) {
+    private Result<Void> validateGroupMessage(GroupChatMessageContent messageContent) {
         // Check fromId is not empty
         if (StringUtils.isBlank(messageContent.getFromId())) {
             return Result.fail(MessageErrorCode.MESSAGE_FROMID_EMPTY);
@@ -285,7 +314,7 @@ public class GroupMessageService {
      * @param userId the sender user ID
      * @return success if within limit, error code if rate exceeded
      */
-    private Result checkRateLimit(String userId) {
+    private Result<Void> checkRateLimit(String userId) {
         int rateLimit = appConfig != null && appConfig.getMessageRateLimit() != null
                 ? appConfig.getMessageRateLimit() : 20;
         long now = System.nanoTime();

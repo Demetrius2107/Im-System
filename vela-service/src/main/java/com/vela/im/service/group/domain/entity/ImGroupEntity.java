@@ -20,9 +20,15 @@ import lombok.Data;
 @TableName("im_group")
 public class ImGroupEntity {
 
+    /**
+     * 群组ID
+     */
     @TableId(value = "group_id")
     private String groupId;
 
+    /**
+     *
+     */
     private Integer appId;
 
     //群主id

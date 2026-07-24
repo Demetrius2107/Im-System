@@ -74,6 +74,27 @@ public class MessageSyncService {
     /** Concurrent lock per messageKey to prevent concurrent recall operations */
     private final ConcurrentHashMap<Long, Object> recallLocks = new ConcurrentHashMap<>();
 
+    /**
+     * Simple retry with fixed delay for recall operations.
+     * Keeps lock-holding time short (2 attempts only).
+     */
+    private <T> T retryOnce(Runnable operation, String operationName, T fallback) {
+        try {
+            operation.run();
+            return null;
+        } catch (Exception e) {
+            logger.warn("{} failed, retrying once, error={}", operationName, e.getMessage());
+            try {
+                Thread.sleep(50L);
+                operation.run();
+                return null;
+            } catch (Exception e2) {
+                logger.error("{} retry also failed, error={}", operationName, e2.getMessage());
+                return fallback;
+            }
+        }
+    }
+
     public MessageSyncService(MessageProducer messageProducer,
                               ConversationService conversationService,
                               RedisTemplate<String, String> redisTemplate,
@@ -330,18 +351,24 @@ public class MessageSyncService {
 
                     long newMessageKey = SnowflakeIdWorker.nextId();
 
-                    // Insert recall notification into offline queues
-                    redisTemplate.opsForZSet().add(fromKey,JSONObject.toJSONString(offlineMessageContent),newMessageKey);
-                    redisTemplate.opsForZSet().add(toKey,JSONObject.toJSONString(offlineMessageContent),newMessageKey);
+                    // Insert recall notification into offline queues (with retry)
+                    retryOnce(() -> redisTemplate.opsForZSet().add(fromKey,
+                            JSONObject.toJSONString(offlineMessageContent), newMessageKey),
+                            "recall-zset-from-" + content.getMessageKey(), null);
+                    retryOnce(() -> redisTemplate.opsForZSet().add(toKey,
+                            JSONObject.toJSONString(offlineMessageContent), newMessageKey),
+                            "recall-zset-to-" + content.getMessageKey(), null);
 
                     // Send ACK to the recall initiator
-                    recallAck(pack,Result.ok(),content);
+                    recallAck(pack, Result.ok(), content);
                     // Sync to sender's other devices
-                    messageProducer.sendToUserExceptClient(content.getFromId(),
-                            MessageCommand.MSG_RECALL_NOTIFY,pack,content);
+                    retryOnce(() -> messageProducer.sendToUserExceptClient(content.getFromId(),
+                            MessageCommand.MSG_RECALL_NOTIFY, pack, content),
+                            "recall-notify-sender-" + content.getMessageKey(), null);
                     // Notify the receiver
-                    messageProducer.sendToUser(content.getToId(),MessageCommand.MSG_RECALL_NOTIFY,
-                            pack,content.getAppId());
+                    retryOnce(() -> messageProducer.sendToUser(content.getToId(),
+                            MessageCommand.MSG_RECALL_NOTIFY, pack, content.getAppId()),
+                            "recall-notify-receiver-" + content.getMessageKey(), null);
                 }else{
                     List<String> groupMemberId = imGroupMemberService.getGroupMemberId(content.getToId(), content.getAppId());
                     long seq = redisSeq.doGetSeq(content.getAppId() + ":" + Constants.SeqConstants.Message + ":" + ConversationIdGenerate.generateP2PId(content.getFromId(),content.getToId()));
@@ -360,9 +387,13 @@ public class MessageSyncService {
                                 ,content.getFromId(),content.getToId()));
                         offlineMessageContent.setMessageBody(body.getMessageBody());
                         offlineMessageContent.setMessageSequence(seq);
-                        redisTemplate.opsForZSet().add(toKey,JSONObject.toJSONString(offlineMessageContent),seq);
+                        retryOnce(() -> redisTemplate.opsForZSet().add(toKey,
+                                JSONObject.toJSONString(offlineMessageContent), seq),
+                                "recall-group-zset-" + memberId, null);
 
-                        groupMessageProducer.producer(content.getFromId(), MessageCommand.MSG_RECALL_NOTIFY, pack,content);
+                        retryOnce(() -> groupMessageProducer.producer(content.getFromId(),
+                                        MessageCommand.MSG_RECALL_NOTIFY, pack, content),
+                                "recall-group-notify-" + memberId, null);
                     }
                 }
             } finally {

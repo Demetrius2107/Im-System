@@ -67,15 +67,12 @@ public class MessageStoreService {
      * @return 消息后置处理器
      */
     private MessagePostProcessor buildTracePostProcessor() {
-        return new MessagePostProcessor() {
-            @Override
-            public Message postProcessMessage(Message message) throws AmqpException {
-                String traceId = TraceIdContext.get();
-                if (traceId != null && !traceId.isEmpty()) {
-                    message.getMessageProperties().setHeader(Constants.TraceId.MQ_HEADER_NAME, traceId);
-                }
-                return message;
+        return message -> {
+            String traceId = TraceIdContext.get();
+            if (traceId != null && !traceId.isEmpty()) {
+                message.getMessageProperties().setHeader(Constants.TraceId.MQ_HEADER_NAME, traceId);
             }
+            return message;
         };
     }
 
@@ -255,6 +252,7 @@ public class MessageStoreService {
 
     /**
      * 缓存消息内容到 Redis（防重），TTL 300 秒
+     * <p>Redis 操作失败时自动重试 2 次，重试耗尽仍失败则仅记录警告（缓存丢失不影响业务正确性）。</p>
      *
      * @param appId     应用ID
      * @param messageId 消息ID
@@ -263,7 +261,25 @@ public class MessageStoreService {
     public void setMessageFromMessageIdCache(Integer appId, String messageId, Object messageContent){
         //appid : cache : messageId
         String key =appId + ":" + Constants.RedisConstants.cacheMessage + ":" + messageId;
-        stringRedisTemplate.opsForValue().set(key,JSONObject.toJSONString(messageContent),300, TimeUnit.SECONDS);
+        for (int retry = 0; retry < 2; retry++) {
+            try {
+                stringRedisTemplate.opsForValue().set(key, JSONObject.toJSONString(messageContent), 300, TimeUnit.SECONDS);
+                return;
+            } catch (Exception e) {
+                logger.warn("setMessageFromMessageIdCache failed (attempt {}/2), messageId={}, error={}",
+                        retry + 1, messageId, e.getMessage());
+                if (retry == 1) {
+                    logger.error("setMessageFromMessageIdCache exhausted, messageId={}", messageId);
+                    return;
+                }
+                try {
+                    Thread.sleep(100L);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+        }
     }
 
     /**
