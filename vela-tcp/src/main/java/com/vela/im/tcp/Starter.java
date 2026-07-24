@@ -66,9 +66,9 @@ public class Starter {
         }
 
         // 校验配置
-        BootStrapConfig.TcpConfig tcpConfig = bootStrapConfig.getLim();
+        BootStrapConfig.TcpConfig tcpConfig = bootStrapConfig.getServerConfig();
         if (tcpConfig == null) {
-            log.error("Config missing: 'lim' section is required");
+            log.error("Config missing: 'serverConfig' section is required");
             System.exit(500);
             return;
         }
@@ -101,10 +101,10 @@ public class Starter {
     private static void registerZK(BootStrapConfig config) {
         try {
             String hostAddress = InetAddress.getLocalHost().getHostAddress();
-            ZkClient zkClient = new ZkClient(config.getLim().getZkConfig().getZkAddr(),
-                    config.getLim().getZkConfig().getZkConnectTimeOut());
+            ZkClient zkClient = new ZkClient(config.getServerConfig().getZkConfig().getZkAddr(),
+                    config.getServerConfig().getZkConfig().getZkConnectTimeOut());
             Zkit zkit = new Zkit(zkClient);
-            RegistryZK registryZK = new RegistryZK(zkit, hostAddress, config.getLim());
+            RegistryZK registryZK = new RegistryZK(zkit, hostAddress, config.getServerConfig());
             Thread thread = new Thread(registryZK, "zk-registry");
             thread.start();
             log.info("ZooKeeper registration started, addr: {}", hostAddress);

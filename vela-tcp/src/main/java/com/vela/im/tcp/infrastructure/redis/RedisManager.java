@@ -31,9 +31,9 @@ public class RedisManager {
      * @param config 启动配置
      */
     public static void init(BootStrapConfig config){
-        loginModel = config.getLim().getLoginModel();
+        loginModel = config.getServerConfig().getLoginModel();
         SingleClientStrategy singleClientStrategy = new SingleClientStrategy();
-        redissonClient = singleClientStrategy.getRedissonClient(config.getLim().getRedis());
+        redissonClient = singleClientStrategy.getRedissonClient(config.getServerConfig().getRedis());
         UserLoginMessageListener userLoginMessageListener = new UserLoginMessageListener(loginModel);
         userLoginMessageListener.listenerUserLogin();
     }

@@ -23,7 +23,7 @@ public class BootStrapConfig {
     /**
      * TCP/WebSocket 及中间件连接配置
      */
-    private TcpConfig lim;
+    private TcpConfig serverConfig;
 
 
     /**

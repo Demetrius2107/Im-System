@@ -2,7 +2,7 @@
 # Vela IM — vela-tcp Docker Config
 # Docker 环境下使用 Docker 服务名替代 localhost
 # =============================================================================
-lim:
+serverConfig:
   tcpPort: ${LIM_TCP_PORT:-9000}
   webSocketPort: ${LIM_WEBSOCKET_PORT:-19000}
   bossThreadSize: 1
