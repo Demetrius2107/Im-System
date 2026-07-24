@@ -12,15 +12,15 @@ import io.netty.buffer.ByteBuf;
  * <p>项目名称: IM-System</p>
  *
  * @author wanqiu
- * @since 1.0
  * @createTime 2025-03-03
  * @updateTime 2026-07-19
- *
+ * <p>
  * Copyright © 2026 wanqiu All rights reserved
+ * @since 1.0
  */
 public class ByteBufToMessageUtils {
 
-    public static Message transition(ByteBuf in){
+    public static Message transition(ByteBuf in) {
 
         /** 获取command*/
         int command = in.readInt();
@@ -43,16 +43,16 @@ public class ByteBufToMessageUtils {
         /** 获取bodyLen*/
         int bodyLen = in.readInt();
 
-        if(in.readableBytes() < bodyLen + imeiLength){
+        if (in.readableBytes() < bodyLen + imeiLength) {
             in.resetReaderIndex();
             return null;
         }
 
-        byte [] imeiData = new byte[imeiLength];
+        byte[] imeiData = new byte[imeiLength];
         in.readBytes(imeiData);
         String imei = new String(imeiData);
 
-        byte [] bodyData = new byte[bodyLen];
+        byte[] bodyData = new byte[bodyLen];
         in.readBytes(bodyData);
 
 
@@ -68,7 +68,7 @@ public class ByteBufToMessageUtils {
         Message message = new Message();
         message.setMessageHeader(messageHeader);
 
-        if(messageType == 0x0){
+        if (messageType == 0x0) {
             String body = new String(bodyData);
             JSONObject parse = (JSONObject) JSONObject.parse(body);
             message.setMessagePackage(parse);

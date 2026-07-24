@@ -71,17 +71,17 @@ public class BootStrapConfig {
         /**
          * Redis 连接配置
          */
-        private RedisConfig redis;
+        private RedisConfig redisConfig;
 
         /**
          * RabbitMQ 连接配置
          */
-        private Rabbitmq rabbitmq;
+        private RabbitMqConfig rabbitmqConfig;
 
         /**
          * ZooKeeper 连接配置
          */
-        private ZkConfig zkConfig;
+        private ZookeeperConfig zookeeperConfig;
 
         /**
          * 当前 Broker 节点 ID
@@ -96,14 +96,14 @@ public class BootStrapConfig {
     }
 
     @Data
-    public static class ZkConfig {
+    public static class ZookeeperConfig {
         /**
-         * zk连接地址
+         * ZooKeeper 连接地址
          */
         private String zkAddr;
 
         /**
-         * zk连接超时时间
+         * ZooKeeper 连接超时时间
          */
         private Integer zkConnectTimeOut;
     }
@@ -165,14 +165,14 @@ public class BootStrapConfig {
     }
 
     /**
-     * <p>Title: Rabbitmq</p>
+     * <p>Title: RabbitMqConfig</p>
      * <p>Description: RabbitMQ 连接配置。</p>
      */
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class Rabbitmq {
+    public static class RabbitMqConfig {
 
         /**
          * RabbitMQ 服务主机地址

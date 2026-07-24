@@ -65,16 +65,16 @@ public class MqFactory {
     /**
      * 初始化 MQ 连接工厂，配置 RabbitMQ 连接参数
      *
-     * @param rabbitmq RabbitMQ配置
+     * @param rabbitMqConfig RabbitMQ配置
      */
-    public static void init(BootStrapConfig.Rabbitmq rabbitmq) {
+    public static void init(BootStrapConfig.RabbitMqConfig rabbitMqConfig) {
         if (factory == null) {
             factory = new ConnectionFactory();
-            factory.setHost(rabbitmq.getHost());
-            factory.setPort(rabbitmq.getPort());
-            factory.setUsername(rabbitmq.getUserName());
-            factory.setPassword(rabbitmq.getPassword());
-            factory.setVirtualHost(rabbitmq.getVirtualHost());
+            factory.setHost(rabbitMqConfig.getHost());
+            factory.setPort(rabbitMqConfig.getPort());
+            factory.setUsername(rabbitMqConfig.getUserName());
+            factory.setPassword(rabbitMqConfig.getPassword());
+            factory.setVirtualHost(rabbitMqConfig.getVirtualHost());
         }
     }
 

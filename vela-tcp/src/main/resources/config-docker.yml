@@ -12,7 +12,7 @@ serverConfig:
   loginModel: 3
   logicUrl: ${LIM_LOGIC_URL:-http://vela-service:8000/v1}
 
-  redis:
+  redisConfig:
     mode: single
     database: 0
     password:
@@ -23,13 +23,13 @@ serverConfig:
     single:
       address: ${LIM_REDIS_ADDRESS:-redis:6379}
 
-  rabbitmq:
+  rabbitMqConfig:
     host: ${LIM_RABBITMQ_HOST:-rabbitmq}
     port: ${LIM_RABBITMQ_PORT:-5672}
     virtualHost: /
     userName: ${LIM_RABBITMQ_USER:-guest}
     password: ${LIM_RABBITMQ_PASS:-guest}
 
-  zkConfig:
+  zookeeperConfig:
     zkAddr: ${LIM_ZK_ADDR:-zookeeper:2181}
     zkConnectTimeOut: 5000

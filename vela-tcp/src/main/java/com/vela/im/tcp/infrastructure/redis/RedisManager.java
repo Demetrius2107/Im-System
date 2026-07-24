@@ -33,7 +33,7 @@ public class RedisManager {
     public static void init(BootStrapConfig config){
         loginModel = config.getServerConfig().getLoginModel();
         SingleClientStrategy singleClientStrategy = new SingleClientStrategy();
-        redissonClient = singleClientStrategy.getRedissonClient(config.getServerConfig().getRedis());
+        redissonClient = singleClientStrategy.getRedissonClient(config.getServerConfig().getRedisConfig());
         UserLoginMessageListener userLoginMessageListener = new UserLoginMessageListener(loginModel);
         userLoginMessageListener.listenerUserLogin();
     }
