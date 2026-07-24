@@ -1,0 +1,35 @@
+# =============================================================================
+# Vela IM — vela-tcp Docker Config
+# Docker 环境下使用 Docker 服务名替代 localhost
+# =============================================================================
+lim:
+  tcpPort: ${LIM_TCP_PORT:-9000}
+  webSocketPort: ${LIM_WEBSOCKET_PORT:-19000}
+  bossThreadSize: 1
+  workThreadSize: 8
+  heartBeatTime: 20000
+  brokerId: ${LIM_BROKER_ID:-1000}
+  loginModel: 3
+  logicUrl: ${LIM_LOGIC_URL:-http://vela-service:8000/v1}
+
+  redis:
+    mode: single
+    database: 0
+    password:
+    timeout: 3000
+    poolMinIdle: 8
+    poolConnTimeout: 3000
+    poolSize: 10
+    single:
+      address: ${LIM_REDIS_ADDRESS:-redis:6379}
+
+  rabbitmq:
+    host: ${LIM_RABBITMQ_HOST:-rabbitmq}
+    port: ${LIM_RABBITMQ_PORT:-5672}
+    virtualHost: /
+    userName: ${LIM_RABBITMQ_USER:-guest}
+    password: ${LIM_RABBITMQ_PASS:-guest}
+
+  zkConfig:
+    zkAddr: ${LIM_ZK_ADDR:-zookeeper:2181}
+    zkConnectTimeOut: 5000

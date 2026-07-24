@@ -1,0 +1,199 @@
+# =============================================================================
+# Vela IM — Docker Compose 配置
+# 一键启动：MySQL + Redis + RabbitMQ + ZooKeeper + 三个业务服务
+# =============================================================================
+# 使用方式：
+#   docker-compose up -d                    # 后台启动全部
+#   docker-compose up -d vela-service        # 只启动某个服务
+#   docker-compose logs -f vela-service      # 查看日志
+#   docker-compose down                      # 停止全部
+# =============================================================================
+
+version: "3.8"
+
+services:
+
+  # ==================== 中间件 ====================
+
+  mysql:
+    image: mysql:5.7
+    container_name: vela-mysql
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: im-core
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docs/MySQL/im-core-study.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./docs/MySQL/im-core-send.sql:/docker-entrypoint-initdb.d/02-data.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:6.2
+    container_name: vela-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3.8-management
+    container_name: vela-rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"   # 管理控制台
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  zookeeper:
+    image: zookeeper:3.6
+    container_name: vela-zk
+    restart: always
+    ports:
+      - "2181:2181"
+    environment:
+      ZOO_MY_ID: 1
+    volumes:
+      - zk-data:/data
+      - zk-datalog:/datalog
+    healthcheck:
+      test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==================== 业务服务 ====================
+
+  vela-service:
+    build:
+      context: .
+      dockerfile: vela-service/Dockerfile
+    container_name: vela-service
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      zookeeper:
+        condition: service_healthy
+    environment:
+      # MySQL
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/im-core?serverTimezone=Asia/Shanghai&useSSL=false&characterEncoding=UTF8&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      # Redis
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      # RabbitMQ
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+      # ZooKeeper
+      APP_CONFIG_ZKADDR: zookeeper:2181
+      # 其他
+      APP_CONFIG_APPID: 10000
+      SERVER_PORT: 8000
+
+  vela-message-store:
+    build:
+      context: .
+      dockerfile: vela-message-store/Dockerfile
+    container_name: vela-message-store
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      zookeeper:
+        condition: service_healthy
+    environment:
+      # MySQL
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/im-core?serverTimezone=Asia/Shanghai&useSSL=false&characterEncoding=UTF8&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      # Redis
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      # RabbitMQ
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+
+  vela-tcp:
+    build:
+      context: .
+      dockerfile: vela-tcp/Dockerfile
+    container_name: vela-tcp
+    restart: always
+    ports:
+      - "9000:9000"     # TCP
+      - "19000:19000"   # WebSocket
+    depends_on:
+      vela-service:
+        condition: service_started
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      zookeeper:
+        condition: service_healthy
+    environment:
+      # TCP 网关使用自定义配置（config.yml），这些环境变量通过
+      # 自定义的 config.yml 中的 ${...} 占位符来引用。
+      # 详见 vela-tcp/src/main/resources/config.yml
+      LIM_TCPPORT: 9000
+      LIM_WEBSOCKETPORT: 19000
+      LIM_BROKERID: 1000
+      LIM_LOGINMODEL: 3
+      LIM_LOGICURL: http://vela-service:8000/v1
+      LIM_REDIS_SINGLE_ADDRESS: redis:6379
+      LIM_RABBITMQ_HOST: rabbitmq
+      LIM_RABBITMQ_PORT: 5672
+      LIM_RABBITMQ_USERNAME: guest
+      LIM_RABBITMQ_PASSWORD: guest
+      LIM_ZKCONFIG_ZKADDR: zookeeper:2181
+    volumes:
+      # 挂载 Docker 专用配置覆盖
+      - ./vela-tcp/src/main/resources/config-docker.yml:/app/config.yml
+
+# ==================== 持久化卷 ====================
+
+volumes:
+  mysql-data:
+  redis-data:
+  rabbitmq-data:
+  zk-data:
+  zk-datalog:
