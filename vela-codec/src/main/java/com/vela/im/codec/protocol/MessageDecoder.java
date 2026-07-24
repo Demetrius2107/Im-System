@@ -35,7 +35,7 @@ public class MessageDecoder extends ByteToMessageDecoder {
             return;
         }
 
-        Message message = ByteBufToMessageUtils.transition(in);
+        Message message = ByteBufToMessageUtils.decode(in);
         if(message == null){
             return;
         }
