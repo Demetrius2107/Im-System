@@ -15,9 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.HashMap;
 import java.util.Map;
 
-import java.io.IOException;
-import java.util.concurrent.TimeoutException;
-
 /**
  * <p>Title: MqMessageProducer</p>
  * <p>Description: MQ 消息生产者，网关层将消息投递到逻辑层对应的 RabbitMQ 队列</p>
@@ -36,83 +33,124 @@ public class MqMessageProducer {
 
     /**
      * 发送 Message 消息到 MQ，根据 command 类型路由到对应的服务队列
+     * <p>MQ 发布失败时自动重试 3 次（指数退避），重试耗尽仍失败则记录错误但不抛出异常（不阻断网关）。</p>
      *
      * @param message 消息体
      * @param command 指令类型
      */
     public static void sendMessage(Message message ,Integer command){
-        Channel channel = null;
-        String com = command.toString();
-        String commandSub = com.substring(0,1);
-        CommandType commandType = CommandType.getCommandType(commandSub);
-        String channelName = "";
-        if(commandType == CommandType.MESSAGE){
-            channelName = Constants.RabbitConstants.Im2MessageService;
-        } else if (commandType == CommandType.GROUP){
-            channelName = Constants.RabbitConstants.Im2GroupService;
-        } else if(commandType == CommandType.FRIEND){
-            channelName = Constants.RabbitConstants.Im2FriendshipService;
-        } else if(commandType == CommandType.USER){
-            channelName = Constants.RabbitConstants.Im2UserService;
+        String channelName = resolveChannelName(command);
+        if (channelName == null || channelName.isEmpty()) {
+            log.warn("Unknown command type for MQ routing, command={}", command);
+            return;
         }
 
-        try{
-            channel = MqFactory.getChannel(channelName);
-
-            JSONObject o = (JSONObject) JSON.toJSON(message.getMessagePack());
+        byte[] body;
+        try {
+            JSONObject o = (JSONObject) JSON.toJSON(message.getMessagePackage());
             o.put("command",command);
             o.put("clientType",message.getMessageHeader().getClientType());
             o.put("imei",message.getMessageHeader().getImei());
             o.put("appId",message.getMessageHeader().getAppId());
-            channel.basicPublish(channelName,"",
-                    buildTraceProperties(),o.toJSONString().getBytes());
-
-        } catch (IOException e) {
-            log.error("发送消息出现异常:{}",e.getMessage());
-            throw new RuntimeException(e);
-        } catch (TimeoutException e) {
-            log.error("发送消息出现异常:{}",e.getMessage());
-            throw new RuntimeException(e);
+            body = o.toJSONString().getBytes();
+        } catch (Exception e) {
+            log.error("Failed to serialize MQ message body, command={}, error={}", command, e.getMessage());
+            return;
         }
 
+        publishWithRetry(channelName, body, "sendMessage-" + command, 3, 100L);
     }
 
     /**
      * 发送消息体与消息头到 MQ，根据 command 类型路由到对应的服务队列
+     * <p>MQ 发布失败时自动重试 3 次（指数退避），重试耗尽仍失败则记录错误但不抛出异常（不阻断网关）。</p>
      *
      * @param message 消息体对象
      * @param header  消息头
      * @param command 指令类型
      */
     public static void sendMessage(Object message, MessageHeader header, Integer command){
-        Channel channel = null;
-        String com = command.toString();
-        String commandSub = com.substring(0, 1);
-        CommandType commandType = CommandType.getCommandType(commandSub);
-        String channelName = "";
-        if(commandType == CommandType.MESSAGE){
-            channelName = Constants.RabbitConstants.Im2MessageService;
-        }else if(commandType == CommandType.GROUP){
-            channelName = Constants.RabbitConstants.Im2GroupService;
-        }else if(commandType == CommandType.FRIEND){
-            channelName = Constants.RabbitConstants.Im2FriendshipService;
-        }else if(commandType == CommandType.USER){
-            channelName = Constants.RabbitConstants.Im2UserService;
+        String channelName = resolveChannelName(command);
+        if (channelName == null || channelName.isEmpty()) {
+            log.warn("Unknown command type for MQ routing, command={}", command);
+            return;
         }
 
+        byte[] body;
         try {
-            channel = MqFactory.getChannel(channelName);
-
             JSONObject o = (JSONObject) JSON.toJSON(message);
             o.put("command",command);
             o.put("clientType",header.getClientType());
             o.put("imei",header.getImei());
             o.put("appId",header.getAppId());
-            channel.basicPublish(channelName,"",
-                    buildTraceProperties(), o.toJSONString().getBytes());
-        }catch (Exception e){
-            log.error("发送消息出现异常：{}",e.getMessage());
+            body = o.toJSONString().getBytes();
+        } catch (Exception e) {
+            log.error("Failed to serialize MQ message body, command={}, error={}", command, e.getMessage());
+            return;
         }
+
+        publishWithRetry(channelName, body, "sendMessage2-" + command, 3, 100L);
+    }
+
+    /**
+     * Publish message to MQ with retry (exponential backoff).
+     *
+     * @param channelName  MQ channel/queue name
+     * @param body         serialized message body
+     * @param operationName name for logging
+     * @param maxRetries   max retry attempts
+     * @param baseDelayMs  initial delay in ms
+     */
+    private static void publishWithRetry(String channelName, byte[] body, String operationName,
+                                          int maxRetries, long baseDelayMs) {
+        for (int i = 0; i < maxRetries; i++) {
+            Channel channel = null;
+            try {
+                channel = MqFactory.getChannel(channelName);
+                AMQP.BasicProperties props = buildTraceProperties();
+                channel.basicPublish(channelName, "", props, body);
+                return; // Success
+            } catch (Exception e) {
+                log.warn("MQ publish failed (attempt {}/{}), channel={}, error={}",
+                        i + 1, maxRetries, channelName, e.getMessage());
+                if (i == maxRetries - 1) {
+                    log.error("MQ publish retries exhausted after {} attempts, channel={}, operation={}",
+                            maxRetries, channelName, operationName);
+                    // Do NOT throw — gateway should not crash due to MQ unavailability
+                    return;
+                }
+                try {
+                    long delay = baseDelayMs * (1L << i);
+                    Thread.sleep(delay);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    log.warn("MQ publish retry interrupted, channel={}", channelName);
+                    return;
+                }
+            }
+        }
+    }
+
+    /**
+     * Resolve MQ channel/queue name from command type.
+     *
+     * @param command the command code
+     * @return channel name, or empty if unknown
+     */
+    private static String resolveChannelName(Integer command) {
+        String com = command.toString();
+        String commandSub = com.substring(0, 1);
+        CommandType commandType = CommandType.getCommandType(commandSub);
+        if (commandType == CommandType.MESSAGE) {
+            return Constants.RabbitConstants.Im2MessageService;
+        } else if (commandType == CommandType.GROUP) {
+            return Constants.RabbitConstants.Im2GroupService;
+        } else if (commandType == CommandType.FRIEND) {
+            return Constants.RabbitConstants.Im2FriendshipService;
+        } else if (commandType == CommandType.USER) {
+            return Constants.RabbitConstants.Im2UserService;
+        }
+        return "";
     }
 
     /**

@@ -6,11 +6,13 @@ import com.alibaba.fastjson.TypeReference;
 import com.vela.im.shared.base.Result;
 import com.vela.im.shared.constants.Constants;
 import com.vela.im.shared.types.enums.ImConnectStatusEnum;
+import com.vela.im.shared.types.enums.MessageErrorCode;
 import com.vela.im.shared.types.enums.command.GroupEventCommand;
 import com.vela.im.shared.types.enums.command.MessageCommand;
 import com.vela.im.shared.types.enums.command.SystemCommand;
 import com.vela.im.shared.types.enums.command.UserEventCommand;
 import com.vela.im.tcp.interfaces.fegin.FeignMessageService;
+import com.vela.im.tcp.interfaces.fegin.TraceIdFeignInterceptor;
 import com.vela.im.shared.types.UserClientDto;
 import com.vela.im.shared.types.UserSession;
 import com.vela.im.shared.types.message.CheckSendMessageReq;
@@ -45,23 +47,28 @@ import java.net.InetAddress;
  * <p>项目名称: Vellastra</p>
  *
  * @author wanqiu
- * @since 1.1
  * @createTime 2025-03-05
  * @updateTime 2026-07-19
- *
+ * <p>
  * Copyright © 2026 wanqiu All rights reserved
- 
+ * @since 1.1
  */
 @Slf4j
 public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
 
-    /** 当前 Broker ID */
+    /**
+     * 当前 Broker ID
+     */
     private final Integer brokerId;
 
-    /** 逻辑层服务 URL */
+    /**
+     * 逻辑层服务 URL
+     */
     private final String logicUrl;
 
-    /** Feign 远程调用服务 */
+    /**
+     * Feign 远程调用服务
+     */
     private final FeignMessageService feignMessageService;
 
     /**
@@ -70,7 +77,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
      * @param brokerId 当前 Broker ID
      * @param logicUrl 逻辑层服务 URL
      */
-    public NettyServerHandler(Integer brokerId,String logicUrl) {
+    public NettyServerHandler(Integer brokerId, String logicUrl) {
         this.brokerId = brokerId;
         this.logicUrl = logicUrl;
         feignMessageService = Feign.builder()
@@ -104,8 +111,8 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
         Integer command = msg.getMessageHeader().getCommand();
 
         // 登录command
-        if(command == SystemCommand.LOGIN.getCommand()){
-            LoginPack loginPack = JSON.parseObject(JSONObject.toJSONString(msg.getMessagePack()),
+        if (command == SystemCommand.LOGIN.getCommand()) {
+            LoginPack loginPack = JSON.parseObject(JSONObject.toJSONString(msg.getMessagePackage()),
                     new TypeReference<LoginPack>() {
                     }.getType());
             /** 登陆事件 **/
@@ -134,26 +141,23 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
             try {
                 InetAddress localHost = InetAddress.getLocalHost();
                 userSession.setBrokerHost(localHost.getHostAddress());
-            }catch (Exception e){
+            } catch (Exception e) {
                 log.error("Failed to get local host address", e);
             }
 
             RedissonClient redissonClient = RedisManager.getRedissonClient();
 
-            RMap<String, String> map = redissonClient
-                    .getMap(msg.getMessageHeader().getAppId()
-                            + Constants.RedisConstants.UserSessionConstants + loginPack.getUserId());
-            map.put(msg.getMessageHeader().getClientType()+":" + msg.getMessageHeader().getImei()
-                    ,JSONObject.toJSONString(userSession));
+            RMap<String, String> map = redissonClient.getMap(msg.getMessageHeader().getAppId()
+                    + Constants.RedisConstants.UserSessionConstants + loginPack.getUserId());
+            map.put(msg.getMessageHeader().getClientType()
+                            + ":"
+                            + msg.getMessageHeader().getImei()
+                    , JSONObject.toJSONString(userSession));
             // Session 存入Redis
             SessionSocketHolder
-                    .put(msg.getMessageHeader().
-                                    getAppId()
-                            ,loginPack.getUserId(),
-                            msg.getMessageHeader()
-                                    .getClientType(),
-                            msg.getMessageHeader()
-                                    .getImei(),(NioSocketChannel) ctx.channel());
+                    .put(msg.getMessageHeader().getAppId(), loginPack.getUserId(),
+                            msg.getMessageHeader().getClientType(),
+                            msg.getMessageHeader().getImei(), (NioSocketChannel) ctx.channel());
 
             // 广播用户上线通知
             UserClientDto dto = new UserClientDto();
@@ -168,7 +172,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
             userStatusChangeNotifyPack.setAppId(msg.getMessageHeader().getAppId());
             userStatusChangeNotifyPack.setUserId(loginPack.getUserId());
             userStatusChangeNotifyPack.setStatus(ImConnectStatusEnum.ONLINE_STATUS.getCode());
-            MqMessageProducer.sendMessage(userStatusChangeNotifyPack,msg.getMessageHeader(), UserEventCommand.USER_ONLINE_STATUS_CHANGE.getCommand());
+            MqMessageProducer.sendMessage(userStatusChangeNotifyPack, msg.getMessageHeader(), UserEventCommand.USER_ONLINE_STATUS_CHANGE.getCommand());
 
             // 返回登录成功响应
             MessagePack<LoginAckPack> loginSuccess = new MessagePack<>();
@@ -181,39 +185,61 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
             ctx.channel().writeAndFlush(loginSuccess);
         }
         // 登出command
-        else if(command == SystemCommand.LOGOUT.getCommand()){
+        else if (command == SystemCommand.LOGOUT.getCommand()) {
             SessionSocketHolder.removeUserSession((NioSocketChannel) ctx.channel());
         }
         // ping Command
-        else if(command == SystemCommand.PING.getCommand()){
+        else if (command == SystemCommand.PING.getCommand()) {
             ctx.channel()
                     .attr(AttributeKey.valueOf(Constants.ReadTime)).set(System.currentTimeMillis());
-        }else if(command == MessageCommand.MSG_P2P.getCommand()
-                || command == GroupEventCommand.MSG_GROUP.getCommand()){
+        } else if (command == MessageCommand.MSG_P2P.getCommand()
+                || command == GroupEventCommand.MSG_GROUP.getCommand()) {
             // 私聊/群聊消息：校验发送权限后投递到 MQ
             try {
                 String toId = "";
                 CheckSendMessageReq req = new CheckSendMessageReq();
                 req.setAppId(msg.getMessageHeader().getAppId());
                 req.setCommand(msg.getMessageHeader().getCommand());
-                JSONObject jsonObject = JSON.parseObject(JSONObject.toJSONString(msg.getMessagePack()));
+                JSONObject jsonObject = JSON.parseObject(JSONObject.toJSONString(msg.getMessagePackage()));
                 String fromId = jsonObject.getString("fromId");
-                if(command == MessageCommand.MSG_P2P.getCommand()){
+                if (command == MessageCommand.MSG_P2P.getCommand()) {
                     toId = jsonObject.getString("toId");
-                }else {
+                } else {
                     toId = jsonObject.getString("groupId");
                 }
                 req.setToId(toId);
                 req.setFromId(fromId);
 
-                Result responseVO = feignMessageService.checkSendMessage(req);
-                if(responseVO.isOk()){
-                    MqMessageProducer.sendMessage(msg,command);
-                }else{
+                Result responseVO = null;
+                // Retry Feign call up to 2 times with backoff on transient failures
+                for (int retry = 0; retry < 2; retry++) {
+                    try {
+                        responseVO = feignMessageService.checkSendMessage(req);
+                        break;
+                    } catch (Exception e) {
+                        log.warn("Feign checkSendMessage failed (attempt {}/2), fromId={}, error={}",
+                                retry + 1, fromId, e.getMessage());
+                        if (retry == 1) {
+                            // Last attempt failed — produce a server-error ACK
+                            responseVO = Result.fail(MessageErrorCode.MESSAGE_SEND_FAILED);
+                            break;
+                        }
+                        try {
+                            Thread.sleep(200L);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            responseVO = Result.fail(MessageErrorCode.MESSAGE_SEND_FAILED);
+                            break;
+                        }
+                    }
+                }
+                if (responseVO.isOk()) {
+                    MqMessageProducer.sendMessage(msg, command);
+                } else {
                     Integer ackCommand = 0;
-                    if(command == MessageCommand.MSG_P2P.getCommand()){
+                    if (command == MessageCommand.MSG_P2P.getCommand()) {
                         ackCommand = MessageCommand.MSG_ACK.getCommand();
-                    }else {
+                    } else {
                         ackCommand = GroupEventCommand.GROUP_MSG_ACK.getCommand();
                     }
 
@@ -224,11 +250,11 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<Message> {
                     ack.setCommand(ackCommand);
                     ctx.channel().writeAndFlush(ack);
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 log.error("Failed to process message", e);
             }
-        }else {
-            MqMessageProducer.sendMessage(msg,command);
+        } else {
+            MqMessageProducer.sendMessage(msg, command);
         }
     }
 
