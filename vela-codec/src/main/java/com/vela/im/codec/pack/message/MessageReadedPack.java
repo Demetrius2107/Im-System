@@ -17,13 +17,28 @@ import lombok.Data;
 @Data
 public class MessageReadedPack {
 
+    /**
+     * 消息序列号
+     */
     private long messageSequence;
 
+    /**
+     * 发送方用户ID
+     */
     private String fromId;
 
+    /**
+     * 群组ID（群聊已读时使用）
+     */
     private String groupId;
 
+    /**
+     * 接收方用户ID
+     */
     private String toId;
 
+    /**
+     * 会话类型：1-单聊 2-群聊
+     */
     private Integer conversationType;
 }

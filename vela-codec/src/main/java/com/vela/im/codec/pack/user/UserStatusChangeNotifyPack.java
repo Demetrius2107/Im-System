@@ -21,12 +21,24 @@ import java.util.List;
 @Data
 public class UserStatusChangeNotifyPack {
 
+    /**
+     * 应用ID
+     */
     private Integer appId;
 
+    /**
+     * 用户ID
+     */
     private String userId;
 
+    /**
+     * 在线状态：1-在线 2-离线
+     */
     private Integer status;
 
+    /**
+     * 用户当前在线端列表
+     */
     private List<UserSession> client;
 
 }
