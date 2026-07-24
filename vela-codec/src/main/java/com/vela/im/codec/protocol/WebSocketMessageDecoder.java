@@ -37,7 +37,7 @@ public class WebSocketMessageDecoder extends MessageToMessageDecoder<BinaryWebSo
         if (content.readableBytes() < 28) {
             return;
         }
-        Message message = ByteBufToMessageUtils.transition(content);
+        Message message = ByteBufToMessageUtils.decode(content);
         if(message == null){
             return;
         }

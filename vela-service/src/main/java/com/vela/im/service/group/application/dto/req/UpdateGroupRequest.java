@@ -1,0 +1,44 @@
+package com.vela.im.service.group.application.dto.req;
+
+import com.vela.im.shared.types.RequestBase;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+import javax.validation.constraints.NotBlank;
+
+/**
+ * <p>Title: </p>
+ * <p>Description: </p>
+ * <p>项目名称: IM-System</p>
+ *
+ * @author wanqiu
+ * @since 1.0
+ * @createTime 2025-03-06
+ * @updateTime 2026-07-19
+ *
+ * Copyright © 2026 wanqiu All rights reserved
+ */
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class UpdateGroupRequest extends RequestBase {
+
+    @NotBlank(message = "群id不能为空")
+    private String groupId;
+
+    private String groupName;
+
+    private Integer mute;// 是否全员禁言，0 不禁言；1 全员禁言。
+
+    private Integer applyJoinType;//加入群权限，0 所有人可以加入；1 群成员可以拉人；2 群管理员或群组可以拉人。
+
+    private String introduction;//群简介
+
+    private String notification;//群公告
+
+    private String photo;//群头像
+
+    private Integer maxMemberCount;//群成员上限
+
+    private String extra;
+
+}

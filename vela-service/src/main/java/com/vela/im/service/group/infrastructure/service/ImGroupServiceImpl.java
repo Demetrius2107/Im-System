@@ -34,7 +34,6 @@ import com.vela.im.codec.pack.group.DestroyGroupPack;
 import com.vela.im.codec.pack.group.UpdateGroupInfoPack;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -81,7 +80,7 @@ public class ImGroupServiceImpl implements ImGroupService {
     }
 
     @Override
-    public Result importGroup(ImportGroupReq req) {
+    public Result importGroup(ImportGroupRequest req) {
 
         //1.判断群id是否存在
         QueryWrapper<ImGroupEntity> query = new QueryWrapper<>();
@@ -119,7 +118,7 @@ public class ImGroupServiceImpl implements ImGroupService {
 
     @Override
     @Transactional
-    public Result createGroup(CreateGroupReq req) {
+    public Result createGroup(CreateGroupRequest req) {
 
         boolean isAdmin = false;
 
@@ -160,7 +159,7 @@ public class ImGroupServiceImpl implements ImGroupService {
         groupMemberService.addGroupMember(req.getGroupId(), req.getAppId(), groupMemberDto);
 
         //插入群成员
-        for (GroupMemberDto dto : req.getMember()) {
+        for (GroupMemberDto dto : req.getMembers()) {
             groupMemberService.addGroupMember(req.getGroupId(), req.getAppId(), dto);
         }
 
@@ -185,7 +184,7 @@ public class ImGroupServiceImpl implements ImGroupService {
      */
     @Override
     @Transactional
-    public Result updateBaseGroupInfo(UpdateGroupReq req) {
+    public Result updateBaseGroupInfo(UpdateGroupRequest req) {
 
         //1.判断群id是否存在
         QueryWrapper<ImGroupEntity> query = new QueryWrapper<>();
@@ -253,7 +252,7 @@ public class ImGroupServiceImpl implements ImGroupService {
      * @author wanqiu
      */
     @Override
-    public Result getJoinedGroup(GetJoinedGroupReq req) {
+    public Result getJoinedGroup(GetJoinedGroupRequest req) {
 
         Result<Collection<String>> memberJoinedGroup = groupMemberService.getMemberJoinedGroup(req);
         if (memberJoinedGroup.isOk()) {
@@ -296,7 +295,7 @@ public class ImGroupServiceImpl implements ImGroupService {
      */
     @Override
     @Transactional
-    public Result destroyGroup(DestroyGroupReq req) {
+    public Result destroyGroup(DestroyGroupRequest req) {
 
         boolean isAdmin = false;
 
@@ -352,7 +351,7 @@ public class ImGroupServiceImpl implements ImGroupService {
 
     @Override
     @Transactional
-    public Result transferGroup(TransferGroupReq req) {
+    public Result transferGroup(TransferGroupRequest req) {
 
         Result<GetRoleInGroupResp> roleInGroupOne = groupMemberService.getRoleInGroupOne(req.getGroupId(), req.getOperater(), req.getAppId());
         if (!roleInGroupOne.isOk()) {
@@ -402,7 +401,7 @@ public class ImGroupServiceImpl implements ImGroupService {
     }
 
     @Override
-    public Result getGroup(GetGroupReq req) {
+    public Result getGroup(GetGroupRequest req) {
 
         Result group = this.getGroup(req.getGroupId(), req.getAppId());
 
@@ -424,7 +423,7 @@ public class ImGroupServiceImpl implements ImGroupService {
     }
 
     @Override
-    public Result muteGroup(MuteGroupReq req) {
+    public Result muteGroup(MuteGroupRequest req) {
 
         Result<ImGroupEntity> groupResp = getGroup(req.getGroupId(), req.getAppId());
         if (!groupResp.isOk()) {

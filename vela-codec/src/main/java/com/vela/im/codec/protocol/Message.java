@@ -8,26 +8,29 @@ import lombok.Data;
  * <p>项目名称: IM-System</p>
  *
  * @author wanqiu
- * @since 1.0
  * @createTime 2025-03-03
  * @updateTime 2026-07-19
- *
+ * <p>
  * Copyright © 2026 wanqiu All rights reserved
+ * @since 1.0
  */
 @Data
 public class Message {
 
-    /** 消息协议头，包含指令/版本/端类型等元数据 */
+    /**
+     * 消息协议头，包含指令/版本/端类型等元数据
+     *
+     */
     private MessageHeader messageHeader;
 
-    /** 消息体，不同类型消息对应不同数据结构（JSON/PB等） */
-    private Object messagePack;
+    /**
+     * 消息体，不同类型消息对应不同数据结构（JSON/PB等）
+     *
+     */
+    private Object messagePackage;
 
     @Override
     public String toString() {
-        return "Message{" +
-                "messageHeader=" + messageHeader +
-                ", messagePack=" + messagePack +
-                '}';
+        return "Message{" + "messageHeader=" + messageHeader + ", messagePack=" + messagePackage + '}';
     }
 }

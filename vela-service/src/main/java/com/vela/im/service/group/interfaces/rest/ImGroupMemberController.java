@@ -34,38 +34,38 @@ public class ImGroupMemberController {
     }
 
     @RequestMapping("/importGroupMember")
-    public Result importGroupMember(@RequestBody @Validated ImportGroupMemberReq req, Integer appId, String identifier)  {
-        req.setAppId(appId);
-        req.setOperater(identifier);
-        return groupMemberService.importGroupMember(req);
+    public Result importGroupMember(@RequestBody @Validated ImportGroupMemberRequest importGroupMemberRequest, Integer appId, String identifier)  {
+        importGroupMemberRequest.setAppId(appId);
+        importGroupMemberRequest.setOperater(identifier);
+        return groupMemberService.importGroupMember(importGroupMemberRequest);
     }
 
     @RequestMapping("/add")
-    public Result addMember(@RequestBody @Validated AddGroupMemberReq req, Integer appId, String identifier)  {
-        req.setAppId(appId);
-        req.setOperater(identifier);
-        return groupMemberService.addMember(req);
+    public Result addMember(@RequestBody @Validated AddGroupMemberRequest addGroupMemberRequest, Integer appId, String identifier)  {
+        addGroupMemberRequest.setAppId(appId);
+        addGroupMemberRequest.setOperater(identifier);
+        return groupMemberService.addMember(addGroupMemberRequest);
     }
 
     @RequestMapping("/remove")
-    public Result removeMember(@RequestBody @Validated RemoveGroupMemberReq req, Integer appId, String identifier)  {
-        req.setAppId(appId);
-        req.setOperater(identifier);
-        return groupMemberService.removeMember(req);
+    public Result removeMember(@RequestBody @Validated RemoveGroupMemberRequest removeGroupMemberRequest, Integer appId, String identifier)  {
+        removeGroupMemberRequest.setAppId(appId);
+        removeGroupMemberRequest.setOperater(identifier);
+        return groupMemberService.removeMember(removeGroupMemberRequest);
     }
 
     @RequestMapping("/update")
-    public Result updateGroupMember(@RequestBody @Validated UpdateGroupMemberReq req, Integer appId, String identifier)  {
-        req.setAppId(appId);
-        req.setOperater(identifier);
-        return groupMemberService.updateGroupMember(req);
+    public Result updateGroupMember(@RequestBody @Validated UpdateGroupMemberRequest updateGroupMemberRequest, Integer appId, String identifier)  {
+        updateGroupMemberRequest.setAppId(appId);
+        updateGroupMemberRequest.setOperater(identifier);
+        return groupMemberService.updateGroupMember(updateGroupMemberRequest);
     }
 
     @RequestMapping("/speak")
-    public Result speak(@RequestBody @Validated SpeaMemberReq req, Integer appId, String identifier)  {
-        req.setAppId(appId);
-        req.setOperater(identifier);
-        return groupMemberService.speak(req);
+    public Result speak(@RequestBody @Validated SpeakMemberRequest speakMemberRequest, Integer appId, String identifier)  {
+        speakMemberRequest.setAppId(appId);
+        speakMemberRequest.setOperater(identifier);
+        return groupMemberService.speak(speakMemberRequest);
     }
 
 }

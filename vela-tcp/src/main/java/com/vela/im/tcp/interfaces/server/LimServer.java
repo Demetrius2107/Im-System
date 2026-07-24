@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 public class LimServer {
 
     /** TCP 服务配置 */
-    private final BootStrapConfig.TcpConfig config;
+    private final BootStrapConfig.ServerConfig config;
 
     /** 主线程组（Boss） */
     private final EventLoopGroup mainGroup;
@@ -47,7 +47,7 @@ public class LimServer {
      *
      * @param config TCP 服务配置
      */
-    public LimServer(BootStrapConfig.TcpConfig config) {
+    public LimServer(BootStrapConfig.ServerConfig config) {
         this.config = config;
         mainGroup = new NioEventLoopGroup(config.getBossThreadSize());
         subGroup = new NioEventLoopGroup(config.getWorkThreadSize());

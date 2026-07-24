@@ -22,7 +22,6 @@ import com.vela.im.shared.types.enums.command.FriendshipEventCommand;
 import com.vela.im.shared.types.ClientInfo;
 import com.vela.im.codec.pack.friendship.AddFriendGroupPack;
 import com.vela.im.codec.pack.friendship.DeleteFriendGroupPack;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -23,7 +23,6 @@ import com.vela.im.shared.types.message.MessageReadedContent;
 import com.vela.im.codec.pack.conversation.DeleteConversationPack;
 import com.vela.im.codec.pack.conversation.UpdateConversationPack;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

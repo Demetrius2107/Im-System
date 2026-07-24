@@ -3,6 +3,7 @@ package com.vela.im.store.interfaces.mq;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.vela.im.shared.constants.Constants;
+import com.vela.im.shared.trace.TraceIdContext;
 import com.vela.im.store.domain.entity.ImMessageBodyEntity;
 import com.vela.im.store.application.dto.DoStoreGroupMessageDto;
 import com.vela.im.store.application.service.StoreMessageService;
@@ -50,6 +51,8 @@ public class StoreGroupMessageReceiver {
     public void onChatMessage(@Payload Message message,
                               @Headers Map<String,Object> headers,
                               Channel channel) throws IOException {
+        // 从 AMQP 消息头中解析 TraceId，绑定到当前线程 MDC
+        TraceIdContext.setFromAmqpHeaders(headers);
         String msg = new String(message.getBody(),"utf-8");
         logger.info("CHAT MSG FROM QUEUE ::: {}",msg);
         Long deliverTag = (Long) headers.get(AmqpHeaders.DELIVERY_TAG);
@@ -65,8 +68,12 @@ public class StoreGroupMessageReceiver {
             logger.error("处理消息出现异常：{}", e.getMessage());
             logger.error("RMQ_CHAT_TRAN_ERROR", e);
             logger.error("NACK_MSG:{}", msg);
-            //第一个false 表示不批量拒绝，第二个false表示不重回队列
-            channel.basicNack(deliverTag, false, false);
+            // ACK丢失，触发重推机制，重试发送，不会丢弃消息
+            // 第一个false表示不批量拒绝，第二个true表示重回队列（重推）
+            channel.basicNack(deliverTag, false, true);
+        } finally {
+            // 清理 MDC，避免线程池复用导致上下文污染
+            TraceIdContext.clear();
         }
     }
 

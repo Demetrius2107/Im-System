@@ -8,16 +8,18 @@ import lombok.Data;
  * <p>项目名称: IM-System</p>
  *
  * @author wanqiu
- * @since 1.0
  * @createTime 2025-03-03
  * @updateTime 2026-07-19
- *
+ * <p>
  * Copyright © 2026 wanqiu All rights reserved
+ * @since 1.0
  */
 @Data
 public class LoginPack {
 
-    /** 用户ID */
+    /**
+     * 用户ID
+     */
     private String userId;
 
 }

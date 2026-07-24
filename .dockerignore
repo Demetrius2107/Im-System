@@ -1,0 +1,41 @@
+# =============================================================================
+# Vela IM — .dockerignore
+# Docker 构建上下文中排除的文件
+# =============================================================================
+
+# Maven 构建产物
+**/target/
+**/*.jar
+**/*.war
+
+# 版本控制
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+
+# OS 文件
+.DS_Store
+Thumbs.db
+*.log
+
+# 文档（不需要带入构建上下文）
+docs/
+README.md
+
+# 开发辅助
+logs/
+*.md
+*.bat
+*.cmd
+
+# Docker 自身
+.dockerignore
+docker-compose.yml
+**/Dockerfile

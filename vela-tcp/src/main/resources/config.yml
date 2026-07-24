@@ -1,4 +1,4 @@
-lim:
+serverConfig:
   tcpPort: 9000
   webSocketPort: 19000
   bossThreadSize: 1
@@ -12,7 +12,7 @@ lim:
   #  *                            3 允许手机和电脑单设备 + web 同时在线 踢掉非本client+imel的同端设备
   #  *                            4 允许所有端多设备登录 不踢任何设备
 
-  redis:
+  redisConfig:
     mode: single # 单机模式：single 哨兵模式：sentinel 集群模式：cluster
     database: 0
     password:
@@ -22,13 +22,13 @@ lim:
     poolSize: 10 # 连接池大小
     single: #redis单机配置
       address: 127.0.0.1:6379
-  rabbitmq:
+  rabbitMqConfig:
     host: 127.0.0.1
     port: 5672
     virtualHost: /
     userName: guest
     password: guest
 
-  zkConfig:
+  zookeeperConfig:
     zkAddr: 127.0.0.1:2181
     zkConnectTimeOut: 5000

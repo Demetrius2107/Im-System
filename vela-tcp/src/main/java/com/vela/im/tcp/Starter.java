@@ -66,9 +66,9 @@ public class Starter {
         }
 
         // 校验配置
-        BootStrapConfig.TcpConfig tcpConfig = bootStrapConfig.getLim();
+        BootStrapConfig.ServerConfig tcpConfig = bootStrapConfig.getServerConfig();
         if (tcpConfig == null) {
-            log.error("Config missing: 'lim' section is required");
+            log.error("Config missing: 'serverConfig' section is required");
             System.exit(500);
             return;
         }
@@ -83,9 +83,9 @@ public class Starter {
         RedisManager.init(bootStrapConfig);
 
         // 初始化mq
-        if (tcpConfig.getRabbitmq() != null) {
+        if (tcpConfig.getRabbitmqConfig() != null) {
             log.info("Initializing RabbitMQ connection");
-            MqFactory.init(tcpConfig.getRabbitmq());
+            MqFactory.init(tcpConfig.getRabbitmqConfig());
         }
 
         log.info("Initializing message receiver for brokerId: {}", tcpConfig.getBrokerId());
@@ -101,10 +101,10 @@ public class Starter {
     private static void registerZK(BootStrapConfig config) {
         try {
             String hostAddress = InetAddress.getLocalHost().getHostAddress();
-            ZkClient zkClient = new ZkClient(config.getLim().getZkConfig().getZkAddr(),
-                    config.getLim().getZkConfig().getZkConnectTimeOut());
+            ZkClient zkClient = new ZkClient(config.getServerConfig().getZookeeperConfig().getZkAddr(),
+                    config.getServerConfig().getZookeeperConfig().getZkConnectTimeOut());
             Zkit zkit = new Zkit(zkClient);
-            RegistryZK registryZK = new RegistryZK(zkit, hostAddress, config.getLim());
+            RegistryZK registryZK = new RegistryZK(zkit, hostAddress, config.getServerConfig());
             Thread thread = new Thread(registryZK, "zk-registry");
             thread.start();
             log.info("ZooKeeper registration started, addr: {}", hostAddress);

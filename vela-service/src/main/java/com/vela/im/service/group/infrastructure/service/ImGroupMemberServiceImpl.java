@@ -37,7 +37,6 @@ import com.vela.im.codec.pack.group.UpdateGroupMemberPack;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -85,7 +84,7 @@ public class ImGroupMemberServiceImpl implements ImGroupMemberService {
         }
 
     @Override
-    public Result importGroupMember(ImportGroupMemberReq req) {
+    public Result importGroupMember(ImportGroupMemberRequest req) {
 
         List<AddMemberResp> resp = new ArrayList<>();
 
@@ -236,7 +235,7 @@ public class ImGroupMemberServiceImpl implements ImGroupMemberService {
     }
 
     @Override
-    public Result<Collection<String>> getMemberJoinedGroup(GetJoinedGroupReq req) {
+    public Result<Collection<String>> getMemberJoinedGroup(GetJoinedGroupRequest req) {
 
         if (req.getLimit() != null) {
             Page<ImGroupMemberEntity> objectPage = new Page<>(req.getOffset(), req.getLimit());
@@ -265,7 +264,7 @@ public class ImGroupMemberServiceImpl implements ImGroupMemberService {
      * @author wanqiu
      */
     @Override
-    public Result addMember(AddGroupMemberReq req) {
+    public Result addMember(AddGroupMemberRequest req) {
 
         List<AddMemberResp> resp = new ArrayList<>();
 
@@ -354,7 +353,7 @@ public class ImGroupMemberServiceImpl implements ImGroupMemberService {
     }
 
     @Override
-    public Result removeMember(RemoveGroupMemberReq req) {
+    public Result removeMember(RemoveGroupMemberRequest req) {
 
         List<AddMemberResp> resp = new ArrayList<>();
         boolean isAdmin = false;
@@ -443,7 +442,7 @@ public class ImGroupMemberServiceImpl implements ImGroupMemberService {
     }
 
     @Override
-    public Result updateGroupMember(UpdateGroupMemberReq req) {
+    public Result updateGroupMember(UpdateGroupMemberRequest req) {
 
         boolean isadmin = false;
 
@@ -555,9 +554,9 @@ public class ImGroupMemberServiceImpl implements ImGroupMemberService {
     }
 
     @Override
-    public Result speak(SpeaMemberReq req) {
+    public Result speak(SpeakMemberRequest speakMemberRequest) {
 
-        Result<ImGroupEntity> groupResp = groupService.getGroup(req.getGroupId(), req.getAppId());
+        Result<ImGroupEntity> groupResp = groupService.getGroup(speakMemberRequest.getGroupId(), speakMemberRequest.getAppId());
         if (!groupResp.isOk()) {
             return groupResp;
         }
@@ -570,7 +569,7 @@ public class ImGroupMemberServiceImpl implements ImGroupMemberService {
         if (!isadmin) {
 
             //获取操作人的权限 是管理员or群主or群成员
-            Result<GetRoleInGroupResp> role = getRoleInGroupOne(req.getGroupId(), req.getOperater(), req.getAppId());
+            Result<GetRoleInGroupResp> role = getRoleInGroupOne(speakMemberRequest.getGroupId(), speakMemberRequest.getOperater(), speakMemberRequest.getAppId());
             if (!role.isOk()) {
                 return role;
             }
@@ -586,7 +585,7 @@ public class ImGroupMemberServiceImpl implements ImGroupMemberService {
             }
 
             //获取被操作的权限
-            Result<GetRoleInGroupResp> roleInGroupOne = this.getRoleInGroupOne(req.getGroupId(), req.getMemberId(), req.getAppId());
+            Result<GetRoleInGroupResp> roleInGroupOne = this.getRoleInGroupOne(speakMemberRequest.getGroupId(), speakMemberRequest.getMemberId(), speakMemberRequest.getAppId());
             if (!roleInGroupOne.isOk()) {
                 return roleInGroupOne;
             }
@@ -605,7 +604,7 @@ public class ImGroupMemberServiceImpl implements ImGroupMemberService {
         ImGroupMemberEntity imGroupMemberEntity = new ImGroupMemberEntity();
         if(memberRole == null){
             //获取被操作的权限
-            Result<GetRoleInGroupResp> roleInGroupOne = this.getRoleInGroupOne(req.getGroupId(), req.getMemberId(), req.getAppId());
+            Result<GetRoleInGroupResp> roleInGroupOne = this.getRoleInGroupOne(speakMemberRequest.getGroupId(), speakMemberRequest.getMemberId(), speakMemberRequest.getAppId());
             if (!roleInGroupOne.isOk()) {
                 return roleInGroupOne;
             }
@@ -613,18 +612,18 @@ public class ImGroupMemberServiceImpl implements ImGroupMemberService {
         }
 
         imGroupMemberEntity.setGroupMemberId(memberRole.getGroupMemberId());
-        if(req.getSpeakDate() > 0){
-            imGroupMemberEntity.setSpeakDate(System.currentTimeMillis() + req.getSpeakDate());
+        if(speakMemberRequest.getSpeakDate() > 0){
+            imGroupMemberEntity.setSpeakDate(System.currentTimeMillis() + speakMemberRequest.getSpeakDate());
         }else{
-            imGroupMemberEntity.setSpeakDate(req.getSpeakDate());
+            imGroupMemberEntity.setSpeakDate(speakMemberRequest.getSpeakDate());
         }
 
         int i = imGroupMemberMapper.updateById(imGroupMemberEntity);
         if(i == 1){
             GroupMemberSpeakPack pack = new GroupMemberSpeakPack();
-            BeanUtils.copyProperties(req,pack);
-            groupMessageProducer.producer(req.getOperater(),GroupEventCommand.SPEAK_GOUP_MEMBER,pack,
-                    new ClientInfo(req.getAppId(),req.getClientType(),req.getImei()));
+            BeanUtils.copyProperties(speakMemberRequest,pack);
+            groupMessageProducer.producer(speakMemberRequest.getOperater(),GroupEventCommand.SPEAK_GOUP_MEMBER,pack,
+                    new ClientInfo(speakMemberRequest.getAppId(),speakMemberRequest.getClientType(),speakMemberRequest.getImei()));
         }
         return Result.ok();
     }

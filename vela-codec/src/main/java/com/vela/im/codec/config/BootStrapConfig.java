@@ -8,70 +8,102 @@ import lombok.NoArgsConstructor;
 /**
  * <p>Title: BootStrapConfig</p>
  * <p>Description: 服务端启动参数配置类，包含TCP/WebSocket端口、心跳超时、BrokerId、Redis/RabbitMQ/ZK连接配置。</p>
- * <p>项目名称: IM-System</p>
+ * <p>项目名称: Vela</p>
  *
  * @author wanqiu
  * @since 1.0
  * @createTime 2025-03-03
- * @updateTime 2026-07-19
+ * @updateTime 2026-07-24
  *
  * Copyright © 2026 wanqiu All rights reserved
  */
 @Data
 public class BootStrapConfig {
 
-    private TcpConfig lim;
+    /**
+     * TCP/WebSocket 及中间件连接配置
+     */
+    private ServerConfig serverConfig;
 
 
+    /**
+     * <p>Title: ServerConfig</p>
+     * <p>Description: 服务端全局配置，包含 TCP/WebSocket 服务器及中间件（Redis/RabbitMQ/ZK）连接配置。</p>
+     */
     @Data
-    public static class TcpConfig {
-        private Integer tcpPort;// tcp 绑定的端口号
+    public static class ServerConfig {
 
-        private Integer webSocketPort; // webSocket 绑定的端口号
+        /**
+         * TCP 绑定的端口号
+         */
+        private Integer tcpPort;
 
-        private boolean enableWebSocket; //是否启用webSocket
+        /**
+         * WebSocket 绑定的端口号
+         */
+        private Integer webSocketPort;
 
-        private Integer bossThreadSize; // boss线程 默认=1
+        /**
+         * 是否启用 WebSocket
+         */
+        private boolean enableWebSocket;
 
-        private Integer workThreadSize; //work线程
+        /**
+         * Boss 线程数，默认 1
+         */
+        private Integer bossThreadSize;
 
-        private Long heartBeatTime; //心跳超时时间 单位毫秒
+        /**
+         * Work 线程数
+         */
+        private Integer workThreadSize;
 
+        /**
+         * 心跳超时时间，单位毫秒
+         */
+        private Long heartBeatTime;
+
+        /**
+         * 登录模式（多端同步策略）：1-单端登录 2-双端登录 3-三端登录 4-多端登录
+         */
         private Integer loginModel;
 
         /**
-         * redis配置
+         * Redis 连接配置
          */
-        private RedisConfig redis;
+        private RedisConfig redisConfig;
 
         /**
-         * rabbitmq配置
+         * RabbitMQ 连接配置
          */
-        private Rabbitmq rabbitmq;
+        private RabbitMqConfig rabbitmqConfig;
 
         /**
-         * zk配置
+         * ZooKeeper 连接配置
          */
-        private ZkConfig zkConfig;
+        private ZookeeperConfig zookeeperConfig;
 
         /**
-         * brokerId
+         * 当前 Broker 节点 ID
          */
         private Integer brokerId;
 
+        /**
+         * 业务逻辑层服务 URL（Feign 调用地址）
+         */
         private String logicUrl;
 
     }
 
     @Data
-    public static class ZkConfig {
+    public static class ZookeeperConfig {
         /**
-         * zk连接地址
+         * ZooKeeper 连接地址
          */
         private String zkAddr;
 
         /**
-         * zk连接超时时间
+         * ZooKeeper 连接超时时间
          */
         private Integer zkConnectTimeOut;
     }
@@ -133,21 +165,38 @@ public class BootStrapConfig {
     }
 
     /**
-     * rabbitmq哨兵模式配置
+     * <p>Title: RabbitMqConfig</p>
+     * <p>Description: RabbitMQ 连接配置。</p>
      */
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class Rabbitmq {
+    public static class RabbitMqConfig {
+
+        /**
+         * RabbitMQ 服务主机地址
+         */
         private String host;
 
+        /**
+         * RabbitMQ 服务端口号
+         */
         private Integer port;
 
+        /**
+         * 虚拟主机路径
+         */
         private String virtualHost;
 
+        /**
+         * 登录用户名
+         */
         private String userName;
 
+        /**
+         * 登录密码
+         */
         private String password;
     }
 

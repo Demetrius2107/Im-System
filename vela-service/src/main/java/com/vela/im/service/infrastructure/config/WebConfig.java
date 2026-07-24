@@ -1,6 +1,7 @@
 package com.vela.im.service.infrastructure.config;
 
 import com.vela.im.service.interfaces.interceptor.GateWayInterceptor;
+import com.vela.im.service.interfaces.interceptor.TraceIdInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -24,9 +25,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
 
     private final GateWayInterceptor gateWayInterceptor;
+    private final TraceIdInterceptor traceIdInterceptor;
 
-    public WebConfig(GateWayInterceptor gateWayInterceptor) {
+    public WebConfig(GateWayInterceptor gateWayInterceptor, TraceIdInterceptor traceIdInterceptor) {
         this.gateWayInterceptor = gateWayInterceptor;
+        this.traceIdInterceptor = traceIdInterceptor;
     }
 
     /**
@@ -34,6 +37,10 @@ public class WebConfig implements WebMvcConfigurer {
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        // TraceId 拦截器优先级最高，保证后续拦截器/业务代码日志都能打印 traceId
+        registry.addInterceptor(traceIdInterceptor)
+                .addPathPatterns("/**");
+
         registry.addInterceptor(gateWayInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns("/v1/user/login")
