@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 public class LimWebSocketServer {
 
     /** WebSocket 服务配置 */
-    private final BootStrapConfig.TcpConfig config;
+    private final BootStrapConfig.ServerConfig config;
 
     /** 主线程组（Boss） */
     private final EventLoopGroup mainGroup;
@@ -51,7 +51,7 @@ public class LimWebSocketServer {
      *
      * @param config TCP 服务配置（含 WebSocket 端口）
      */
-    public LimWebSocketServer(BootStrapConfig.TcpConfig config) {
+    public LimWebSocketServer(BootStrapConfig.ServerConfig config) {
         this.config = config;
         mainGroup = new NioEventLoopGroup();
         subGroup = new NioEventLoopGroup();

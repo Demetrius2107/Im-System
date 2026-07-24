@@ -23,15 +23,15 @@ public class BootStrapConfig {
     /**
      * TCP/WebSocket 及中间件连接配置
      */
-    private TcpConfig serverConfig;
+    private ServerConfig serverConfig;
 
 
     /**
-     * <p>Title: TcpConfig</p>
-     * <p>Description: TCP/WebSocket 服务器及中间件连接配置。</p>
+     * <p>Title: ServerConfig</p>
+     * <p>Description: 服务端全局配置，包含 TCP/WebSocket 服务器及中间件（Redis/RabbitMQ/ZK）连接配置。</p>
      */
     @Data
-    public static class TcpConfig {
+    public static class ServerConfig {
 
         /**
          * TCP 绑定的端口号

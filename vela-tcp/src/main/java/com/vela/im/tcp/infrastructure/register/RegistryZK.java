@@ -27,7 +27,7 @@ public class RegistryZK implements Runnable {
     private final String ip;
 
     /** TCP 服务配置 */
-    private final BootStrapConfig.TcpConfig tcpConfig;
+    private final BootStrapConfig.ServerConfig tcpConfig;
 
     /**
      * 构造 ZK 注册器
@@ -36,7 +36,7 @@ public class RegistryZK implements Runnable {
      * @param ip       本机 IP 地址
      * @param tcpConfig TCP 服务配置
      */
-    public RegistryZK(Zkit zkit, String ip, BootStrapConfig.TcpConfig tcpConfig) {
+    public RegistryZK(Zkit zkit, String ip, BootStrapConfig.ServerConfig tcpConfig) {
         this.zkit = zkit;
         this.ip = ip;
         this.tcpConfig = tcpConfig;

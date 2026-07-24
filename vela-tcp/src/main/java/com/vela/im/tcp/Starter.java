@@ -66,7 +66,7 @@ public class Starter {
         }
 
         // 校验配置
-        BootStrapConfig.TcpConfig tcpConfig = bootStrapConfig.getServerConfig();
+        BootStrapConfig.ServerConfig tcpConfig = bootStrapConfig.getServerConfig();
         if (tcpConfig == null) {
             log.error("Config missing: 'serverConfig' section is required");
             System.exit(500);
