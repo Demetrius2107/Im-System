@@ -5,7 +5,7 @@
  Source Server Type    : MySQL
  Source Server Version : 50740
  Source Host           : localhost:3306
- Source Schema         : im-core
+ Source Schema         : vela
 
  Target Server Type    : MySQL
  Target Server Version : 50740
@@ -38,8 +38,8 @@ INSERT INTO `app_user` VALUES ('lld', 'lld', 'lld', '13266520732', NULL, NULL);
 -- ----------------------------
 -- Table structure for im_conversation_set
 -- ----------------------------
-DROP TABLE IF EXISTS `im_conversation_set`;
-CREATE TABLE `im_conversation_set`  (
+DROP TABLE IF EXISTS `vela_conversation_set`;
+CREATE TABLE `vela_conversation_set`  (
   `conversation_id` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `conversation_type` int(10) NULL DEFAULT NULL COMMENT '0 单聊 1群聊 2机器人 3公众号',
   `from_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
@@ -55,15 +55,15 @@ CREATE TABLE `im_conversation_set`  (
 -- ----------------------------
 -- Records of im_conversation_set
 -- ----------------------------
-INSERT INTO `im_conversation_set` VALUES ('0_lld2_lld', 0, 'lld2', 'lld', 0, 0, 23, 120201, 10000);
-INSERT INTO `im_conversation_set` VALUES ('0_lld_lld2', 0, 'lld', 'lld2', 1, 0, 22, 120200, 10000);
-INSERT INTO `im_conversation_set` VALUES ('0_lld_lld3', 0, 'lld', 'lld3', 0, 0, 21, 1, 10000);
+INSERT INTO `vela_conversation_set` VALUES ('0_lld2_lld', 0, 'lld2', 'lld', 0, 0, 23, 120201, 10000);
+INSERT INTO `vela_conversation_set` VALUES ('0_lld_lld2', 0, 'lld', 'lld2', 1, 0, 22, 120200, 10000);
+INSERT INTO `vela_conversation_set` VALUES ('0_lld_lld3', 0, 'lld', 'lld3', 0, 0, 21, 1, 10000);
 
 -- ----------------------------
 -- Table structure for im_friendship
 -- ----------------------------
-DROP TABLE IF EXISTS `im_friendship`;
-CREATE TABLE `im_friendship`  (
+DROP TABLE IF EXISTS `vela_friendship`;
+CREATE TABLE `vela_friendship`  (
   `app_id` int(20) NOT NULL COMMENT 'app_id',
   `from_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT 'from_id',
   `to_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT 'to_id',
@@ -81,14 +81,14 @@ CREATE TABLE `im_friendship`  (
 -- ----------------------------
 -- Records of im_friendship
 -- ----------------------------
-INSERT INTO `im_friendship` VALUES (10000, 'lld', 'lld2', 'lld小号', 1, NULL, 1673919586042, NULL, NULL, 'group', NULL);
-INSERT INTO `im_friendship` VALUES (10000, 'lld2', 'lld', 'lld小号', 2, NULL, 1673919586046, NULL, NULL, 'group', NULL);
+INSERT INTO `vela_friendship` VALUES (10000, 'lld', 'lld2', 'lld小号', 1, NULL, 1673919586042, NULL, NULL, 'group', NULL);
+INSERT INTO `vela_friendship` VALUES (10000, 'lld2', 'lld', 'lld小号', 2, NULL, 1673919586046, NULL, NULL, 'group', NULL);
 
 -- ----------------------------
 -- Table structure for im_friendship_group
 -- ----------------------------
-DROP TABLE IF EXISTS `im_friendship_group`;
-CREATE TABLE `im_friendship_group`  (
+DROP TABLE IF EXISTS `vela_friendship_group`;
+CREATE TABLE `vela_friendship_group`  (
   `app_id` int(20) NULL DEFAULT NULL COMMENT 'app_id',
   `from_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT 'from_id',
   `group_id` int(50) NOT NULL AUTO_INCREMENT,
@@ -104,8 +104,8 @@ CREATE TABLE `im_friendship_group`  (
 -- ----------------------------
 -- Table structure for im_friendship_group_member
 -- ----------------------------
-DROP TABLE IF EXISTS `im_friendship_group_member`;
-CREATE TABLE `im_friendship_group_member`  (
+DROP TABLE IF EXISTS `vela_friendship_group_member`;
+CREATE TABLE `vela_friendship_group_member`  (
   `group_id` bigint(20) NOT NULL,
   `to_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
   PRIMARY KEY (`group_id`,`to_id`) USING BTREE
@@ -114,8 +114,8 @@ CREATE TABLE `im_friendship_group_member`  (
 -- ----------------------------
 -- Table structure for im_friendship_request
 -- ----------------------------
-DROP TABLE IF EXISTS `im_friendship_request`;
-CREATE TABLE `im_friendship_request`  (
+DROP TABLE IF EXISTS `vela_friendship_request`;
+CREATE TABLE `vela_friendship_request`  (
   `id` int(20) NOT NULL AUTO_INCREMENT COMMENT 'id',
   `app_id` int(20) NULL DEFAULT NULL COMMENT 'app_id',
   `from_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT 'from_id',
@@ -134,13 +134,13 @@ CREATE TABLE `im_friendship_request`  (
 -- ----------------------------
 -- Records of im_friendship_request
 -- ----------------------------
-INSERT INTO `im_friendship_request` VALUES (3, 10000, 'lld', 'lld2', 'lld小号', 0, 'group', NULL, 1, 1671612496849, 1673921920088, 4);
+INSERT INTO `vela_friendship_request` VALUES (3, 10000, 'lld', 'lld2', 'lld小号', 0, 'group', NULL, 1, 1671612496849, 1673921920088, 4);
 
 -- ----------------------------
 -- Table structure for im_group
 -- ----------------------------
-DROP TABLE IF EXISTS `im_group`;
-CREATE TABLE `im_group`  (
+DROP TABLE IF EXISTS `vela_group`;
+CREATE TABLE `vela_group`  (
   `app_id` int(20) NOT NULL COMMENT 'app_id',
   `group_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT 'group_id',
   `owner_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '群主\r\n',
@@ -163,15 +163,15 @@ CREATE TABLE `im_group`  (
 -- ----------------------------
 -- Records of im_group
 -- ----------------------------
-INSERT INTO `im_group` VALUES (10000, '123123', 'lld', 1, 'lld测试群3', 0, NULL, '', NULL, '', '', 1, 7, 1669686480634, NULL, 1671615867897);
-INSERT INTO `im_group` VALUES (10000, 'test1', 'lld', 1, 'lld测试群', 0, NULL, '', NULL, '', '', 1, 1, 1671625608444, NULL, NULL);
-INSERT INTO `im_group` VALUES (10000, 'test2', 'lld', 1, '123456', 0, NULL, '', NULL, '', '', 1, 3, 1671625622489, NULL, 1671625653981);
+INSERT INTO `vela_group` VALUES (10000, '123123', 'lld', 1, 'lld测试群3', 0, NULL, '', NULL, '', '', 1, 7, 1669686480634, NULL, 1671615867897);
+INSERT INTO `vela_group` VALUES (10000, 'test1', 'lld', 1, 'lld测试群', 0, NULL, '', NULL, '', '', 1, 1, 1671625608444, NULL, NULL);
+INSERT INTO `vela_group` VALUES (10000, 'test2', 'lld', 1, '123456', 0, NULL, '', NULL, '', '', 1, 3, 1671625622489, NULL, 1671625653981);
 
 -- ----------------------------
 -- Table structure for im_group_member
 -- ----------------------------
-DROP TABLE IF EXISTS `im_group_member`;
-CREATE TABLE `im_group_member`  (
+DROP TABLE IF EXISTS `vela_group_member`;
+CREATE TABLE `vela_group_member`  (
   `group_member_id` bigint(20) NOT NULL AUTO_INCREMENT,
   `group_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT 'group_id',
   `app_id` int(10) NULL DEFAULT NULL,
@@ -190,18 +190,18 @@ CREATE TABLE `im_group_member`  (
 -- ----------------------------
 -- Records of im_group_member
 -- ----------------------------
-INSERT INTO `im_group_member` VALUES (5, '123123', 10000, 'lld', 2, NULL, NULL, NULL, 1669686484744, NULL, NULL, NULL);
-INSERT INTO `im_group_member` VALUES (6, '123123', 10000, 'lld2', 1, NULL, NULL, '', 1669686485958, NULL, 'joinType', NULL);
-INSERT INTO `im_group_member` VALUES (7, 'test1', 10000, 'lld', 2, NULL, NULL, NULL, 1671615885587, NULL, NULL, NULL);
-INSERT INTO `im_group_member` VALUES (8, 'test1', 10000, 'lld2', 1, NULL, NULL, '', 1671615885595, NULL, 'joinType', NULL);
-INSERT INTO `im_group_member` VALUES (9, 'test2', 10000, 'lld', 0, NULL, NULL, NULL, 1671616883069, NULL, NULL, NULL);
-INSERT INTO `im_group_member` VALUES (10, 'test2', 10000, 'lld2', 2, NULL, NULL, '', 1671616883077, NULL, 'joinType', NULL);
+INSERT INTO `vela_group_member` VALUES (5, '123123', 10000, 'lld', 2, NULL, NULL, NULL, 1669686484744, NULL, NULL, NULL);
+INSERT INTO `vela_group_member` VALUES (6, '123123', 10000, 'lld2', 1, NULL, NULL, '', 1669686485958, NULL, 'joinType', NULL);
+INSERT INTO `vela_group_member` VALUES (7, 'test1', 10000, 'lld', 2, NULL, NULL, NULL, 1671615885587, NULL, NULL, NULL);
+INSERT INTO `vela_group_member` VALUES (8, 'test1', 10000, 'lld2', 1, NULL, NULL, '', 1671615885595, NULL, 'joinType', NULL);
+INSERT INTO `vela_group_member` VALUES (9, 'test2', 10000, 'lld', 0, NULL, NULL, NULL, 1671616883069, NULL, NULL, NULL);
+INSERT INTO `vela_group_member` VALUES (10, 'test2', 10000, 'lld2', 2, NULL, NULL, '', 1671616883077, NULL, 'joinType', NULL);
 
 -- ----------------------------
 -- Table structure for im_group_message_history
 -- ----------------------------
-DROP TABLE IF EXISTS `im_group_message_history`;
-CREATE TABLE `im_group_message_history`  (
+DROP TABLE IF EXISTS `vela_group_message_history`;
+CREATE TABLE `vela_group_message_history`  (
   `app_id` int(20) NOT NULL COMMENT 'app_id',
   `from_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT 'from_id',
   `group_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT 'group_id',
@@ -216,8 +216,8 @@ CREATE TABLE `im_group_message_history`  (
 -- ----------------------------
 -- Table structure for im_message_body
 -- ----------------------------
-DROP TABLE IF EXISTS `im_message_body`;
-CREATE TABLE `im_message_body`  (
+DROP TABLE IF EXISTS `vela_message_body`;
+CREATE TABLE `vela_message_body`  (
   `app_id` int(10) NOT NULL,
   `message_key` bigint(50) NOT NULL,
   `message_body` varchar(5000) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
@@ -232,8 +232,8 @@ CREATE TABLE `im_message_body`  (
 -- ----------------------------
 -- Table structure for im_message_history
 -- ----------------------------
-DROP TABLE IF EXISTS `im_message_history`;
-CREATE TABLE `im_message_history`  (
+DROP TABLE IF EXISTS `vela_message_history`;
+CREATE TABLE `vela_message_history`  (
   `app_id` int(20) NOT NULL COMMENT 'app_id',
   `from_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT 'from_id',
   `to_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT 'to_id\r\n',
@@ -249,8 +249,8 @@ CREATE TABLE `im_message_history`  (
 -- ----------------------------
 -- Table structure for im_user_data
 -- ----------------------------
-DROP TABLE IF EXISTS `im_user_data`;
-CREATE TABLE `im_user_data`  (
+DROP TABLE IF EXISTS `vela_user_data`;
+CREATE TABLE `vela_user_data`  (
   `user_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `app_id` int(11) NOT NULL,
   `nick_name` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '昵称',
@@ -273,10 +273,10 @@ CREATE TABLE `im_user_data`  (
 -- ----------------------------
 -- Records of im_user_data
 -- ----------------------------
-INSERT INTO `im_user_data` VALUES ('lld', 10000, 'lldlld', '123', NULL, NULL, NULL, NULL, NULL, 1, 0, 0, 0, 1, 0, NULL);
-INSERT INTO `im_user_data` VALUES ('lld2', 10000, 'lld2', NULL, NULL, NULL, NULL, NULL, NULL, 2, 0, 0, 0, 1, 0, NULL);
-INSERT INTO `im_user_data` VALUES ('lld3', 10000, 'lld3', NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, 0, 0, 1, 0, NULL);
-INSERT INTO `im_user_data` VALUES ('lld6', 10000, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, 0, 0, 1, 1, NULL);
-INSERT INTO `im_user_data` VALUES ('lld7', 10000, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, 0, 0, 1, 1, NULL);
+INSERT INTO `vela_user_data` VALUES ('lld', 10000, 'lldlld', '123', NULL, NULL, NULL, NULL, NULL, 1, 0, 0, 0, 1, 0, NULL);
+INSERT INTO `vela_user_data` VALUES ('lld2', 10000, 'lld2', NULL, NULL, NULL, NULL, NULL, NULL, 2, 0, 0, 0, 1, 0, NULL);
+INSERT INTO `vela_user_data` VALUES ('lld3', 10000, 'lld3', NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, 0, 0, 1, 0, NULL);
+INSERT INTO `vela_user_data` VALUES ('lld6', 10000, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, 0, 0, 1, 1, NULL);
+INSERT INTO `vela_user_data` VALUES ('lld7', 10000, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, 0, 0, 1, 1, NULL);
 
 SET FOREIGN_KEY_CHECKS = 1;

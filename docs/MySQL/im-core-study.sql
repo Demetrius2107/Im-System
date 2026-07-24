@@ -5,7 +5,7 @@
  Source Server Type    : MySQL
  Source Server Version : 50740
  Source Host           : localhost:3306
- Source Schema         : im-core
+ Source Schema         : vela
 
  Target Server Type    : MySQL
  Target Server Version : 50740
@@ -33,8 +33,8 @@ CREATE TABLE `app_user`  (
 -- ----------------------------
 -- Table structure for im_conversation_set
 -- ----------------------------
-DROP TABLE IF EXISTS `im_conversation_set`;
-CREATE TABLE `im_conversation_set`  (
+DROP TABLE IF EXISTS `vela_conversation_set`;
+CREATE TABLE `vela_conversation_set`  (
   `conversation_id` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `conversation_type` int(10) NULL DEFAULT NULL COMMENT '0 单聊 1群聊 2机器人 3公众号',
   `from_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
@@ -50,8 +50,8 @@ CREATE TABLE `im_conversation_set`  (
 -- ----------------------------
 -- Table structure for im_friendship
 -- ----------------------------
-DROP TABLE IF EXISTS `im_friendship`;
-CREATE TABLE `im_friendship`  (
+DROP TABLE IF EXISTS `vela_friendship`;
+CREATE TABLE `vela_friendship`  (
   `app_id` int(20) NOT NULL COMMENT 'app_id',
   `from_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT 'from_id',
   `to_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT 'to_id',
@@ -69,8 +69,8 @@ CREATE TABLE `im_friendship`  (
 -- ----------------------------
 -- Table structure for im_friendship_group
 -- ----------------------------
-DROP TABLE IF EXISTS `im_friendship_group`;
-CREATE TABLE `im_friendship_group`  (
+DROP TABLE IF EXISTS `vela_friendship_group`;
+CREATE TABLE `vela_friendship_group`  (
   `app_id` int(20) NULL DEFAULT NULL COMMENT 'app_id',
   `from_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT 'from_id',
   `group_id` int(50) NOT NULL AUTO_INCREMENT,
@@ -86,8 +86,8 @@ CREATE TABLE `im_friendship_group`  (
 -- ----------------------------
 -- Table structure for im_friendship_group_member
 -- ----------------------------
-DROP TABLE IF EXISTS `im_friendship_group_member`;
-CREATE TABLE `im_friendship_group_member`  (
+DROP TABLE IF EXISTS `vela_friendship_group_member`;
+CREATE TABLE `vela_friendship_group_member`  (
   `group_id` bigint(20) NOT NULL,
   `to_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
   PRIMARY KEY (`group_id`,`to_id`) USING BTREE
@@ -96,8 +96,8 @@ CREATE TABLE `im_friendship_group_member`  (
 -- ----------------------------
 -- Table structure for im_friendship_request
 -- ----------------------------
-DROP TABLE IF EXISTS `im_friendship_request`;
-CREATE TABLE `im_friendship_request`  (
+DROP TABLE IF EXISTS `vela_friendship_request`;
+CREATE TABLE `vela_friendship_request`  (
   `id` int(20) NOT NULL AUTO_INCREMENT COMMENT 'id',
   `app_id` int(20) NULL DEFAULT NULL COMMENT 'app_id',
   `from_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT 'from_id',
@@ -116,8 +116,8 @@ CREATE TABLE `im_friendship_request`  (
 -- ----------------------------
 -- Table structure for im_group
 -- ----------------------------
-DROP TABLE IF EXISTS `im_group`;
-CREATE TABLE `im_group`  (
+DROP TABLE IF EXISTS `vela_group`;
+CREATE TABLE `vela_group`  (
   `app_id` int(20) NOT NULL COMMENT 'app_id',
   `group_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT 'group_id',
   `owner_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '群主\r\n',
@@ -140,8 +140,8 @@ CREATE TABLE `im_group`  (
 -- ----------------------------
 -- Table structure for im_group_member
 -- ----------------------------
-DROP TABLE IF EXISTS `im_group_member`;
-CREATE TABLE `im_group_member`  (
+DROP TABLE IF EXISTS `vela_group_member`;
+CREATE TABLE `vela_group_member`  (
   `group_member_id` bigint(20) NOT NULL AUTO_INCREMENT,
   `group_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT 'group_id',
   `app_id` int(10) NULL DEFAULT NULL,
@@ -160,8 +160,8 @@ CREATE TABLE `im_group_member`  (
 -- ----------------------------
 -- Table structure for im_group_message_history
 -- ----------------------------
-DROP TABLE IF EXISTS `im_group_message_history`;
-CREATE TABLE `im_group_message_history`  (
+DROP TABLE IF EXISTS `vela_group_message_history`;
+CREATE TABLE `vela_group_message_history`  (
   `app_id` int(20) NOT NULL COMMENT 'app_id',
   `from_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT 'from_id',
   `group_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT 'group_id',
@@ -176,8 +176,8 @@ CREATE TABLE `im_group_message_history`  (
 -- ----------------------------
 -- Table structure for im_message_body
 -- ----------------------------
-DROP TABLE IF EXISTS `im_message_body`;
-CREATE TABLE `im_message_body`  (
+DROP TABLE IF EXISTS `vela_message_body`;
+CREATE TABLE `vela_message_body`  (
   `app_id` int(10) NOT NULL,
   `message_key` bigint(50) NOT NULL,
   `message_body` varchar(5000) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
@@ -193,8 +193,8 @@ CREATE TABLE `im_message_body`  (
 -- ----------------------------
 -- Table structure for im_message_history
 -- ----------------------------
-DROP TABLE IF EXISTS `im_message_history`;
-CREATE TABLE `im_message_history`  (
+DROP TABLE IF EXISTS `vela_message_history`;
+CREATE TABLE `vela_message_history`  (
   `app_id` int(20) NOT NULL COMMENT 'app_id',
   `from_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT 'from_id',
   `to_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT 'to_id\r\n',
@@ -210,8 +210,8 @@ CREATE TABLE `im_message_history`  (
 -- ----------------------------
 -- Table structure for im_user_data
 -- ----------------------------
-DROP TABLE IF EXISTS `im_user_data`;
-CREATE TABLE `im_user_data`  (
+DROP TABLE IF EXISTS `vela_user_data`;
+CREATE TABLE `vela_user_data`  (
   `user_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `app_id` int(11) NOT NULL,
   `nick_name` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '昵称',

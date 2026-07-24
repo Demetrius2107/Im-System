@@ -20,7 +20,7 @@ import lombok.Data;
  * Copyright © 2026 wanqiu All rights reserved
  */
 @Data
-@TableName("im_friendship_group_member")
+@TableName("vela_friendship_group_member")
 public class ImFriendShipGroupMemberEntity {
 
     @TableId(value = "group_id")

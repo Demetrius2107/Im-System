@@ -16,7 +16,7 @@ import lombok.Data;
  * Copyright © 2026 wanqiu All rights reserved
  */
 @Data
-@TableName("im_conversation_set")
+@TableName("vela_conversation_set")
 public class ImConversationSetEntity {
 
     //会话id 0_fromId_toId

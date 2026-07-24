@@ -18,7 +18,7 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-@TableName("im_user_data")
+@TableName("vela_user_data")
 public class ImUserDataEntity {
 
     /**

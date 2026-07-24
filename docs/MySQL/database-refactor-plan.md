@@ -1,7 +1,7 @@
 # 数据库重构计划
 
 > 分析时间: 2026-07-19
-> 基于当前 DDD 架构对 im-core 数据库的评估与优化方案
+> 基于当前 DDD 架构对 vela 数据库的评估与优化方案
 
 ---
 
@@ -12,16 +12,16 @@
 | # | 问题 | 影响 | 位置 |
 |---|------|------|------|
 | 1 | 字符集使用 `utf8` 而非 `utf8mb4` | 无法存储 emoji/特殊符号，插入 emoji 会报错 | 全部 12 张表 |
-| 2 | `im_message_body.message_body` 字段 `varchar(5000)` | 长消息/图文消息/文件消息会被截断 | im_message_body |
-| 3 | `app_user` 表冗余 | 代码中实体映射的是 `im_user_data`，`app_user` 无人使用 | app_user |
+| 2 | `vela_message_body.message_body` 字段 `varchar(5000)` | 长消息/图文消息/文件消息会被截断 | im_message_body |
+| 3 | `app_user` 表冗余 | 代码中实体映射的是 `vela_user_data`，`app_user` 无人使用 | app_user |
 
 ### 🟡 中等问题
 
 | # | 问题 | 影响 | 位置 |
 |---|------|------|------|
-| 4 | `im_friendship.extra` 注释错误 | 写成了"来源"，实为"扩展字段" | im_friendship |
-| 5 | `im_message_history.message_time` 注释错误 | 写成了"来源"，实为"消息发送时间" | im_message_history |
-| 6 | `im_group_message_history.message_time` 注释错误 | 同上 | im_group_message_history |
+| 4 | `vela_friendship.extra` 注释错误 | 写成了"来源"，实为"扩展字段" | im_friendship |
+| 5 | `vela_message_history.message_time` 注释错误 | 写成了"来源"，实为"消息发送时间" | im_message_history |
+| 6 | `vela_group_message_history.message_time` 注释错误 | 同上 | im_group_message_history |
 | 7 | 缺少 `sequence` 字段索引 | 按 sequence 查询好友关系/群组时全表扫描 | im_friendship, im_group |
 | 8 | 所有表的 `create_time`/`update_time` 使用 `bigint(20)` 时间戳 | 不直观，不易读，建议改为 `datetime` | 全部表 |
 
@@ -30,8 +30,8 @@
 | # | 问题 | 建议 |
 |---|------|------|
 | 9 | 缺少 `deleted` 逻辑删除统一字段 | 统一使用 `del_flag` 或 `is_deleted` |
-| 10 | 测试数据混入建表 SQL | `im-core-send.sql` 中包含 `INSERT INTO` 测试数据 |
-| 11 | 好友分组表 `im_friendship_group_member` 缺少 `app_id` | 多租户场景下无法区分 app |
+| 10 | 测试数据混入建表 SQL | `vela-send.sql` 中包含 `INSERT INTO` 测试数据 |
+| 11 | 好友分组表 `vela_friendship_group_member` 缺少 `app_id` | 多租户场景下无法区分 app |
 | 12 | 引擎全部为 `InnoDB` | ✅ 正确，无需修改 |
 | 13 | 字符集不统一 | `SET NAMES utf8mb4` 但表定义是 `utf8`，矛盾 |
 
@@ -41,14 +41,14 @@
 
 ```sql
 -- =====================================================
--- 数据库: im-core
+-- 数据库: vela
 -- 字符集: utf8mb4 (支持 emoji)
 -- 引擎: InnoDB
 -- 版本: 2.0 (DDD 重构版)
 -- =====================================================
 
-CREATE DATABASE IF NOT EXISTS `im-core` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `im-core`;
+CREATE DATABASE IF NOT EXISTS `vela` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `vela`;
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
@@ -56,8 +56,8 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ----------------------------
 -- 1. 用户数据表
 -- ----------------------------
-DROP TABLE IF EXISTS `im_user_data`;
-CREATE TABLE `im_user_data` (
+DROP TABLE IF EXISTS `vela_user_data`;
+CREATE TABLE `vela_user_data` (
   `user_id`       VARCHAR(50)  NOT NULL COMMENT '用户ID',
   `app_id`        INT(11)      NOT NULL COMMENT '应用ID',
   `nick_name`     VARCHAR(100)          DEFAULT NULL COMMENT '昵称',
@@ -84,8 +84,8 @@ CREATE TABLE `im_user_data` (
 -- ----------------------------
 -- 2. 好友关系表
 -- ----------------------------
-DROP TABLE IF EXISTS `im_friendship`;
-CREATE TABLE `im_friendship` (
+DROP TABLE IF EXISTS `vela_friendship`;
+CREATE TABLE `vela_friendship` (
   `app_id`          INT(20)     NOT NULL COMMENT '应用ID',
   `from_id`         VARCHAR(50) NOT NULL COMMENT '发起方用户ID',
   `to_id`           VARCHAR(50) NOT NULL COMMENT '接收方用户ID',
@@ -106,8 +106,8 @@ CREATE TABLE `im_friendship` (
 -- ----------------------------
 -- 3. 好友分组表
 -- ----------------------------
-DROP TABLE IF EXISTS `im_friendship_group`;
-CREATE TABLE `im_friendship_group` (
+DROP TABLE IF EXISTS `vela_friendship_group`;
+CREATE TABLE `vela_friendship_group` (
   `app_id`      INT(20)     NOT NULL COMMENT '应用ID',
   `from_id`     VARCHAR(50) NOT NULL COMMENT '用户ID',
   `group_id`    BIGINT(20)  NOT NULL AUTO_INCREMENT COMMENT '分组ID',
@@ -124,8 +124,8 @@ CREATE TABLE `im_friendship_group` (
 -- ----------------------------
 -- 4. 好友分组成员表
 -- ----------------------------
-DROP TABLE IF EXISTS `im_friendship_group_member`;
-CREATE TABLE `im_friendship_group_member` (
+DROP TABLE IF EXISTS `vela_friendship_group_member`;
+CREATE TABLE `vela_friendship_group_member` (
   `app_id`   INT(20)     NOT NULL COMMENT '应用ID',
   `group_id` BIGINT(20)  NOT NULL COMMENT '分组ID',
   `to_id`    VARCHAR(50) NOT NULL COMMENT '成员用户ID',
@@ -136,8 +136,8 @@ CREATE TABLE `im_friendship_group_member` (
 -- ----------------------------
 -- 5. 好友请求表
 -- ----------------------------
-DROP TABLE IF EXISTS `im_friendship_request`;
-CREATE TABLE `im_friendship_request` (
+DROP TABLE IF EXISTS `vela_friendship_request`;
+CREATE TABLE `vela_friendship_request` (
   `id`             BIGINT(20)  NOT NULL AUTO_INCREMENT COMMENT '请求ID',
   `app_id`         INT(20)     NOT NULL COMMENT '应用ID',
   `from_id`        VARCHAR(50) NOT NULL COMMENT '发起方用户ID',
@@ -159,8 +159,8 @@ CREATE TABLE `im_friendship_request` (
 -- ----------------------------
 -- 6. 群组表
 -- ----------------------------
-DROP TABLE IF EXISTS `im_group`;
-CREATE TABLE `im_group` (
+DROP TABLE IF EXISTS `vela_group`;
+CREATE TABLE `vela_group` (
   `app_id`           INT(20)     NOT NULL COMMENT '应用ID',
   `group_id`         VARCHAR(50) NOT NULL COMMENT '群组ID',
   `owner_id`         VARCHAR(50) NOT NULL COMMENT '群主ID',
@@ -185,8 +185,8 @@ CREATE TABLE `im_group` (
 -- ----------------------------
 -- 7. 群组成员表
 -- ----------------------------
-DROP TABLE IF EXISTS `im_group_member`;
-CREATE TABLE `im_group_member` (
+DROP TABLE IF EXISTS `vela_group_member`;
+CREATE TABLE `vela_group_member` (
   `group_member_id` BIGINT(20)  NOT NULL AUTO_INCREMENT COMMENT '自增ID',
   `app_id`          INT(20)     NOT NULL COMMENT '应用ID',
   `group_id`        VARCHAR(50) NOT NULL COMMENT '群组ID',
@@ -208,8 +208,8 @@ CREATE TABLE `im_group_member` (
 -- 8. 消息体表
 -- 分表策略: message_body_0 ~ message_body_63 (按 message_key 哈希)
 -- ----------------------------
-DROP TABLE IF EXISTS `im_message_body`;
-CREATE TABLE `im_message_body` (
+DROP TABLE IF EXISTS `vela_message_body`;
+CREATE TABLE `vela_message_body` (
   `app_id`      INT(10)      NOT NULL COMMENT '应用ID',
   `message_key` BIGINT(50)   NOT NULL COMMENT '消息唯一Key',
   `message_body` MEDIUMTEXT           DEFAULT NULL COMMENT '消息体内容(支持长文本)',
@@ -226,8 +226,8 @@ CREATE TABLE `im_message_body` (
 -- 9. 单聊消息历史表
 -- 分表策略: message_history_0 ~ message_history_63 (按 owner_id 哈希)
 -- ----------------------------
-DROP TABLE IF EXISTS `im_message_history`;
-CREATE TABLE `im_message_history` (
+DROP TABLE IF EXISTS `vela_message_history`;
+CREATE TABLE `vela_message_history` (
   `app_id`        INT(20)     NOT NULL COMMENT '应用ID',
   `owner_id`      VARCHAR(50) NOT NULL COMMENT '消息所属用户ID',
   `from_id`       VARCHAR(50) NOT NULL COMMENT '发送方用户ID',
@@ -248,8 +248,8 @@ CREATE TABLE `im_message_history` (
 -- 10. 群聊消息历史表
 -- 分表策略: group_message_0 ~ group_message_63 (按 group_id 哈希)
 -- ----------------------------
-DROP TABLE IF EXISTS `im_group_message_history`;
-CREATE TABLE `im_group_message_history` (
+DROP TABLE IF EXISTS `vela_group_message_history`;
+CREATE TABLE `vela_group_message_history` (
   `app_id`        INT(20)     NOT NULL COMMENT '应用ID',
   `group_id`      VARCHAR(50) NOT NULL COMMENT '群组ID',
   `from_id`       VARCHAR(50) NOT NULL COMMENT '发送方用户ID',
@@ -267,8 +267,8 @@ CREATE TABLE `im_group_message_history` (
 -- ----------------------------
 -- 11. 会话设置表
 -- ----------------------------
-DROP TABLE IF EXISTS `im_conversation_set`;
-CREATE TABLE `im_conversation_set` (
+DROP TABLE IF EXISTS `vela_conversation_set`;
+CREATE TABLE `vela_conversation_set` (
   `conversation_id`  VARCHAR(255) NOT NULL COMMENT '会话ID(格式: type_fromId_toId)',
   `app_id`           INT(10)      NOT NULL COMMENT '应用ID',
   `conversation_type` TINYINT(4)           DEFAULT 0 COMMENT '会话类型: 0-单聊 1-群聊 2-机器人 3-公众号',
@@ -303,11 +303,11 @@ SET FOREIGN_KEY_CHECKS = 1;
 |------|---------|---------|
 | 全部表 | 字符集 `utf8` → `utf8mb4` | 需重建表或 ALTER |
 | 全部表 | `bigint` 时间戳 → `DATETIME` | 需修改代码中的时间字段类型 |
-| `im_message_body` | `message_body` `varchar(5000)` → `MEDIUMTEXT` | 需修改实体字段类型 |
-| `im_conversation_set` | `from_id` → `owner_id`（语义修正） | 需修改代码实体字段名 |
-| `im_friendship` | `extra` 注释修正 | 仅文档 |
-| `im_friendship_group_member` | 新增 `app_id` 字段 | 需修改代码实体 |
-| `im_group_member` | 新增 `UNIQUE INDEX(app_id, group_id, member_id)` | 防止重复添加 |
+| `vela_message_body` | `message_body` `varchar(5000)` → `MEDIUMTEXT` | 需修改实体字段类型 |
+| `vela_conversation_set` | `from_id` → `owner_id`（语义修正） | 需修改代码实体字段名 |
+| `vela_friendship` | `extra` 注释修正 | 仅文档 |
+| `vela_friendship_group_member` | 新增 `app_id` 字段 | 需修改代码实体 |
+| `vela_group_member` | 新增 `UNIQUE INDEX(app_id, group_id, member_id)` | 防止重复添加 |
 | 全部表 | 补充 `create_time`/`update_time` 默认值 | 代码层无需改 |
 | `app_user` | 建议删除（冗余） | 无影响 |
 
@@ -318,12 +318,12 @@ SET FOREIGN_KEY_CHECKS = 1;
 ### Step 1: 备份
 ```sql
 -- 导出旧数据
-mysqldump -u root -p im-core > im-core-backup-20260719.sql
+mysqldump -u root -p vela > vela-backup-20260719.sql
 ```
 
 ### Step 2: 执行新 SQL
 ```bash
-mysql -u root -p im-core < database-refactor-plan.sql
+mysql -u root -p vela < database-refactor-plan.sql
 ```
 
 ### Step 3: 迁移数据
@@ -338,7 +338,7 @@ ALTER TABLE im_user_data CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicod
 ```sql
 -- 检查字符集
 SELECT TABLE_NAME, TABLE_COLLATION FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = 'im-core';
+WHERE TABLE_SCHEMA = 'vela';
 
 -- 插入 emoji 测试
 INSERT INTO im_user_data (user_id, app_id, nick_name) VALUES ('test', 10000, '😊🔥🎉');

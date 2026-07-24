@@ -21,7 +21,7 @@ import lombok.Data;
  * Copyright © 2026 wanqiu All rights reserved
  */
 @Data
-@TableName("im_friendship_request")
+@TableName("vela_friendship_request")
 public class ImFriendShipRequestEntity {
 
     @TableId(type = IdType.AUTO)

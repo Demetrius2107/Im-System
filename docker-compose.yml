@@ -28,8 +28,8 @@ services:
       MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
     volumes:
       - mysql-data:/var/lib/mysql
-      - ./docs/MySQL/im-core-study.sql:/docker-entrypoint-initdb.d/01-init.sql
-      - ./docs/MySQL/im-core-send.sql:/docker-entrypoint-initdb.d/02-data.sql
+      - ./docs/MySQL/vela-study.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./docs/MySQL/vela-send.sql:/docker-entrypoint-initdb.d/02-data.sql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -106,7 +106,7 @@ services:
         condition: service_healthy
     environment:
       # MySQL
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/im-core?serverTimezone=Asia/Shanghai&useSSL=false&characterEncoding=UTF8&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/vela?serverTimezone=Asia/Shanghai&useSSL=false&characterEncoding=UTF8&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
       # Redis
@@ -140,7 +140,7 @@ services:
         condition: service_healthy
     environment:
       # MySQL
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/im-core?serverTimezone=Asia/Shanghai&useSSL=false&characterEncoding=UTF8&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/vela?serverTimezone=Asia/Shanghai&useSSL=false&characterEncoding=UTF8&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
       # Redis
